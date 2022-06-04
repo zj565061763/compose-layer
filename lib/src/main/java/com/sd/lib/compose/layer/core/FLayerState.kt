@@ -28,6 +28,8 @@ class FLayerState {
     /** 四条边上居中的时候，是否对齐外边 */
     var centerOutside: Boolean = true
 
+    var checkStatusBarHeight: Boolean = true
+
     /** 坐标拦截 */
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
@@ -63,72 +65,101 @@ class FLayerState {
      * 计算layer的位置
      */
     internal fun updatePosition() {
-        val targetInfo = targetLayoutCoordinates ?: return
+        val targetInfo = targetLayoutCoordinates
+        if (targetInfo == null) {
+            layerOffset = IntOffsetUnspecified
+            return
+        }
+
         val targetSize = targetInfo.size
-        if (targetSize.width <= 0 || targetSize.height <= 0) return
+        if (targetSize.width <= 0 || targetSize.height <= 0) {
+            layerOffset = IntOffsetUnspecified
+            return
+        }
 
         val layerSize = layerSize
-        if (layerSize.width <= 0 || layerSize.height <= 0) return
+        if (layerSize.width <= 0 || layerSize.height <= 0) {
+            layerOffset = IntOffsetUnspecified
+            return
+        }
 
-        val offset = when (alignment) {
+        var offsetX = 0f
+        var offsetY = 0f
+
+        when (alignment) {
             Alignment.TopStart -> {
-                Offset(0f, 0f)
+                offsetX = 0f
+                offsetY = 0f
             }
             Alignment.TopCenter -> {
-                val offsetX = Utils.getXCenter(targetSize, layerSize)
-                Offset(offsetX, 0f.takeUnless { centerOutside } ?: -layerSize.height.toFloat())
+                offsetX = Utils.getXCenter(targetSize, layerSize)
+                offsetY = 0f
+                if (centerOutside) {
+                    offsetX = Float.NaN
+                    offsetY = -layerSize.height.toFloat()
+                }
             }
             Alignment.TopEnd -> {
-                val offsetX = Utils.getXEnd(targetSize, layerSize)
-                Offset(offsetX, 0f)
+                offsetX = Utils.getXEnd(targetSize, layerSize)
+                offsetY = 0f
             }
             Alignment.CenterStart -> {
-                val offsetY = Utils.getYCenter(targetSize, layerSize)
-                Offset(0f.takeUnless { centerOutside } ?: -layerSize.width.toFloat(), offsetY)
+                offsetX = 0f
+                offsetY = Utils.getYCenter(targetSize, layerSize)
+                if (centerOutside) {
+                    offsetX = -layerSize.width.toFloat()
+                    offsetY = Float.NaN
+                }
             }
             Alignment.Center -> {
-                val offsetX = Utils.getXCenter(targetSize, layerSize)
-                val offsetY = Utils.getYCenter(targetSize, layerSize)
-                Offset(offsetX, offsetY)
+                offsetX = Utils.getXCenter(targetSize, layerSize)
+                offsetY = Utils.getYCenter(targetSize, layerSize)
             }
             Alignment.CenterEnd -> {
-                val offsetX = Utils.getXEnd(targetSize, layerSize)
-                val offsetY = Utils.getYCenter(targetSize, layerSize)
-                Offset(offsetX + (0f.takeUnless { centerOutside } ?: layerSize.width.toFloat()), offsetY)
+                offsetX = Utils.getXEnd(targetSize, layerSize)
+                offsetY = Utils.getYCenter(targetSize, layerSize)
+                if (centerOutside) {
+                    offsetX += layerSize.width.toFloat()
+                    offsetY = Float.NaN
+                }
             }
             Alignment.BottomStart -> {
-                val offsetY = Utils.getYEnd(targetSize, layerSize)
-                Offset(0f, offsetY)
+                offsetX = 0f
+                offsetY = Utils.getYEnd(targetSize, layerSize)
             }
             Alignment.BottomCenter -> {
-                val offsetX = Utils.getXCenter(targetSize, layerSize)
-                val offsetY = Utils.getYEnd(targetSize, layerSize)
-                Offset(offsetX, offsetY + (0f.takeUnless { centerOutside } ?: layerSize.height.toFloat()))
+                offsetX = Utils.getXCenter(targetSize, layerSize)
+                offsetY = Utils.getYEnd(targetSize, layerSize)
+                if (centerOutside) {
+                    offsetX = Float.NaN
+                    offsetY += layerSize.height.toFloat()
+                }
             }
             Alignment.BottomEnd -> {
-                val offsetX = Utils.getXEnd(targetSize, layerSize)
-                val offsetY = Utils.getYEnd(targetSize, layerSize)
-                Offset(offsetX, offsetY)
+                offsetX = Utils.getXEnd(targetSize, layerSize)
+                offsetY = Utils.getYEnd(targetSize, layerSize)
             }
             else -> {
-                Offset.Unspecified
+                throw RuntimeException("unknown Alignment:$alignment")
             }
         }
 
-        if (offset != Offset.Unspecified) {
-            val windowOffset = targetInfo.localToWindow(offset)
-            val intOffset = IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt() - statusBarHeight)
+        val offset = Offset(x = offsetX.takeIf { it.isNaN().not() } ?: 0f, y = offsetY.takeIf { it.isNaN().not() } ?: 0f)
+        val windowOffset = targetInfo.localToWindow(offset)
 
-            val offsetInterceptorInfo = object : OffsetInterceptorInfo {
-                override val offset: IntOffset
-                    get() = intOffset
-                override val layerSize: IntSize
-                    get() = layerSize
-                override val targetSize: IntSize
-                    get() = targetSize
-            }
-            layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
+        val x = windowOffset.x.takeIf { offsetX.isNaN().not() } ?: 0f
+        val y = windowOffset.y.takeIf { offsetY.isNaN().not() } ?: 0f
+        val intOffset = IntOffset(x = x.toInt(), y = y.toInt() - (statusBarHeight.takeIf { checkStatusBarHeight } ?: 0))
+
+        val offsetInterceptorInfo = object : OffsetInterceptorInfo {
+            override val offset: IntOffset
+                get() = intOffset
+            override val layerSize: IntSize
+                get() = layerSize
+            override val targetSize: IntSize
+                get() = targetSize
         }
+        layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
     }
 }
 
