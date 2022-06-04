@@ -76,14 +76,10 @@ fun AlignTarget() {
         }
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(20.dp)
-        .background(Color.Red.copy(0.3f))
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier
             .size(250.dp)
-            .background(Color.Black.copy(alpha = 0.3f))
+            .background(Color.LightGray)
             .align(Alignment.Center)
             .onSizeChanged {
                 Log.i("TAG", "size")
