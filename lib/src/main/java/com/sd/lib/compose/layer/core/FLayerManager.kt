@@ -5,7 +5,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import java.util.*
 
 internal val LocalFLayerManager = compositionLocalOf { FLayerManager() }
@@ -38,7 +37,7 @@ internal class FLayerManager {
                             item.layerSize = it
                         }
                         .offset {
-                            IntOffset(x = item.relativeOffset.x.toInt(), y = item.relativeOffset.y.toInt())
+                            item.layerOffset
                         }
                     ) {
                         item.content()
