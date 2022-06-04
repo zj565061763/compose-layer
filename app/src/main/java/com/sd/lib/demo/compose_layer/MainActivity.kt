@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background,
                 ) {
                     FLayerContainer() {
-//                        AlignContainer()
+                        AlignContainer()
                         AlignTarget()
                     }
                 }
@@ -56,9 +56,9 @@ class MainActivity : ComponentActivity() {
 fun AlignContainer() {
     // 相对于容器
     FLayer(state = rememberFLayerState().apply {
-        this.alignment = Alignment.BottomCenter
+        this.alignment = Alignment.TopCenter
     }) {
-        ColorBox(Color.Green, "111")
+        BlurBox()
     }
 }
 
@@ -160,7 +160,7 @@ private fun ColorBox(
 @Composable
 private fun BlurBox() {
     var visible by remember { mutableStateOf(false) }
-    val height by animateDpAsState(if (visible) 200.dp else 0.dp)
+    val height by animateDpAsState(if (visible) 100.dp else 0.dp)
     LaunchedEffect(true) {
         while (true) {
             visible = visible.not()
