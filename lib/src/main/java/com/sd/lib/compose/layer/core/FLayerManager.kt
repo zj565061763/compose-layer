@@ -3,9 +3,9 @@ package com.sd.lib.compose.layer.core
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import java.util.*
 
 internal val LocalFLayerManager = compositionLocalOf { FLayerManager() }
@@ -32,22 +32,24 @@ internal class FLayerManager {
     internal fun Content() {
         layerHolder.values.forEach { item ->
             Box(modifier = Modifier.fillMaxSize()) {
-                val modifier = if (item.alignTarget) {
-                    Modifier
-                        .onSizeChanged { item.layerSize = it }
-                        .layout { measurable, constraints ->
-                            val placeable = measurable.measure(item.transformConstraints(constraints))
-                            layout(placeable.width, placeable.height) {
-                                placeable.placeRelative(item.relativeOffset.x.toInt(), item.relativeOffset.y.toInt())
-                            }
+                if (item.alignTarget) {
+                    Box(modifier = Modifier
+                        .onSizeChanged {
+                            item.layerSize = it
                         }
+                        .offset {
+                            IntOffset(x = item.relativeOffset.x.toInt(), y = item.relativeOffset.y.toInt())
+                        }
+                    ) {
+                        item.content()
+                    }
                 } else {
-                    Modifier
+                    Box(modifier = Modifier
                         .align(item.alignment)
                         .offset(x = item.x, y = item.y)
-                }
-                Box(modifier = modifier) {
-                    item.content()
+                    ) {
+                        item.content()
+                    }
                 }
             }
         }

@@ -61,11 +61,12 @@ class FLayerState {
      */
     private fun updatePosition() {
         if (alignTarget.not()) return
+
         val targetInfo = targetLayoutCoordinates ?: return
         if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return
+
         val layerSize = layerSize ?: return
         if (layerSize.width <= 0 || layerSize.height <= 0) return
-        val statusBarHeight = windowInsetsStatusBar.getTop(density)
 
         positionInterceptor?.invoke(targetInfo.size, layerSize)
 
@@ -118,6 +119,7 @@ class FLayerState {
         }
 
         if (offset != Offset.Unspecified) {
+            val statusBarHeight = windowInsetsStatusBar.getTop(density)
             relativeOffset = offset.copy(y = offset.y - statusBarHeight)
         }
     }
