@@ -11,13 +11,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayer
@@ -60,7 +61,7 @@ fun AlignContainer() {
             enter = expandIn(),
             exit = shrinkOut(),
         ) {
-            ColorBox(Color.Green)
+            ColorBox(Color.Green, "111")
         }
     }
 }
@@ -81,7 +82,7 @@ fun AlignTarget() {
         .background(Color.Red.copy(0.3f))
     ) {
         Box(modifier = Modifier
-            .size(150.dp)
+            .size(200.dp)
             .background(Color.Black.copy(alpha = 0.3f))
             .align(Alignment.Center)
             .onSizeChanged {
@@ -90,84 +91,79 @@ fun AlignTarget() {
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopStart
             }) {
-                ColorBox(Color.Red, modifier = Modifier
-                    .onSizeChanged {
-                        Log.i("TAG", "ColorBox size:$it")
-                    })
+                ColorBox(Color.Red.copy(alpha = 0.8f), "1")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopCenter
             }) {
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = expandIn(),
-                    exit = shrinkOut(),
-                ) {
-                    ColorBox(Color.Green)
-                }
+                ColorBox(Color.Green.copy(alpha = 0.8f), "2")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopEnd
-                this.offsetInterceptor = {
-                    IntOffset(offset.x, offset.y - layerSize.height)
-                }
+//                this.offsetInterceptor = {
+//                    IntOffset(offset.x, offset.y - layerSize.height)
+//                }
             }) {
-                ColorBox(Color.Blue)
+                ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.CenterStart
             }) {
-                ColorBox(Color.Red.copy(alpha = 0.6f))
+                ColorBox(Color.Red.copy(alpha = 0.5f), "4")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.Center
             }) {
-                ColorBox(Color.Green.copy(alpha = 0.6f))
+                ColorBox(Color.Green.copy(alpha = 0.5f), "5")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.CenterEnd
             }) {
-                ColorBox(Color.Blue.copy(alpha = 0.6f))
+                ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.BottomStart
             }) {
-                ColorBox(Color.Red.copy(alpha = 0.3f))
+                ColorBox(Color.Red.copy(alpha = 0.2f), "7")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.BottomCenter
             }) {
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = expandIn(),
-                    exit = shrinkOut(),
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                ) {
-                    ColorBox(Color.Green.copy(alpha = 0.3f))
-                }
+                ColorBox(Color.Green.copy(alpha = 0.2f), "8")
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.BottomEnd
             }) {
-                ColorBox(Color.Blue.copy(alpha = 0.3f))
+                ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
             }
         )
     }
 }
 
 @Composable
-private fun ColorBox(color: Color, modifier: Modifier = Modifier) {
+private fun ColorBox(
+    color: Color,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier = modifier
-        .widthIn(20.dp)
-        .heightIn(20.dp)
+        .widthIn(30.dp)
+        .heightIn(30.dp)
         .background(color)
-    )
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.align(Alignment.Center),
+            color = Color.White,
+            fontSize = 10.sp
+        )
+    }
 }
