@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 
@@ -59,7 +58,6 @@ class FLayerState {
             field = value
             updatePosition()
         }
-
 
     /**
      * 计算layer的位置
@@ -132,60 +130,6 @@ class FLayerState {
             layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
         }
     }
-
-    internal fun transformConstraints(constraints: Constraints, offset: IntOffset): Constraints {
-        val targetSize = targetLayoutCoordinates?.size ?: return constraints
-        return when (alignment) {
-            Alignment.TopStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.TopCenter -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.TopEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.CenterStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.Center -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.CenterEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.BottomStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.BottomCenter -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            Alignment.BottomEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
-                constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
-            }
-            else -> {
-                constraints
-            }
-        }
-    }
 }
 
 private object Utils {
@@ -203,29 +147,5 @@ private object Utils {
 
     fun getYEnd(targetSize: IntSize, layerSize: IntSize): Float {
         return (targetSize.height - layerSize.height).toFloat()
-    }
-
-    fun getMaxWidthStart(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return (constraints.maxWidth - offset.x).coerceAtLeast(0)
-    }
-
-    fun getMaxWidthCenter(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return constraints.maxWidth
-    }
-
-    fun getMaxWidthEnd(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return (offset.x + targetSize.width)
-    }
-
-    fun getMaxHeightTop(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return (constraints.maxHeight - offset.y).coerceAtLeast(0)
-    }
-
-    fun getMaxHeightCenter(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return constraints.maxHeight
-    }
-
-    fun getMaxHeightBottom(constraints: Constraints, targetSize: IntSize, offset: IntOffset): Int {
-        return (offset.y + targetSize.height)
     }
 }
