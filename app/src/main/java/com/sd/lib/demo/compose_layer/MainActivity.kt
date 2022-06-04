@@ -82,7 +82,7 @@ fun AlignTarget() {
         .background(Color.Red.copy(0.3f))
     ) {
         Box(modifier = Modifier
-            .size(200.dp)
+            .size(250.dp)
             .background(Color.Black.copy(alpha = 0.3f))
             .align(Alignment.Center)
             .onSizeChanged {
@@ -102,9 +102,6 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopEnd
-//                this.offsetInterceptor = {
-//                    IntOffset(offset.x, offset.y - layerSize.height)
-//                }
             }) {
                 ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
             }
@@ -155,15 +152,15 @@ private fun ColorBox(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier
-        .widthIn(30.dp)
-        .heightIn(30.dp)
+        .widthIn(50.dp)
+        .heightIn(50.dp)
         .background(color)
     ) {
         Text(
             text = text,
             modifier = Modifier.align(Alignment.Center),
             color = Color.White,
-            fontSize = 10.sp
+            fontSize = 12.sp
         )
     }
 }
