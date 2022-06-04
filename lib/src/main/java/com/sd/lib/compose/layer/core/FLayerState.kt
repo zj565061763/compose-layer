@@ -25,8 +25,8 @@ class FLayerState {
     /** 对齐方式 */
     var alignment by mutableStateOf(Alignment.Center)
 
-    /** 对齐左边 */
-    var layerOffset by mutableStateOf(IntOffsetUnspecified)
+    /** 对齐坐标 */
+    internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
 
     /** 状态栏高度 */
     internal var statusBarHeight = 0
@@ -36,7 +36,7 @@ class FLayerState {
         }
 
     /** 目标信息 */
-    var targetLayoutCoordinates: LayoutCoordinates? = null
+    internal var targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
             updatePosition()

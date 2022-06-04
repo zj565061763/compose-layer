@@ -31,7 +31,7 @@ internal class FLayerManager {
         layerHolder.values.forEach { item ->
             Box(modifier = Modifier.fillMaxSize()) {
                 if (item.alignTarget) {
-                    LaunchedEffect(item.alignment, item.layerSize, item.targetLayoutCoordinates) {
+                    LaunchedEffect(item.alignment) {
                         item.updatePosition()
                     }
 
