@@ -25,16 +25,34 @@ class FLayerState {
     /** 对齐方式 */
     var alignment by mutableStateOf(Alignment.Center)
 
+    /** 对齐左边 */
+    var layerOffset by mutableStateOf(IntOffsetUnspecified)
+
+    /** 状态栏高度 */
+    internal var statusBarHeight = 0
+        set(value) {
+            field = value
+            updatePosition()
+        }
+
     /** 目标信息 */
-    var targetLayoutCoordinates: LayoutCoordinates? by mutableStateOf(null)
+    var targetLayoutCoordinates: LayoutCoordinates? = null
+        set(value) {
+            field = value
+            updatePosition()
+        }
 
     /** layer的大小 */
-    internal var layerSize: IntSize? by mutableStateOf(null)
+    internal var layerSize: IntSize? = null
+        set(value) {
+            field = value
+            updatePosition()
+        }
 
     /**
      * 计算layer的位置
      */
-    internal fun calculatePosition(): IntOffset {
+    internal fun updatePosition(): IntOffset {
         val targetInfo = targetLayoutCoordinates ?: return IntOffsetUnspecified
         if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return IntOffsetUnspecified
 
@@ -88,7 +106,9 @@ class FLayerState {
 
         if (offset != Offset.Unspecified) {
             val windowOffset = targetInfo.localToWindow(offset)
-            return IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt())
+            return IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt() - statusBarHeight).also {
+                layerOffset = it
+            }
         }
         return IntOffsetUnspecified
     }
