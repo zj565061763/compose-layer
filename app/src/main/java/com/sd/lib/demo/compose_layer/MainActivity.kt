@@ -141,6 +141,10 @@ fun AlignTarget() {
             }) {
                 ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
             }
+
+            .fLayer(rememberFLayerState()) {
+                BlurBox()
+            }
         )
     }
 }
@@ -162,5 +166,15 @@ private fun ColorBox(
             color = Color.White,
             fontSize = 12.sp
         )
+    }
+}
+
+@Composable
+private fun BlurBox() {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.Black.copy(alpha = 0.3f))
+        .height(300.dp)
+    ) {
     }
 }

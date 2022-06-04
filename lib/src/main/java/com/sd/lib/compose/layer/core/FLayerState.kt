@@ -13,8 +13,11 @@ import androidx.compose.ui.unit.IntSize
 internal val IntOffsetUnspecified = IntOffset(Int.MIN_VALUE, Int.MIN_VALUE)
 
 interface OffsetInterceptorInfo {
+    /** 当前计算的layer坐标 */
     val offset: IntOffset
+    /** layer大小 */
     val layerSize: IntSize
+    /** 目标大小 */
     val targetSize: IntSize
 }
 
