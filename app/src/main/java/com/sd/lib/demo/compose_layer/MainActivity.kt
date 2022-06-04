@@ -1,6 +1,7 @@
 package com.sd.lib.demo.compose_layer
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
@@ -32,7 +34,7 @@ class MainActivity : ComponentActivity() {
             ComposelayerTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
                     FLayerContainer() {
-                        AlignContainer()
+//                        AlignContainer()
                         AlignTarget()
                     }
                 }
@@ -54,7 +56,6 @@ fun AlignContainer() {
     // 相对于容器
     FLayer(state = rememberFLayerState().apply {
         this.alignment = Alignment.BottomCenter
-        this.y = (-20).dp
     }) {
         AnimatedVisibility(
             visible = visible,
@@ -85,19 +86,20 @@ fun AlignTarget() {
             .size(150.dp)
             .background(Color.Black.copy(alpha = 0.3f))
             .align(Alignment.Center)
+            .onSizeChanged {
+                Log.i("TAG", "size")
+            }
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopStart
-                this.x = 10.dp
-                this.y = 10.dp
             }) {
-                ColorBox(Color.Red)
+                ColorBox(Color.Red, modifier = Modifier
+                    .onSizeChanged {
+                        Log.i("TAG", "ColorBox size:$it")
+                    })
             }
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopCenter
-                this.positionInterceptor = { layerSize, targetSize ->
-                    this.y = -with(density) { targetSize.height.toDp() }
-                }
             }) {
                 AnimatedVisibility(
                     visible = visible,
@@ -161,8 +163,8 @@ fun AlignTarget() {
 }
 
 @Composable
-private fun ColorBox(color: Color) {
-    Box(modifier = Modifier
+private fun ColorBox(color: Color, modifier: Modifier = Modifier) {
+    Box(modifier = modifier
         .size(20.dp)
         .background(color)
     )
