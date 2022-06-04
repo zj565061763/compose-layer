@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
@@ -109,6 +110,9 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopEnd
+                this.offsetInterceptor = { offset, layerSize ->
+                    IntOffset(offset.x, offset.y - layerSize.height)
+                }
             }) {
                 ColorBox(Color.Blue)
             }

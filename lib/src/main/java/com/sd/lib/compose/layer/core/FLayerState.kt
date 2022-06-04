@@ -28,6 +28,9 @@ class FLayerState {
     /** 对齐坐标 */
     internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
 
+    /** 坐标拦截 */
+    var offsetInterceptor: ((offset: IntOffset, layerSize: IntSize) -> IntOffset?)? = null
+
     /** 状态栏高度 */
     internal var statusBarHeight = 0
         set(value) {
@@ -52,12 +55,12 @@ class FLayerState {
     /**
      * 计算layer的位置
      */
-    internal fun updatePosition(): IntOffset {
-        val targetInfo = targetLayoutCoordinates ?: return IntOffsetUnspecified
-        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return IntOffsetUnspecified
+    internal fun updatePosition() {
+        val targetInfo = targetLayoutCoordinates ?: return
+        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return
 
-        val layerSize = layerSize ?: return IntOffsetUnspecified
-        if (layerSize.width <= 0 || layerSize.height <= 0) return IntOffsetUnspecified
+        val layerSize = layerSize ?: return
+        if (layerSize.width <= 0 || layerSize.height <= 0) return
 
         val offset = when (alignment) {
             Alignment.TopStart -> {
@@ -106,11 +109,9 @@ class FLayerState {
 
         if (offset != Offset.Unspecified) {
             val windowOffset = targetInfo.localToWindow(offset)
-            return IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt() - statusBarHeight).also {
-                layerOffset = it
-            }
+            val intOffset = IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt() - statusBarHeight)
+            layerOffset = offsetInterceptor?.invoke(intOffset, layerSize) ?: intOffset
         }
-        return IntOffsetUnspecified
     }
 
     internal fun transformConstraints(constraints: Constraints, offset: IntOffset): Constraints {
