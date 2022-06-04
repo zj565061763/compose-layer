@@ -104,6 +104,7 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopCenter
+                this.centerOutside = false
             }) {
                 ColorBox(Color.Green.copy(alpha = 0.8f), "2")
             }
@@ -116,6 +117,7 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.CenterStart
+                this.centerOutside = false
             }) {
                 ColorBox(Color.Red.copy(alpha = 0.5f), "4")
             }
@@ -128,6 +130,7 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.CenterEnd
+                this.centerOutside = false
             }) {
                 ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
             }
@@ -140,6 +143,7 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.BottomCenter
+                this.centerOutside = false
             }) {
                 ColorBox(Color.Green.copy(alpha = 0.2f), "8")
             }
@@ -172,7 +176,7 @@ private fun ColorBox(
             text = text,
             modifier = Modifier.align(Alignment.Center),
             color = Color.White,
-            fontSize = 12.sp
+            fontSize = 16.sp
         )
     }
 }
