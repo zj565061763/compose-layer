@@ -36,7 +36,7 @@ internal class FLayerManager {
                     Modifier
                         .onSizeChanged { item.layerSize = it }
                         .layout { measurable, constraints ->
-                            val placeable = measurable.measure(constraints)
+                            val placeable = measurable.measure(item.transformConstraints(constraints))
                             layout(placeable.width, placeable.height) {
                                 placeable.placeRelative(item.relativeOffset.x.toInt(), item.relativeOffset.y.toInt())
                             }
