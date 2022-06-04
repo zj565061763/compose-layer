@@ -8,10 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
@@ -165,7 +162,8 @@ fun AlignTarget() {
 @Composable
 private fun ColorBox(color: Color, modifier: Modifier = Modifier) {
     Box(modifier = modifier
-        .size(20.dp)
+        .widthIn(20.dp)
+        .heightIn(20.dp)
         .background(color)
     )
 }
