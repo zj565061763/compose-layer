@@ -1,11 +1,13 @@
 package com.sd.lib.compose.layer.core
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import java.util.*
 
@@ -32,12 +34,13 @@ internal class FLayerManager {
         layerHolder.values.forEach { item ->
             Box(modifier = Modifier.fillMaxSize()) {
                 if (item.alignTarget) {
-                    val density = LocalDensity.current
-                    val statusBarTop = WindowInsets.statusBars.getTop(density)
-                    var offset by remember { mutableStateOf(IntOffset.Zero) }
-                    LaunchedEffect(item.alignment, item.x, item.y, item.layerSize, item.targetLayoutCoordinates, density) {
-                        val position = item.calculatePosition(density)
-                        offset = position.copy(y = position.y - statusBarTop)
+                    val statusBarTop = WindowInsets.statusBars.getTop(LocalDensity.current)
+                    var offset by remember { mutableStateOf(IntOffsetUnspecified) }
+                    LaunchedEffect(item.alignment, item.layerSize, item.targetLayoutCoordinates) {
+                        val position = item.calculatePosition()
+                        if (position != IntOffsetUnspecified) {
+                            offset = position.copy(y = position.y - statusBarTop)
+                        }
                     }
 
                     Box(modifier = Modifier
@@ -48,7 +51,7 @@ internal class FLayerManager {
                                     item.layerSize = IntSize(it.width, it.height)
                                 }
 
-                            val placeable = if (offset != IntOffset.Zero) {
+                            val placeable = if (offset != IntOffsetUnspecified) {
                                 measurable.measure(item.transformConstraints(constraints, offset))
                             } else {
                                 firstMeasure
@@ -64,7 +67,6 @@ internal class FLayerManager {
                 } else {
                     Box(modifier = Modifier
                         .align(item.alignment)
-                        .offset(x = item.x, y = item.y)
                     ) {
                         item.content()
                     }
