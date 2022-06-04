@@ -23,19 +23,21 @@ interface OffsetInterceptorInfo {
  * layer状态管理对象
  */
 class FLayerState {
+    /** 对齐方式 */
+    var alignment by mutableStateOf(Alignment.BottomCenter)
+
+    /** 四条边上居中的时候，是否对齐外边 */
+    var centerOutside: Boolean = true
+
+    /** 坐标拦截 */
+    var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
+
     /** [alignTarget]为true，表示相对于目标对齐，false表示相对于容器对齐 */
     internal var alignTarget: Boolean = true
     /** layer内容 */
     internal lateinit var content: @Composable (() -> Unit)
-
-    /** 对齐方式 */
-    var alignment by mutableStateOf(Alignment.Center)
-
     /** 对齐坐标 */
     internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
-
-    /** 坐标拦截 */
-    var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
     /** 状态栏高度 */
     internal var statusBarHeight = 0
@@ -76,7 +78,7 @@ class FLayerState {
             }
             Alignment.TopCenter -> {
                 val offsetX = Utils.getXCenter(targetSize, layerSize)
-                Offset(offsetX, 0f)
+                Offset(offsetX, 0f.takeUnless { centerOutside } ?: -layerSize.height.toFloat())
             }
             Alignment.TopEnd -> {
                 val offsetX = Utils.getXEnd(targetSize, layerSize)
@@ -84,7 +86,7 @@ class FLayerState {
             }
             Alignment.CenterStart -> {
                 val offsetY = Utils.getYCenter(targetSize, layerSize)
-                Offset(0f, offsetY)
+                Offset(0f.takeUnless { centerOutside } ?: -layerSize.width.toFloat(), offsetY)
             }
             Alignment.Center -> {
                 val offsetX = Utils.getXCenter(targetSize, layerSize)
@@ -94,7 +96,7 @@ class FLayerState {
             Alignment.CenterEnd -> {
                 val offsetX = Utils.getXEnd(targetSize, layerSize)
                 val offsetY = Utils.getYCenter(targetSize, layerSize)
-                Offset(offsetX, offsetY)
+                Offset(offsetX + (0f.takeUnless { centerOutside } ?: layerSize.width.toFloat()), offsetY)
             }
             Alignment.BottomStart -> {
                 val offsetY = Utils.getYEnd(targetSize, layerSize)
@@ -103,7 +105,7 @@ class FLayerState {
             Alignment.BottomCenter -> {
                 val offsetX = Utils.getXCenter(targetSize, layerSize)
                 val offsetY = Utils.getYEnd(targetSize, layerSize)
-                Offset(offsetX, offsetY)
+                Offset(offsetX, offsetY + (0f.takeUnless { centerOutside } ?: layerSize.height.toFloat()))
             }
             Alignment.BottomEnd -> {
                 val offsetX = Utils.getXEnd(targetSize, layerSize)
