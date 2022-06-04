@@ -41,15 +41,15 @@ class FLayerState {
     /** 当[alignTarget]为true的时候，layer的坐标 */
     internal var relativeOffset by mutableStateOf(Offset(0f, 0f))
 
-    /** layer要依附的目标信息 */
-    var layoutCoordinates: LayoutCoordinates? = null
+    /** 目标信息 */
+    var targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
             updatePosition()
         }
 
-    /** layer要依附的目标大小 */
-    internal var targetSize: IntSize? = null
+    /** layer的大小 */
+    internal var layerSize: IntSize? = null
         set(value) {
             field = value
             updatePosition()
@@ -60,56 +60,56 @@ class FLayerState {
      */
     private fun updatePosition() {
         if (alignTarget.not()) return
-        val layout = layoutCoordinates ?: return
-        if (layout.size.width <= 0 || layout.size.height <= 0) return
-        val targetSize = targetSize ?: return
-        if (targetSize.width <= 0 || targetSize.height <= 0) return
+        val targetInfo = targetLayoutCoordinates ?: return
+        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return
+        val layerSize = layerSize ?: return
+        if (layerSize.width <= 0 || layerSize.height <= 0) return
         val statusBarHeight = windowInsetsStatusBar.getTop(density)
 
-        positionInterceptor?.invoke(layout.size, targetSize)
+        positionInterceptor?.invoke(targetInfo.size, layerSize)
 
         val xInPx = with(density) { x.toPx() }
         val yInPx = with(density) { y.toPx() }
 
         val offset = when (alignment) {
             Alignment.TopStart -> {
-                layout.localToWindow(Offset(xInPx, yInPx))
+                targetInfo.localToWindow(Offset(xInPx, yInPx))
             }
             Alignment.TopCenter -> {
-                val offset = (layout.size.width - targetSize.width) / 2
-                layout.localToWindow(Offset(xInPx + offset, yInPx))
+                val offsetX = AlignmentUtils.getXCenter(targetInfo.size, layerSize, xInPx)
+                targetInfo.localToWindow(Offset(offsetX, yInPx))
             }
             Alignment.TopEnd -> {
-                val offset = layout.size.width - targetSize.width
-                layout.localToWindow(Offset(xInPx + offset, yInPx))
+                val offsetX = AlignmentUtils.getXEnd(targetInfo.size, layerSize, xInPx)
+                targetInfo.localToWindow(Offset(offsetX, yInPx))
             }
             Alignment.CenterStart -> {
-                val offset = (layout.size.height - targetSize.height) / 2
-                layout.localToWindow(Offset(xInPx, yInPx + offset))
+                val offsetY = AlignmentUtils.getYCenter(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(xInPx, offsetY))
             }
             Alignment.Center -> {
-                val offsetX = (layout.size.width - targetSize.width) / 2
-                val offsetY = (layout.size.height - targetSize.height) / 2
-                layout.localToWindow(Offset(xInPx + offsetX, yInPx + offsetY))
+                val offsetX = AlignmentUtils.getXCenter(targetInfo.size, layerSize, xInPx)
+                val offsetY = AlignmentUtils.getYCenter(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(offsetX, offsetY))
             }
             Alignment.CenterEnd -> {
-                val offsetX = layout.size.width - targetSize.width
-                val offsetY = (layout.size.height - targetSize.height) / 2
-                layout.localToWindow(Offset(xInPx + offsetX, yInPx + offsetY))
+                val offsetX = AlignmentUtils.getXEnd(targetInfo.size, layerSize, xInPx)
+                val offsetY = AlignmentUtils.getYCenter(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(offsetX, offsetY))
             }
             Alignment.BottomStart -> {
-                val offset = layout.size.height - targetSize.height
-                layout.localToWindow(Offset(xInPx, yInPx + offset))
+                val offsetY = AlignmentUtils.getYEnd(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(xInPx, offsetY))
             }
             Alignment.BottomCenter -> {
-                val offsetX = (layout.size.width - targetSize.width) / 2
-                val offsetY = layout.size.height - targetSize.height
-                layout.localToWindow(Offset(xInPx + offsetX, yInPx + offsetY))
+                val offsetX = AlignmentUtils.getXCenter(targetInfo.size, layerSize, xInPx)
+                val offsetY = AlignmentUtils.getYEnd(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(offsetX, offsetY))
             }
             Alignment.BottomEnd -> {
-                val offsetX = layout.size.width - targetSize.width
-                val offsetY = layout.size.height - targetSize.height
-                layout.localToWindow(Offset(xInPx + offsetX, yInPx + offsetY))
+                val offsetX = AlignmentUtils.getXEnd(targetInfo.size, layerSize, xInPx)
+                val offsetY = AlignmentUtils.getYEnd(targetInfo.size, layerSize, yInPx)
+                targetInfo.localToWindow(Offset(xInPx + offsetX, yInPx + offsetY))
             }
             else -> {
                 Offset.Unspecified
@@ -119,5 +119,27 @@ class FLayerState {
         if (offset != Offset.Unspecified) {
             relativeOffset = offset.copy(y = offset.y - statusBarHeight)
         }
+    }
+}
+
+private object AlignmentUtils {
+    fun getXCenter(targetSize: IntSize, layerSize: IntSize, delta: Float): Float {
+        val offset = (targetSize.width - layerSize.width) / 2
+        return offset + delta
+    }
+
+    fun getXEnd(targetSize: IntSize, layerSize: IntSize, delta: Float): Float {
+        val offset = targetSize.width - layerSize.width
+        return offset + delta
+    }
+
+    fun getYCenter(targetSize: IntSize, layerSize: IntSize, delta: Float): Float {
+        val offset = (targetSize.height - layerSize.height) / 2
+        return offset + delta
+    }
+
+    fun getYEnd(targetSize: IntSize, layerSize: IntSize, delta: Float): Float {
+        val offset = targetSize.height - layerSize.height
+        return offset + delta
     }
 }

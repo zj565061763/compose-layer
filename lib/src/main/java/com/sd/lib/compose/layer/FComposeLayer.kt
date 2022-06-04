@@ -59,6 +59,6 @@ fun Modifier.fLayer(
     state.alignTarget = true
     LocalFLayerManager.current.layer(state, content)
     this.onGloballyPositioned {
-        state.layoutCoordinates = it
+        state.targetLayoutCoordinates = it
     }
 }

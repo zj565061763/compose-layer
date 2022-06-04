@@ -34,7 +34,7 @@ internal class FLayerManager {
             Box(modifier = Modifier.fillMaxSize()) {
                 val modifier = if (item.alignTarget) {
                     Modifier
-                        .onSizeChanged { item.targetSize = it }
+                        .onSizeChanged { item.layerSize = it }
                         .layout { measurable, constraints ->
                             val placeable = measurable.measure(constraints)
                             layout(placeable.width, placeable.height) {
