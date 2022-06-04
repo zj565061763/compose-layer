@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -56,38 +54,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AlignContainer() {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(true) {
-        while (true) {
-            delay(2000)
-            visible = visible.not()
-        }
-    }
-
     // 相对于容器
     FLayer(state = rememberFLayerState().apply {
         this.alignment = Alignment.BottomCenter
     }) {
-        AnimatedVisibility(
-            visible = visible,
-            enter = expandIn(),
-            exit = shrinkOut(),
-        ) {
-            ColorBox(Color.Green, "111")
-        }
+        ColorBox(Color.Green, "111")
     }
 }
 
 @Composable
 fun AlignTarget() {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(true) {
-        while (true) {
-            delay(2000)
-            visible = visible.not()
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier
             .size(250.dp)
@@ -183,10 +159,19 @@ private fun ColorBox(
 
 @Composable
 private fun BlurBox() {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.Black.copy(alpha = 0.3f))
-        .height(300.dp)
-    ) {
+    var visible by remember { mutableStateOf(false) }
+    val height by animateDpAsState(if (visible) 200.dp else 0.dp)
+    LaunchedEffect(true) {
+        while (true) {
+            visible = visible.not()
+            delay(2000)
+        }
     }
+
+    Box(modifier = Modifier
+        .padding(10.dp)
+        .fillMaxWidth()
+        .background(Color.Black.copy(alpha = 0.3f), shape = MaterialTheme.shapes.medium)
+        .height(height)
+    )
 }
