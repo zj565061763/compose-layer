@@ -36,7 +36,7 @@ class FLayerState {
         }
 
     /** 是否检测状态栏 */
-    var checkStatusBarHeight: Boolean = true
+    var checkStatusBarHeight: Boolean = false
         set(value) {
             field = value
             updatePosition()
