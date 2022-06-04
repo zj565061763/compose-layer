@@ -27,8 +27,17 @@ class FLayerState {
 
     /** 四条边上居中的时候，是否对齐外边 */
     var centerOutside: Boolean = true
+        set(value) {
+            field = value
+            updatePosition()
+        }
 
+    /** 是否检测状态栏 */
     var checkStatusBarHeight: Boolean = true
+        set(value) {
+            field = value
+            updatePosition()
+        }
 
     /** 坐标拦截 */
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
