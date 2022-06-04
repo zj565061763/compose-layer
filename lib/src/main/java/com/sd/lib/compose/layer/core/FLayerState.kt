@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer.core
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +15,8 @@ import androidx.compose.ui.unit.*
 class FLayerState {
     /** [alignTarget]为true，表示相对于目标对齐，false表示相对于容器对齐 */
     internal var alignTarget: Boolean = true
+    /** layer内容 */
+    internal lateinit var content: @Composable (() -> Unit)
 
     /** 对齐方式 */
     var alignment by mutableStateOf(Alignment.Center)
@@ -26,46 +27,21 @@ class FLayerState {
     /** 对齐后y方向偏移量 */
     var y by mutableStateOf(0.dp)
 
-    /** 屏幕密度 */
-    lateinit var density: Density
-        internal set
-
-    var positionInterceptor: ((layerSize: IntSize, targetSize: IntSize) -> Unit)? = null
-
-    /** layer内容 */
-    internal lateinit var content: @Composable (() -> Unit)
-    /** 状态栏信息 */
-    internal lateinit var windowInsetsStatusBar: WindowInsets
-    /** 当[alignTarget]为true的时候，layer的坐标 */
-    internal var layerOffset by mutableStateOf(IntOffset(0, 0))
-
     /** 目标信息 */
-    var targetLayoutCoordinates: LayoutCoordinates? = null
-        set(value) {
-            field = value
-            updatePosition()
-        }
+    var targetLayoutCoordinates: LayoutCoordinates? by mutableStateOf(null)
 
     /** layer的大小 */
-    internal var layerSize: IntSize? = null
-        set(value) {
-            field = value
-            updatePosition()
-        }
+    internal var layerSize: IntSize? by mutableStateOf(null)
 
     /**
-     * 更新layer的位置
+     * 计算layer的位置
      */
-    private fun updatePosition() {
-        if (alignTarget.not()) return
+    internal fun calculatePosition(density: Density): IntOffset {
+        val targetInfo = targetLayoutCoordinates ?: return IntOffset.Zero
+        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return IntOffset.Zero
 
-        val targetInfo = targetLayoutCoordinates ?: return
-        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return
-
-        val layerSize = layerSize ?: return
-        if (layerSize.width <= 0 || layerSize.height <= 0) return
-
-        positionInterceptor?.invoke(targetInfo.size, layerSize)
+        val layerSize = layerSize ?: return IntOffset.Zero
+        if (layerSize.width <= 0 || layerSize.height <= 0) return IntOffset.Zero
 
         val xInPx = with(density) { x.toPx() }
         val yInPx = with(density) { y.toPx() }
@@ -116,57 +92,57 @@ class FLayerState {
         }
 
         if (offset != Offset.Unspecified) {
-            val statusBarHeight = windowInsetsStatusBar.getTop(density)
-            layerOffset = IntOffset(x = offset.x.toInt(), y = offset.y.toInt() - statusBarHeight)
+            return IntOffset(x = offset.x.toInt(), y = offset.y.toInt())
         }
+        return IntOffset.Zero
     }
 
-    internal fun transformConstraints(constraints: Constraints): Constraints {
+    internal fun transformConstraints(constraints: Constraints, offset: IntOffset): Constraints {
         val targetSize = targetLayoutCoordinates?.size ?: return constraints
         return when (alignment) {
             Alignment.TopStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.TopCenter -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.TopEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightTop(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.CenterStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.Center -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.CenterEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightCenter(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.BottomStart -> {
-                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthStart(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.BottomCenter -> {
-                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthCenter(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             Alignment.BottomEnd -> {
-                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, layerOffset)
-                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, layerOffset)
+                val maxWidth = Utils.getMaxWidthEnd(constraints, targetSize, offset)
+                val maxHeight = Utils.getMaxHeightBottom(constraints, targetSize, offset)
                 constraints.copy(maxWidth = maxWidth, maxHeight = maxHeight)
             }
             else -> {
