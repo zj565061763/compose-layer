@@ -13,6 +13,12 @@ import androidx.compose.ui.unit.IntSize
 
 internal val IntOffsetUnspecified = IntOffset(Int.MIN_VALUE, Int.MIN_VALUE)
 
+interface OffsetInterceptorInfo {
+    val offset: IntOffset
+    val layerSize: IntSize
+    val targetSize: IntSize
+}
+
 /**
  * layer状态管理对象
  */
@@ -29,7 +35,7 @@ class FLayerState {
     internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
 
     /** 坐标拦截 */
-    var offsetInterceptor: ((offset: IntOffset, layerSize: IntSize) -> IntOffset?)? = null
+    var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
     /** 状态栏高度 */
     internal var statusBarHeight = 0
@@ -46,20 +52,22 @@ class FLayerState {
         }
 
     /** layer的大小 */
-    internal var layerSize: IntSize? = null
+    internal var layerSize = IntSize.Zero
         set(value) {
             field = value
             updatePosition()
         }
+
 
     /**
      * 计算layer的位置
      */
     internal fun updatePosition() {
         val targetInfo = targetLayoutCoordinates ?: return
-        if (targetInfo.size.width <= 0 || targetInfo.size.height <= 0) return
+        val targetSize = targetInfo.size
+        if (targetSize.width <= 0 || targetSize.height <= 0) return
 
-        val layerSize = layerSize ?: return
+        val layerSize = layerSize
         if (layerSize.width <= 0 || layerSize.height <= 0) return
 
         val offset = when (alignment) {
@@ -67,39 +75,39 @@ class FLayerState {
                 Offset(0f, 0f)
             }
             Alignment.TopCenter -> {
-                val offsetX = Utils.getXCenter(targetInfo.size, layerSize)
+                val offsetX = Utils.getXCenter(targetSize, layerSize)
                 Offset(offsetX, 0f)
             }
             Alignment.TopEnd -> {
-                val offsetX = Utils.getXEnd(targetInfo.size, layerSize)
+                val offsetX = Utils.getXEnd(targetSize, layerSize)
                 Offset(offsetX, 0f)
             }
             Alignment.CenterStart -> {
-                val offsetY = Utils.getYCenter(targetInfo.size, layerSize)
+                val offsetY = Utils.getYCenter(targetSize, layerSize)
                 Offset(0f, offsetY)
             }
             Alignment.Center -> {
-                val offsetX = Utils.getXCenter(targetInfo.size, layerSize)
-                val offsetY = Utils.getYCenter(targetInfo.size, layerSize)
+                val offsetX = Utils.getXCenter(targetSize, layerSize)
+                val offsetY = Utils.getYCenter(targetSize, layerSize)
                 Offset(offsetX, offsetY)
             }
             Alignment.CenterEnd -> {
-                val offsetX = Utils.getXEnd(targetInfo.size, layerSize)
-                val offsetY = Utils.getYCenter(targetInfo.size, layerSize)
+                val offsetX = Utils.getXEnd(targetSize, layerSize)
+                val offsetY = Utils.getYCenter(targetSize, layerSize)
                 Offset(offsetX, offsetY)
             }
             Alignment.BottomStart -> {
-                val offsetY = Utils.getYEnd(targetInfo.size, layerSize)
+                val offsetY = Utils.getYEnd(targetSize, layerSize)
                 Offset(0f, offsetY)
             }
             Alignment.BottomCenter -> {
-                val offsetX = Utils.getXCenter(targetInfo.size, layerSize)
-                val offsetY = Utils.getYEnd(targetInfo.size, layerSize)
+                val offsetX = Utils.getXCenter(targetSize, layerSize)
+                val offsetY = Utils.getYEnd(targetSize, layerSize)
                 Offset(offsetX, offsetY)
             }
             Alignment.BottomEnd -> {
-                val offsetX = Utils.getXEnd(targetInfo.size, layerSize)
-                val offsetY = Utils.getYEnd(targetInfo.size, layerSize)
+                val offsetX = Utils.getXEnd(targetSize, layerSize)
+                val offsetY = Utils.getYEnd(targetSize, layerSize)
                 Offset(offsetX, offsetY)
             }
             else -> {
@@ -110,7 +118,16 @@ class FLayerState {
         if (offset != Offset.Unspecified) {
             val windowOffset = targetInfo.localToWindow(offset)
             val intOffset = IntOffset(x = windowOffset.x.toInt(), y = windowOffset.y.toInt() - statusBarHeight)
-            layerOffset = offsetInterceptor?.invoke(intOffset, layerSize) ?: intOffset
+
+            val offsetInterceptorInfo = object : OffsetInterceptorInfo {
+                override val offset: IntOffset
+                    get() = intOffset
+                override val layerSize: IntSize
+                    get() = layerSize
+                override val targetSize: IntSize
+                    get() = targetSize
+            }
+            layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
         }
     }
 

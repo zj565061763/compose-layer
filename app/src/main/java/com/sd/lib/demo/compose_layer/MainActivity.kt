@@ -110,8 +110,8 @@ fun AlignTarget() {
 
             .fLayer(rememberFLayerState().apply {
                 this.alignment = Alignment.TopEnd
-                this.offsetInterceptor = { offset, layerSize ->
-                    IntOffset(offset.x, offset.y - layerSize.height)
+                this.offsetInterceptor = {
+                    IntOffset(offset.x, offset.y - 50)
                 }
             }) {
                 ColorBox(Color.Blue)
