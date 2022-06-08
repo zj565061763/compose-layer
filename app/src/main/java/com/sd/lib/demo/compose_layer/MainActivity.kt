@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -174,4 +175,10 @@ private fun BlurBox() {
         .background(Color.Black.copy(alpha = 0.3f), shape = MaterialTheme.shapes.medium)
         .height(height)
     )
+}
+
+@Preview
+@Composable
+fun PreviewGreeting() {
+    BlurBox()
 }
