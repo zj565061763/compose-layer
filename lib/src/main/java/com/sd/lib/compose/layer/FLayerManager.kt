@@ -11,7 +11,7 @@ internal class FLayerManager {
     private val _layerHolder = mutableStateListOf<FLayerState>()
 
     @Composable
-    internal fun layer(
+    fun layer(
         alignTarget: Boolean,
         content: @Composable (layerState: FLayerState) -> Unit
     ): FLayerState {
@@ -28,7 +28,7 @@ internal class FLayerManager {
     }
 
     @Composable
-    internal fun Content() {
+    fun Content() {
         _layerHolder.forEach { item ->
             item.Content()
         }
