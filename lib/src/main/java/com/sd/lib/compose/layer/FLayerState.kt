@@ -1,4 +1,4 @@
-package com.sd.lib.compose.layer.core
+package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

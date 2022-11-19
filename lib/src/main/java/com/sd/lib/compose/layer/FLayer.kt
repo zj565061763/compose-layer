@@ -9,9 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.sd.lib.compose.layer.core.FLayerManager
-import com.sd.lib.compose.layer.core.FLayerState
-import com.sd.lib.compose.layer.core.LocalFLayerManager
 
 /**
  * 用来存放layer的容器

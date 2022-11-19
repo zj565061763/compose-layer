@@ -1,4 +1,4 @@
-package com.sd.lib.compose.layer.core
+package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
