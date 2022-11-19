@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
 fun AlignContainer() {
     FLayer {
         it.alignment = Alignment.TopCenter
-        AnimateBlurBox()
+        ColorBox(Color.Red, "Align container")
     }
 }
 
@@ -62,6 +62,7 @@ fun AlignTarget() {
     Box(modifier = Modifier
         .size(250.dp)
         .background(Color.LightGray)
+
         .fLayer {
             it.alignment = Alignment.TopStart
             ColorBox(Color.Red.copy(alpha = 0.8f), "1")
@@ -128,6 +129,7 @@ private fun ColorBox(
             .widthIn(50.dp)
             .heightIn(50.dp)
             .background(color)
+            .padding(5.dp)
     ) {
         Text(
             text = text,
