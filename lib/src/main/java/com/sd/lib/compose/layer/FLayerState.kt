@@ -47,8 +47,10 @@ class FLayerState {
 
     /** [alignTarget]为true，表示相对于目标对齐，false表示相对于容器对齐 */
     internal var alignTarget: Boolean = true
+
     /** layer内容 */
     internal lateinit var content: @Composable (() -> Unit)
+
     /** 对齐坐标 */
     internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
 

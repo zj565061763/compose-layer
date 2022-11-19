@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -16,12 +15,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 @Composable
 fun FLayerContainer(
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalFLayerManager provides FLayerManager()) {
+    val layerManager = remember { FLayerManager() }
+    CompositionLocalProvider(LocalFLayerManager provides layerManager) {
         Box(modifier = modifier.fillMaxSize()) {
             content()
-            LocalFLayerManager.current.Content()
+            layerManager.Content()
         }
     }
 }
@@ -42,8 +42,11 @@ fun FLayer(
     state: FLayerState,
     content: @Composable () -> Unit,
 ) {
+    val layerManager = checkNotNull(LocalFLayerManager.current) {
+        "CompositionLocal LocalFLayerManager not present"
+    }
     state.alignTarget = false
-    LocalFLayerManager.current.layer(state, content)
+    layerManager.layer(state, content)
 }
 
 /**
@@ -53,8 +56,12 @@ fun Modifier.fLayer(
     state: FLayerState,
     content: @Composable () -> Unit,
 ) = composed {
+    val layerManager = checkNotNull(LocalFLayerManager.current) {
+        "CompositionLocal LocalFLayerManager not present"
+    }
+
     state.alignTarget = true
-    LocalFLayerManager.current.layer(state, content)
+    layerManager.layer(state, content)
     this.onGloballyPositioned {
         state.targetLayoutCoordinates = it
     }

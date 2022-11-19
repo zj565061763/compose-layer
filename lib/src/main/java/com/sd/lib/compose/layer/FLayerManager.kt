@@ -7,7 +7,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import java.util.*
 
-internal val LocalFLayerManager = compositionLocalOf { FLayerManager() }
+internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
 
 internal class FLayerManager {
     private val layerHolder = mutableStateMapOf<String, FLayerState>()
@@ -46,8 +46,9 @@ internal class FLayerManager {
                         item.content()
                     }
                 } else {
-                    Box(modifier = Modifier
-                        .align(item.alignment)
+                    Box(
+                        modifier = Modifier
+                            .align(item.alignment)
                     ) {
                         item.content()
                     }
