@@ -46,7 +46,9 @@ fun FLayer(
         "CompositionLocal LocalFLayerManager not present"
     }
     state.alignTarget = false
-    layerManager.layer(state, content)
+    layerManager.Layer(state) {
+        content()
+    }
 }
 
 /**
@@ -59,9 +61,11 @@ fun Modifier.fLayer(
     val layerManager = checkNotNull(LocalFLayerManager.current) {
         "CompositionLocal LocalFLayerManager not present"
     }
-
     state.alignTarget = true
-    layerManager.layer(state, content)
+    layerManager.Layer(state) {
+        content()
+    }
+
     this.onGloballyPositioned {
         state.targetLayoutCoordinates = it
     }
