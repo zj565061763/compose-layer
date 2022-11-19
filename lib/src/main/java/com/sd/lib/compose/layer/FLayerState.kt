@@ -1,12 +1,14 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 
@@ -26,7 +28,12 @@ interface OffsetInterceptorInfo {
 /**
  * layer状态管理对象
  */
-class FLayerState internal constructor() {
+class FLayerState internal constructor(
+    /** true-表示相对于目标对齐，false-表示相对于容器对齐 */
+    private val alignTarget: Boolean,
+    /** layer内容 */
+    private val content: @Composable (FLayerState) -> Unit
+) {
     /** 对齐方式 */
     var alignment by mutableStateOf(Alignment.BottomCenter)
 
@@ -46,12 +53,6 @@ class FLayerState internal constructor() {
 
     /** 坐标拦截 */
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
-
-    /** [alignTarget]为true，表示相对于目标对齐，false表示相对于容器对齐 */
-    internal var alignTarget: Boolean = true
-
-    /** layer内容 */
-    internal lateinit var content: @Composable (() -> Unit)
 
     /** 对齐坐标 */
     internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
@@ -176,6 +177,34 @@ class FLayerState internal constructor() {
                 get() = targetSize
         }
         layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
+    }
+
+    @Composable
+    internal fun Content() {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (alignTarget) {
+                LaunchedEffect(alignment) {
+                    updatePosition()
+                }
+
+                Box(modifier = Modifier
+                    .onSizeChanged {
+                        layerSize = it
+                    }
+                    .offset {
+                        layerOffset
+                    }
+                ) {
+                    content.invoke(this@FLayerState)
+                }
+            } else {
+                Box(
+                    modifier = Modifier.align(alignment)
+                ) {
+                    content.invoke(this@FLayerState)
+                }
+            }
+        }
     }
 }
 

@@ -1,7 +1,6 @@
 package com.sd.demo.compose_layer
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -14,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -23,7 +21,6 @@ import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayer
-import com.sd.lib.compose.layer.rememberFLayerState
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -54,10 +51,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AlignContainer() {
-    // 相对于容器
-    FLayer(state = rememberFLayerState().apply {
-        this.alignment = Alignment.TopCenter
-    }) {
+    FLayer {
+        it.alignment = Alignment.TopCenter
         AnimateBlurBox()
     }
 }
@@ -69,68 +64,56 @@ fun AlignTarget() {
             .size(250.dp)
             .background(Color.LightGray)
             .align(Alignment.Center)
-            .onSizeChanged {
-                Log.i("TAG", "size")
-            }
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.TopStart
-            }) {
+            .fLayer {
+                it.alignment = Alignment.TopStart
                 ColorBox(Color.Red.copy(alpha = 0.8f), "1")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.TopCenter
-                this.centerOutside = false
-            }) {
+            .fLayer {
+                it.alignment = Alignment.TopCenter
+                it.centerOutside = false
                 ColorBox(Color.Green.copy(alpha = 0.8f), "2")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.TopEnd
-            }) {
+            .fLayer {
+                it.alignment = Alignment.TopEnd
                 ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.CenterStart
-                this.centerOutside = false
-            }) {
+            .fLayer {
+                it.alignment = Alignment.CenterStart
+                it.centerOutside = false
                 ColorBox(Color.Red.copy(alpha = 0.5f), "4")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.Center
-            }) {
+            .fLayer {
+                it.alignment = Alignment.Center
                 ColorBox(Color.Green.copy(alpha = 0.5f), "5")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.CenterEnd
-                this.centerOutside = false
-            }) {
+            .fLayer {
+                it.alignment = Alignment.CenterEnd
+                it.centerOutside = false
                 ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.BottomStart
-            }) {
+            .fLayer {
+                it.alignment = Alignment.BottomStart
                 ColorBox(Color.Red.copy(alpha = 0.2f), "7")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.BottomCenter
-                this.centerOutside = false
-            }) {
+            .fLayer {
+                it.alignment = Alignment.BottomCenter
+                it.centerOutside = false
                 ColorBox(Color.Green.copy(alpha = 0.2f), "8")
             }
 
-            .fLayer(rememberFLayerState().apply {
-                this.alignment = Alignment.BottomEnd
-            }) {
+            .fLayer {
+                it.alignment = Alignment.BottomEnd
                 ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
             }
 
-            .fLayer(rememberFLayerState()) {
+            .fLayer {
                 AnimateBlurBox()
             }
         )
