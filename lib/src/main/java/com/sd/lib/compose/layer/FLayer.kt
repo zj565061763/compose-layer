@@ -27,7 +27,7 @@ fun FLayerContainer(
 }
 
 /**
- * 返回layer的状态管理对象，用在[FLayer]或者[fLayer]，不能二者共用
+ * 返回layer的状态管理对象，用在[FLayer]或者[fLayer]，二者不能混用
  */
 @Composable
 fun rememberFLayerState(): FLayerState {
