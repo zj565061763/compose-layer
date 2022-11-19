@@ -1,4 +1,4 @@
-package com.sd.lib.demo.compose_layer.ui.theme
+package com.sd.demo.compose_layer.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme

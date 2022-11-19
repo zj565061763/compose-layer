@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
-
+    namespace 'com.sd.demo.compose_layer'
+    compileSdk 33
     defaultConfig {
-        applicationId "com.sd.lib.demo.compose_layer"
+        applicationId "com.sd.demo.compose_layer"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -36,7 +36,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion compose_compiler_version
     }
     packagingOptions {
         resources {

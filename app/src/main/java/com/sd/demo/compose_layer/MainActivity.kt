@@ -1,4 +1,4 @@
-package com.sd.lib.demo.compose_layer
+package com.sd.demo.compose_layer
 
 import android.os.Bundle
 import android.util.Log
@@ -24,7 +24,7 @@ import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayer
 import com.sd.lib.compose.layer.rememberFLayerState
-import com.sd.lib.demo.compose_layer.ui.theme.ComposelayerTheme
+import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {

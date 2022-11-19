@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Composelayer"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="com.sd.demo.compose_layer.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Composelayer">
