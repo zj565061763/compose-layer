@@ -15,16 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayer
 import com.sd.lib.compose.layer.rememberFLayerState
-import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -59,7 +58,7 @@ fun AlignContainer() {
     FLayer(state = rememberFLayerState().apply {
         this.alignment = Alignment.TopCenter
     }) {
-        BlurBox()
+        AnimateBlurBox()
     }
 }
 
@@ -132,7 +131,7 @@ fun AlignTarget() {
             }
 
             .fLayer(rememberFLayerState()) {
-                BlurBox()
+                AnimateBlurBox()
             }
         )
     }
@@ -144,10 +143,11 @@ private fun ColorBox(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier
-        .widthIn(50.dp)
-        .heightIn(50.dp)
-        .background(color)
+    Box(
+        modifier = modifier
+            .widthIn(50.dp)
+            .heightIn(50.dp)
+            .background(color)
     ) {
         Text(
             text = text,
@@ -159,7 +159,7 @@ private fun ColorBox(
 }
 
 @Composable
-private fun BlurBox() {
+private fun AnimateBlurBox() {
     var visible by remember { mutableStateOf(false) }
     val height by animateDpAsState(if (visible) 100.dp else 0.dp)
     LaunchedEffect(true) {
@@ -169,16 +169,11 @@ private fun BlurBox() {
         }
     }
 
-    Box(modifier = Modifier
-        .padding(10.dp)
-        .fillMaxWidth()
-        .background(Color.Black.copy(alpha = 0.3f), shape = MaterialTheme.shapes.medium)
-        .height(height)
+    Box(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.3f), shape = MaterialTheme.shapes.medium)
+            .height(height)
     )
-}
-
-@Preview
-@Composable
-fun PreviewGreeting() {
-    BlurBox()
 }

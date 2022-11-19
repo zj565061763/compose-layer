@@ -26,7 +26,7 @@ interface OffsetInterceptorInfo {
 /**
  * layer状态管理对象
  */
-class FLayerState {
+class FLayerState internal constructor() {
     /** 对齐方式 */
     var alignment by mutableStateOf(Alignment.BottomCenter)
 
