@@ -45,8 +45,7 @@ internal class FLayerManager {
                     }
                 } else {
                     Box(
-                        modifier = Modifier
-                            .align(item.alignment)
+                        modifier = Modifier.align(item.alignment)
                     ) {
                         item.content()
                     }
