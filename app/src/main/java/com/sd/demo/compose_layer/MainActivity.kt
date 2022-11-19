@@ -59,65 +59,62 @@ fun AlignContainer() {
 
 @Composable
 fun AlignTarget() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier
-            .size(250.dp)
-            .background(Color.LightGray)
-            .align(Alignment.Center)
-            .fLayer {
-                it.alignment = Alignment.TopStart
-                ColorBox(Color.Red.copy(alpha = 0.8f), "1")
-            }
+    Box(modifier = Modifier
+        .size(250.dp)
+        .background(Color.LightGray)
+        .fLayer {
+            it.alignment = Alignment.TopStart
+            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.TopCenter
-                it.centerOutside = false
-                ColorBox(Color.Green.copy(alpha = 0.8f), "2")
-            }
+        .fLayer {
+            it.alignment = Alignment.TopCenter
+            it.centerOutside = false
+            ColorBox(Color.Green.copy(alpha = 0.8f), "2")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.TopEnd
-                ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
-            }
+        .fLayer {
+            it.alignment = Alignment.TopEnd
+            ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.CenterStart
-                it.centerOutside = false
-                ColorBox(Color.Red.copy(alpha = 0.5f), "4")
-            }
+        .fLayer {
+            it.alignment = Alignment.CenterStart
+            it.centerOutside = false
+            ColorBox(Color.Red.copy(alpha = 0.5f), "4")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.Center
-                ColorBox(Color.Green.copy(alpha = 0.5f), "5")
-            }
+        .fLayer {
+            it.alignment = Alignment.Center
+            ColorBox(Color.Green.copy(alpha = 0.5f), "5")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.CenterEnd
-                it.centerOutside = false
-                ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
-            }
+        .fLayer {
+            it.alignment = Alignment.CenterEnd
+            it.centerOutside = false
+            ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.BottomStart
-                ColorBox(Color.Red.copy(alpha = 0.2f), "7")
-            }
+        .fLayer {
+            it.alignment = Alignment.BottomStart
+            ColorBox(Color.Red.copy(alpha = 0.2f), "7")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.BottomCenter
-                it.centerOutside = false
-                ColorBox(Color.Green.copy(alpha = 0.2f), "8")
-            }
+        .fLayer {
+            it.alignment = Alignment.BottomCenter
+            it.centerOutside = false
+            ColorBox(Color.Green.copy(alpha = 0.2f), "8")
+        }
 
-            .fLayer {
-                it.alignment = Alignment.BottomEnd
-                ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
-            }
+        .fLayer {
+            it.alignment = Alignment.BottomEnd
+            ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
+        }
 
-            .fLayer {
-                AnimateBlurBox()
-            }
-        )
-    }
+        .fLayer {
+            AnimateBlurBox()
+        }
+    )
 }
 
 @Composable

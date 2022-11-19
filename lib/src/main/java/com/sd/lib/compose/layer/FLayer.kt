@@ -3,6 +3,7 @@ package com.sd.lib.compose.layer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -18,7 +19,10 @@ fun FLayerContainer(
 ) {
     val layerManager = remember { FLayerManager() }
     CompositionLocalProvider(LocalFLayerManager provides layerManager) {
-        Box(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
             content()
             layerManager.Content()
         }
