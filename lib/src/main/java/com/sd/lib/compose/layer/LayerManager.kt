@@ -26,8 +26,14 @@ internal class FLayerManager {
         return state
     }
 
-    fun layerTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+    fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+        logMsg { "addTarget $tag -> $layoutCoordinates" }
         _layerTarget[tag] = layoutCoordinates
+    }
+
+    fun removeTarget(tag: String) {
+        logMsg { "removeTarget $tag" }
+        _layerTarget.remove(tag)
     }
 
     fun findTarget(tag: String): LayoutCoordinates? {

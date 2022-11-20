@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -247,4 +248,8 @@ private object Utils {
     fun getYEnd(targetSize: IntSize, layerSize: IntSize): Float {
         return (targetSize.height - layerSize.height).toFloat()
     }
+}
+
+internal inline fun logMsg(block: () -> String) {
+    Log.i("FLayer", block())
 }
