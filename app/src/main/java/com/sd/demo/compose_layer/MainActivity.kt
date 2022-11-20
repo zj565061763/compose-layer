@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
+import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.rememberFLayer
 import kotlinx.coroutines.delay
@@ -27,18 +27,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            ComposelayerTheme {
-                val controller = rememberSystemUiController()
-                SideEffect {
-                    controller.isStatusBarVisible = false
-                }
-                Surface(
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .fillMaxSize(),
-                    color = MaterialTheme.colors.background,
-                ) {
-                    FLayerContainer() {
+            val controller = rememberSystemUiController()
+            SideEffect {
+                controller.isStatusBarVisible = false
+            }
+
+            AppTheme {
+                Surface(color = MaterialTheme.colors.background) {
+                    FLayerContainer(
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .fillMaxSize()
+                    ) {
                         AlignContainer()
                         AlignTarget()
                     }
