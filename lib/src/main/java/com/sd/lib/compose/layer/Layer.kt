@@ -199,12 +199,10 @@ class FLayer internal constructor() {
 
     @Composable
     internal fun Content(manager: FLayerManager) {
-        LaunchedEffect(_targetTag) {
-            targetLayoutCoordinates = manager.findTarget(_targetTag)
-        }
-
         AnimatedVisibility(visible = _isAttached) {
             Box(modifier = Modifier.fillMaxSize()) {
+
+                targetLayoutCoordinates = manager.findTarget(_targetTag)
                 if (targetLayoutCoordinates != null) {
                     LaunchedEffect(alignment) {
                         updatePosition()
@@ -227,6 +225,7 @@ class FLayer internal constructor() {
                         _content.invoke()
                     }
                 }
+
             }
         }
     }

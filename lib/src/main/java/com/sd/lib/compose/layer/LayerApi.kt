@@ -49,7 +49,6 @@ fun Modifier.fLayerTarget(
     }
 
     var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-
     layoutCoordinates?.let {
         layerManager.addTarget(tag, it)
     }
