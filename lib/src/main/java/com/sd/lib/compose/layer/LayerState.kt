@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -28,14 +29,15 @@ interface OffsetInterceptorInfo {
 /**
  * layer状态管理对象
  */
-class FLayerState internal constructor(
-    /** true-表示相对于目标对齐，false-表示相对于容器对齐 */
-    private val alignTarget: Boolean,
-    /** layer内容 */
-    private val content: @Composable (FLayerState) -> Unit
-) {
+class FLayerState internal constructor() {
+    private var _isAttached: Boolean by mutableStateOf(false)
+    private var _content: @Composable () -> Unit by mutableStateOf({ })
+
+    /** 目标Tag */
+    private var _targetTag: String by mutableStateOf("")
+
     /** 对齐方式 */
-    var alignment by mutableStateOf(Alignment.BottomCenter)
+    var alignment: Alignment by mutableStateOf(Alignment.BottomCenter)
 
     /** 四条边上居中的时候，是否对齐外边 */
     var centerOutside: Boolean = true
@@ -55,7 +57,7 @@ class FLayerState internal constructor(
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
     /** 对齐坐标 */
-    internal var layerOffset by mutableStateOf(IntOffsetUnspecified)
+    private var layerOffset by mutableStateOf(IntOffsetUnspecified)
 
     /** 状态栏高度 */
     internal var statusBarHeight = 0
@@ -72,16 +74,31 @@ class FLayerState internal constructor(
         }
 
     /** layer的大小 */
-    internal var layerSize = IntSize.Zero
+    private var layerSize = IntSize.Zero
         set(value) {
             field = value
             updatePosition()
         }
 
     /**
+     * 设置内容
+     */
+    fun setContent(content: @Composable () -> Unit) {
+        _content = content
+    }
+
+    /**
+     * 添加到容器
+     */
+    fun attach(tag: String = "") {
+        _targetTag = tag
+        _isAttached = true
+    }
+
+    /**
      * 计算layer的位置
      */
-    internal fun updatePosition() {
+    private fun updatePosition() {
         val targetInfo = targetLayoutCoordinates
         if (targetInfo == null) {
             layerOffset = IntOffsetUnspecified
@@ -180,28 +197,34 @@ class FLayerState internal constructor(
     }
 
     @Composable
-    internal fun Content() {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (alignTarget) {
-                LaunchedEffect(alignment) {
-                    updatePosition()
-                }
+    internal fun Content(manager: FLayerManager) {
+        LaunchedEffect(_targetTag) {
+            targetLayoutCoordinates = manager.findTarget(_targetTag)
+        }
 
-                Box(modifier = Modifier
-                    .onSizeChanged {
-                        layerSize = it
+        AnimatedVisibility(visible = _isAttached) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (targetLayoutCoordinates != null) {
+                    LaunchedEffect(alignment) {
+                        updatePosition()
                     }
-                    .offset {
-                        layerOffset
+
+                    Box(modifier = Modifier
+                        .onSizeChanged {
+                            layerSize = it
+                        }
+                        .offset {
+                            layerOffset
+                        }
+                    ) {
+                        _content.invoke()
                     }
-                ) {
-                    content.invoke(this@FLayerState)
-                }
-            } else {
-                Box(
-                    modifier = Modifier.align(alignment)
-                ) {
-                    content.invoke(this@FLayerState)
+                } else {
+                    Box(
+                        modifier = Modifier.align(alignment)
+                    ) {
+                        _content.invoke()
+                    }
                 }
             }
         }

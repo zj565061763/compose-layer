@@ -18,9 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sd.demo.compose_layer.ui.theme.ComposelayerTheme
-import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
-import com.sd.lib.compose.layer.fLayer
+import com.sd.lib.compose.layer.rememberFLayer
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -51,71 +50,76 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AlignContainer() {
-    FLayer {
-        it.alignment = Alignment.TopCenter
+    val layer = rememberFLayer()
+    layer.setContent {
         ColorBox(Color.Red, "Align container")
+    }
+
+    LaunchedEffect(layer) {
+        layer.alignment = Alignment.TopCenter
+        layer.attach()
     }
 }
 
 @Composable
 fun AlignTarget() {
-    Box(modifier = Modifier
-        .size(250.dp)
-        .background(Color.LightGray)
-
-        .fLayer {
-            it.alignment = Alignment.TopStart
-            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.TopCenter
-            it.centerOutside = false
-            ColorBox(Color.Green.copy(alpha = 0.8f), "2")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.TopEnd
-            ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.CenterStart
-            it.centerOutside = false
-            ColorBox(Color.Red.copy(alpha = 0.5f), "4")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.Center
-            ColorBox(Color.Green.copy(alpha = 0.5f), "5")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.CenterEnd
-            it.centerOutside = false
-            ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.BottomStart
-            ColorBox(Color.Red.copy(alpha = 0.2f), "7")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.BottomCenter
-            it.centerOutside = false
-            ColorBox(Color.Green.copy(alpha = 0.2f), "8")
-        }
-
-        .fLayer {
-            it.alignment = Alignment.BottomEnd
-            ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
-        }
-
-        .fLayer {
-            AnimateBlurBox()
-        }
-    )
+//    Box(modifier = Modifier
+//        .size(250.dp)
+//        .background(Color.LightGray)
+//
+//        .fLayer {
+//            it.alignment = Alignment.TopStart
+//            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.TopCenter
+//            it.centerOutside = false
+//            ColorBox(Color.Green.copy(alpha = 0.8f), "2")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.TopEnd
+//            ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.CenterStart
+//            it.centerOutside = false
+//            ColorBox(Color.Red.copy(alpha = 0.5f), "4")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.Center
+//            ColorBox(Color.Green.copy(alpha = 0.5f), "5")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.CenterEnd
+//            it.centerOutside = false
+//            ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.BottomStart
+//            ColorBox(Color.Red.copy(alpha = 0.2f), "7")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.BottomCenter
+//            it.centerOutside = false
+//            ColorBox(Color.Green.copy(alpha = 0.2f), "8")
+//        }
+//
+//        .fLayer {
+//            it.alignment = Alignment.BottomEnd
+//            ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
+//        }
+//
+//        .fLayer {
+//            AnimateBlurBox()
+//        }
+//    )
 }
 
 @Composable
