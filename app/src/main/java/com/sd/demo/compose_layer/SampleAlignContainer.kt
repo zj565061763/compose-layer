@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -23,9 +22,7 @@ class SampleAlignContainer : ComponentActivity() {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     FLayerContainer(
-                        modifier = Modifier
-                            .statusBarsPadding()
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         AlignContainer()
                     }
