@@ -30,7 +30,7 @@ fun FLayerContainer(
 }
 
 @Composable
-fun rememberFLayer(): FLayerState {
+fun rememberFLayer(): FLayer {
     val layerManager = checkNotNull(LocalFLayerManager.current) {
         "CompositionLocal LocalFLayerManager not present"
     }

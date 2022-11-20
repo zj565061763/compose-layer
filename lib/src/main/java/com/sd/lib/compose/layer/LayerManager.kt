@@ -9,12 +9,12 @@ import androidx.compose.ui.platform.LocalDensity
 internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
 
 internal class FLayerManager {
-    private val _layerHolder = mutableStateListOf<FLayerState>()
+    private val _layerHolder = mutableStateListOf<FLayer>()
     private val _layerTarget = mutableStateMapOf<String, LayoutCoordinates>()
 
     @Composable
-    fun layer(): FLayerState {
-        val state = remember { FLayerState() }.apply {
+    fun layer(): FLayer {
+        val state = remember { FLayer() }.apply {
             this.statusBarHeight = WindowInsets.statusBars.getTop(LocalDensity.current)
         }
         DisposableEffect(state) {

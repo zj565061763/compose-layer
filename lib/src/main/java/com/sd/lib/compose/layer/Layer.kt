@@ -29,7 +29,7 @@ interface OffsetInterceptorInfo {
 /**
  * layer状态管理对象
  */
-class FLayerState internal constructor() {
+class FLayer internal constructor() {
     private var _isAttached: Boolean by mutableStateOf(false)
     private var _content: @Composable () -> Unit by mutableStateOf({ })
 
