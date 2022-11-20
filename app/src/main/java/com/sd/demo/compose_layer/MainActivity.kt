@@ -19,6 +19,7 @@ import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayerContainer
+import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
 import kotlinx.coroutines.delay
 
@@ -39,7 +40,7 @@ class MainActivity : ComponentActivity() {
                             .statusBarsPadding()
                             .fillMaxSize()
                     ) {
-                        AlignContainer()
+//                        AlignContainer()
                         AlignTarget()
                     }
                 }
@@ -63,6 +64,24 @@ fun AlignContainer() {
 
 @Composable
 fun AlignTarget() {
+
+    val layerTopStart = rememberFLayer()
+    LaunchedEffect(layerTopStart) {
+        layerTopStart.alignment = Alignment.TopStart
+        layerTopStart.setContent {
+            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+        }
+        layerTopStart.attach(tag = "TopStart")
+    }
+
+
+    Box(
+        modifier = Modifier
+            .size(250.dp)
+            .background(Color.LightGray)
+            .fLayerTarget("TopStart")
+    )
+
 //    Box(modifier = Modifier
 //        .size(250.dp)
 //        .background(Color.LightGray)
