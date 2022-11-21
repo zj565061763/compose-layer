@@ -3,6 +3,7 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,13 +38,20 @@ class SampleAlignContainer : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.alignment = Alignment.Center
         layer.setContent {
-            ColorBox(Color.Red, "Box")
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = slideInVertically() + scaleIn(),
+                exit = slideOutVertically() + scaleOut(),
+            ) {
+                ColorBox(Color.Red, "Box")
+            }
         }
     }
 

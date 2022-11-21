@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -32,7 +31,7 @@ interface OffsetInterceptorInfo {
  */
 class FLayer internal constructor() {
     private var _isAttached: Boolean by mutableStateOf(false)
-    private var _content: @Composable () -> Unit by mutableStateOf({ })
+    private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
 
     /** 目标Tag */
     private var _targetTag: String by mutableStateOf("")
@@ -69,10 +68,12 @@ class FLayer internal constructor() {
 
         }
 
+    private val _scopeImpl = FLayerScopeImpl()
+
     /**
      * 设置内容
      */
-    fun setContent(content: @Composable () -> Unit) {
+    fun setContent(content: @Composable FLayerScope.() -> Unit) {
         _content = content
     }
 
@@ -202,7 +203,7 @@ class FLayer internal constructor() {
 
     @Composable
     internal fun Content(manager: FLayerManager) {
-        val isVisible = if (_isAttached) {
+        _scopeImpl._isVisible = if (_isAttached) {
             if (_targetTag.isEmpty()) {
                 true
             } else {
@@ -215,33 +216,42 @@ class FLayer internal constructor() {
             false
         }
 
-        AnimatedVisibility(visible = isVisible) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (_targetLayoutCoordinates != null) {
-                    LaunchedEffect(alignment) {
-                        updatePosition()
-                    }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (_targetLayoutCoordinates != null) {
+                LaunchedEffect(alignment) {
+                    updatePosition()
+                }
 
-                    Box(modifier = Modifier
-                        .onSizeChanged {
-                            _layerSize = it
-                        }
-                        .offset {
-                            _layerOffset
-                        }
-                    ) {
-                        _content.invoke()
+                Box(modifier = Modifier
+                    .onSizeChanged {
+                        _layerSize = it
                     }
-                } else {
-                    Box(
-                        modifier = Modifier.align(alignment)
-                    ) {
-                        _content.invoke()
+                    .offset {
+                        _layerOffset
                     }
+                ) {
+                    _content.invoke(_scopeImpl)
+                }
+            } else {
+                Box(
+                    modifier = Modifier.align(alignment)
+                ) {
+                    _content.invoke(_scopeImpl)
                 }
             }
         }
     }
+}
+
+interface FLayerScope {
+    val isVisible: Boolean
+}
+
+private class FLayerScopeImpl : FLayerScope {
+    var _isVisible by mutableStateOf(false)
+
+    override val isVisible: Boolean
+        get() = _isVisible
 }
 
 private object Utils {
