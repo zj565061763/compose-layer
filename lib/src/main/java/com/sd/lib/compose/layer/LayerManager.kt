@@ -7,7 +7,7 @@ internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
-    private val _targetLayerHolder: MutableMap<String, LayoutCoordinates> = mutableStateMapOf()
+    private val _targetLayerHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
 
     @Composable
@@ -38,20 +38,12 @@ internal class LayerManager {
         }
 
         _targetLayerHolder[tag] = layoutCoordinates
-        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.let { holder ->
-            holder.forEach {
-                it.invoke(layoutCoordinates)
-            }
-        }
+        notifyTargetLayoutCallback(tag, layoutCoordinates)
     }
 
     fun removeTarget(tag: String) {
         _targetLayerHolder.remove(tag)
-        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.let { holder ->
-            holder.forEach {
-                it.invoke(null)
-            }
-        }
+        notifyTargetLayoutCallback(tag, null)
     }
 
     fun findTarget(tag: String): LayoutCoordinates? {
@@ -73,6 +65,14 @@ internal class LayerManager {
         if (holder.remove(callback)) {
             if (holder.isEmpty()) {
                 _targetLayoutCallbackHolder.remove(tag)
+            }
+        }
+    }
+
+    private fun notifyTargetLayoutCallback(tag: String, layoutCoordinates: LayoutCoordinates?) {
+        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.let { holder ->
+            holder.forEach {
+                it.invoke(layoutCoordinates)
             }
         }
     }
