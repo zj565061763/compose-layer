@@ -39,8 +39,8 @@ class FLayer internal constructor() {
         }
     }
 
-    /** 目标Tag */
-    private var _targetTag by Delegates.observable("") { _, oldValue, newValue ->
+    /** 目标 */
+    private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
             _layerManager?.unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
             _layerManager?.registerTargetLayoutCallback(newValue, _targetLayoutCallback)
@@ -67,9 +67,9 @@ class FLayer internal constructor() {
     /**
      * 添加到容器
      */
-    fun attach(tag: String = "") {
-        _targetTag = tag
-        _targetLayoutCoordinates = _layerManager?.findTarget(tag)
+    fun attach(target: String = "") {
+        _target = target
+        _targetLayoutCoordinates = _layerManager?.findTarget(target)
         _isAttached = true
     }
 
@@ -78,7 +78,7 @@ class FLayer internal constructor() {
      */
     fun detach() {
         _isAttached = false
-        _targetTag = ""
+        _target = ""
     }
 
     internal fun attachToManager(manager: LayerManager) {
@@ -187,15 +187,12 @@ class FLayer internal constructor() {
     }
 
     @Composable
-    internal fun Content(manager: LayerManager) {
+    internal fun Content() {
         _scopeImpl._isVisible = if (_isAttached) {
-            if (_targetTag.isEmpty()) {
+            if (_target.isEmpty()) {
                 true
             } else {
-                manager.findTarget(_targetTag).let {
-                    _targetLayoutCoordinates = it
-                    it != null && it.isAttached
-                }
+                _targetLayoutCoordinates?.isAttached ?: false
             }
         } else {
             false

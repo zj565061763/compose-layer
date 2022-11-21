@@ -27,7 +27,7 @@ internal class LayerManager {
     @Composable
     fun Content() {
         _layerHolder.forEach { item ->
-            item.Content(this)
+            item.Content()
         }
     }
 
