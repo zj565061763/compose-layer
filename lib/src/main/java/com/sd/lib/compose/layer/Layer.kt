@@ -246,7 +246,6 @@ class FLayer internal constructor() {
                         _content.invoke()
                     }
                 }
-
             }
         }
     }
