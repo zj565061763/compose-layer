@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalDensity
+import java.util.concurrent.atomic.AtomicLong
 
 internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
 
 internal class FLayerManager {
     private val _layerHolder = mutableStateListOf<FLayer>()
-    private val _layerTarget = mutableStateMapOf<String, LayoutCoordinates>()
+    private val _layerTarget = mutableStateMapOf<String, TargetLayoutCoordinates>()
+
+    private val _targetLayoutId = AtomicLong()
 
     @Composable
     fun layer(): FLayer {
@@ -28,7 +31,10 @@ internal class FLayerManager {
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
         logMsg { "addTarget $tag -> $layoutCoordinates" }
-        _layerTarget[tag] = layoutCoordinates
+        _layerTarget[tag] = TargetLayoutCoordinates(
+            id = _targetLayoutId.incrementAndGet(),
+            layoutCoordinates = layoutCoordinates
+        )
     }
 
     fun removeTarget(tag: String) {
@@ -37,7 +43,7 @@ internal class FLayerManager {
     }
 
     fun findTarget(tag: String): LayoutCoordinates? {
-        return _layerTarget[tag]
+        return _layerTarget[tag]?.layoutCoordinates
     }
 
     @Composable
@@ -47,3 +53,8 @@ internal class FLayerManager {
         }
     }
 }
+
+private data class TargetLayoutCoordinates(
+    val id: Long,
+    val layoutCoordinates: LayoutCoordinates,
+)

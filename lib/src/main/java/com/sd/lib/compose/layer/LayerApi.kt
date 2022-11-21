@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 
 /**
@@ -44,13 +43,9 @@ fun rememberFLayer(): FLayer {
 fun Modifier.fLayerTarget(
     tag: String,
 ) = composed {
+    val tagUpdated by rememberUpdatedState(tag)
     val layerManager = checkNotNull(LocalFLayerManager.current) {
         "CompositionLocal LocalFLayerManager not present"
-    }
-
-    var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    layoutCoordinates?.let {
-        layerManager.addTarget(tag, it)
     }
 
     DisposableEffect(layerManager, tag) {
@@ -60,6 +55,6 @@ fun Modifier.fLayerTarget(
     }
 
     this.onGloballyPositioned {
-        layoutCoordinates = it
+        layerManager.addTarget(tagUpdated, it)
     }
 }
