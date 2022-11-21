@@ -3,17 +3,21 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
@@ -39,16 +43,40 @@ class SampleAlignTarget : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
 
-    val layerTopStart = rememberFLayer()
-    LaunchedEffect(layerTopStart) {
-        layerTopStart.alignment = Alignment.TopStart
-        layerTopStart.setContent {
-            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+    // TopStart
+    val layerTopStart = rememberFLayer().also { layer ->
+        LaunchedEffect(layer) {
+            layer.alignment = Alignment.TopStart
+            layer.setContent {
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = scaleIn() + slideIn { IntOffset(-it.width / 2, -it.height / 2) },
+                    exit = scaleOut() + slideOut { IntOffset(-it.width / 2, -it.height / 2) },
+                ) {
+                    ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+                }
+            }
         }
-        layerTopStart.attach(tag = "TopStart")
+    }
+
+    // TopCenter
+    val layerTopCenter = rememberFLayer().also { layer ->
+        LaunchedEffect(layer) {
+            layer.alignment = Alignment.TopCenter
+            layer.setContent {
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = scaleIn() + slideInVertically(),
+                    exit = scaleOut() + slideOutVertically(),
+                ) {
+                    ColorBox(Color.Green.copy(alpha = 0.8f), "2")
+                }
+            }
+        }
     }
 
     Column(
@@ -63,9 +91,35 @@ private fun Content() {
             modifier = Modifier
                 .size(250.dp)
                 .background(Color.LightGray)
-                .fLayerTarget("TopStart")
+                .fLayerTarget("target")
         )
         Box(modifier = Modifier.height(2000.dp))
+    }
+
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Spacer(modifier = Modifier.height(50.dp))
+        Button(
+            onClick = {
+                layerTopStart.attach("target")
+                layerTopCenter.attach("target")
+            }
+        ) {
+            Text(text = "Attach")
+        }
+
+        Button(
+            onClick = {
+                layerTopStart.detach()
+                layerTopCenter.detach()
+            }
+        ) {
+            Text(text = "Detach")
+        }
     }
 
 

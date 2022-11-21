@@ -40,7 +40,7 @@ class FLayer internal constructor() {
     var alignment: Alignment by mutableStateOf(Alignment.BottomCenter)
 
     /** 四条边上居中的时候，是否对齐外边 */
-    var centerOutside: Boolean = true
+    var centerOutside: Boolean = false
         set(value) {
             field = value
             updatePosition()

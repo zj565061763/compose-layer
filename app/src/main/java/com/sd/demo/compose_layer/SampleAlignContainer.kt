@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -47,8 +45,8 @@ private fun Content() {
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = slideInVertically() + scaleIn(),
-                exit = slideOutVertically() + scaleOut(),
+                enter = scaleIn() + slideInVertically(),
+                exit = scaleOut() + slideOutVertically(),
             ) {
                 ColorBox(Color.Red, "Box")
             }
@@ -60,6 +58,7 @@ private fun Content() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
+        Spacer(modifier = Modifier.height(50.dp))
         Button(
             onClick = {
                 layer.attach()
