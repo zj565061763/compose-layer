@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
+import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
@@ -43,59 +44,13 @@ class SampleAlignTarget : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
 
-    // TopStart
-    val layerTopStart = rememberFLayer().also { layer ->
-        LaunchedEffect(layer) {
-            layer.alignment = Alignment.TopStart
-            layer.setContent {
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = scaleIn() + slideIn { IntOffset(-it.width / 2, -it.height / 2) },
-                    exit = scaleOut() + slideOut { IntOffset(-it.width / 2, -it.height / 2) },
-                ) {
-                    ColorBox(Color.Red.copy(alpha = 0.8f), "1")
-                }
-            }
-        }
-    }
+    val target = "target"
+    val listLayer = layers()
 
-    // TopCenter
-    val layerTopCenter = rememberFLayer().also { layer ->
-        LaunchedEffect(layer) {
-            layer.alignment = Alignment.TopCenter
-            layer.setContent {
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = scaleIn() + slideInVertically(),
-                    exit = scaleOut() + slideOutVertically(),
-                ) {
-                    ColorBox(Color.Green.copy(alpha = 0.8f), "2")
-                }
-            }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(modifier = Modifier.height(200.dp))
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .background(Color.LightGray)
-                .fLayerTarget("target")
-        )
-        Box(modifier = Modifier.height(2000.dp))
-    }
-
+    TargetView(target)
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -105,8 +60,7 @@ private fun Content() {
         Spacer(modifier = Modifier.height(50.dp))
         Button(
             onClick = {
-                layerTopStart.attach("target")
-                layerTopCenter.attach("target")
+                listLayer.forEach { it.attach(target) }
             }
         ) {
             Text(text = "Attach")
@@ -114,8 +68,7 @@ private fun Content() {
 
         Button(
             onClick = {
-                layerTopStart.detach()
-                layerTopCenter.detach()
+                listLayer.forEach { it.detach() }
             }
         ) {
             Text(text = "Detach")
@@ -180,4 +133,68 @@ private fun Content() {
 //            AnimateBlurBox()
 //        }
 //    )
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun layers(): List<FLayer> {
+    // TopStart
+    val layerTopStart = rememberFLayer().also { layer ->
+        LaunchedEffect(layer) {
+            layer.alignment = Alignment.TopStart
+            layer.setContent {
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = scaleIn() + slideIn { IntOffset(-it.width / 2, -it.height / 2) },
+                    exit = scaleOut() + slideOut { IntOffset(-it.width / 2, -it.height / 2) },
+                ) {
+                    ColorBox(Color.Red.copy(alpha = 0.8f), "1")
+                }
+            }
+        }
+    }
+
+    // TopCenter
+    val layerTopCenter = rememberFLayer().also { layer ->
+        LaunchedEffect(layer) {
+            layer.alignment = Alignment.TopCenter
+            layer.setContent {
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = scaleIn() + slideInVertically(),
+                    exit = scaleOut() + slideOutVertically(),
+                ) {
+                    ColorBox(Color.Green.copy(alpha = 0.8f), "2")
+                }
+            }
+        }
+    }
+
+    return listOf(
+        layerTopStart,
+        layerTopCenter,
+    )
+}
+
+@Composable
+private fun TargetView(
+    target: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(modifier = Modifier.height(200.dp))
+        Box(
+            modifier = Modifier
+                .size(250.dp)
+                .background(Color.LightGray)
+                .fLayerTarget(target)
+        )
+        Box(modifier = Modifier.height(2000.dp))
+    }
 }
