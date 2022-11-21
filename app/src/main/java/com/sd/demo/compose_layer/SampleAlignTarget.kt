@@ -81,22 +81,6 @@ private fun Content() {
 //        .background(Color.LightGray)
 //
 //        .fLayer {
-//            it.alignment = Alignment.TopStart
-//            ColorBox(Color.Red.copy(alpha = 0.8f), "1")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.TopCenter
-//            it.centerOutside = false
-//            ColorBox(Color.Green.copy(alpha = 0.8f), "2")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.TopEnd
-//            ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
-//        }
-//
-//        .fLayer {
 //            it.alignment = Alignment.CenterStart
 //            it.centerOutside = false
 //            ColorBox(Color.Red.copy(alpha = 0.5f), "4")
@@ -170,9 +154,26 @@ private fun layers(): List<FLayer> {
         }
     }
 
+    // TopStart
+    val layerTopEnd = rememberFLayer().also { layer ->
+        LaunchedEffect(layer) {
+            layer.alignment = Alignment.TopEnd
+            layer.setContent {
+                AnimatedVisibility(
+                    visible = isVisible,
+                    enter = scaleIn() + slideIn { IntOffset(it.width / 2, -it.height / 2) },
+                    exit = scaleOut() + slideOut { IntOffset(it.width / 2, -it.height / 2) },
+                ) {
+                    ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
+                }
+            }
+        }
+    }
+
     return listOf(
         layerTopStart,
         layerTopCenter,
+        layerTopEnd,
     )
 }
 
