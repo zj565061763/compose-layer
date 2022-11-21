@@ -1,10 +1,7 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.*
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.platform.LocalDensity
 import java.util.concurrent.atomic.AtomicLong
 
 internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
@@ -17,9 +14,7 @@ internal class FLayerManager {
 
     @Composable
     fun layer(): FLayer {
-        val state = remember { FLayer() }.apply {
-            this.statusBarHeight = WindowInsets.statusBars.getTop(LocalDensity.current)
-        }
+        val state = remember { FLayer() }
         DisposableEffect(state) {
             _layerHolder.add(state)
             onDispose {
