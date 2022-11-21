@@ -51,7 +51,7 @@ private fun Content() {
 
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
-        layer.alignment = Alignment.Center
+        layer.setAlignment(Alignment.Center)
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
@@ -74,15 +74,15 @@ private fun Content() {
             center = "TopCenter",
             end = "TopEnd",
             onClickStart = {
-                layer.alignment = Alignment.TopStart
+                layer.setAlignment(Alignment.TopStart)
                 layer.attach(target)
             },
             onClickCenter = {
-                layer.alignment = Alignment.TopCenter
+                layer.setAlignment(Alignment.TopCenter)
                 layer.attach(target)
             },
             onClickEnd = {
-                layer.alignment = Alignment.TopEnd
+                layer.setAlignment(Alignment.TopEnd)
                 layer.attach(target)
             },
         )

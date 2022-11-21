@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.properties.Delegates
 
 interface FLayerScope {
@@ -30,38 +31,40 @@ interface OffsetInterceptorScope {
 }
 
 class FLayer internal constructor() {
-    private var _isAttached: Boolean by mutableStateOf(false)
+    private val _uiState = MutableStateFlow(LayerUiState())
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
 
-    /** 对齐方式 */
-    var alignment: Alignment by mutableStateOf(Alignment.BottomCenter)
+    private var _isAttached = false
+    private var _offset = LayoutOffsetUnspecified
+    private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    /** 坐标拦截 */
-    var offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset?)? = null
-
-    /** 对齐坐标 */
-    private var _layerOffset by mutableStateOf(LayoutOffsetUnspecified)
-
-    /** layer的大小 */
-    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+    private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             updatePosition()
+            updateUiState()
         }
     }
 
-    /** 目标 */
+    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            updatePosition()
+            updateUiState()
+        }
+    }
+
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
+            _targetLayoutCoordinates = _layerManager?.findTarget(newValue)
             _layerManager?.unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
             _layerManager?.registerTargetLayoutCallback(newValue, _targetLayoutCallback)
         }
     }
 
-    /** 目标信息 */
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
             updatePosition()
+            updateUiState()
         }
 
     private var _layerManager: LayerManager? = null
@@ -75,20 +78,35 @@ class FLayer internal constructor() {
     }
 
     /**
+     * 设置对齐
+     */
+    fun setAlignment(alignment: Alignment) {
+        _alignment = alignment
+    }
+
+    /**
+     * 设置坐标拦截器
+     */
+    fun setOffsetInterceptor(interceptor: (OffsetInterceptorScope.() -> IntOffset)?) {
+        _offsetInterceptor = interceptor
+    }
+
+    /**
      * 添加到容器
      */
     fun attach(target: String = "") {
         _target = target
-        _targetLayoutCoordinates = _layerManager?.findTarget(target)
         _isAttached = true
+        updateUiState()
     }
 
     /**
      * 移除
      */
     fun detach() {
-        _isAttached = false
         _target = ""
+        _isAttached = false
+        updateUiState()
     }
 
     internal fun attachToManager(manager: LayerManager) {
@@ -112,26 +130,26 @@ class FLayer internal constructor() {
     private fun updatePosition() {
         val targetInfo = _targetLayoutCoordinates
         if (targetInfo == null) {
-            _layerOffset = LayoutOffsetUnspecified
+            _offset = LayoutOffsetUnspecified
             return
         }
 
         val targetSize = targetInfo.size
         if (targetSize.width <= 0 || targetSize.height <= 0) {
-            _layerOffset = LayoutOffsetUnspecified
+            _offset = LayoutOffsetUnspecified
             return
         }
 
         val layerSize = _layerSize
         if (layerSize.width <= 0 || layerSize.height <= 0) {
-            _layerOffset = LayoutOffsetUnspecified
+            _offset = LayoutOffsetUnspecified
             return
         }
 
         var offsetX = 0f
         var offsetY = 0f
 
-        when (alignment) {
+        when (_alignment) {
             Alignment.TopStart -> {
                 offsetX = 0f
                 offsetY = 0f
@@ -169,7 +187,7 @@ class FLayer internal constructor() {
                 offsetY = getYEnd(targetSize, layerSize)
             }
             else -> {
-                error("unknown Alignment:$alignment")
+                error("unknown Alignment:$_alignment")
             }
         }
 
@@ -193,40 +211,53 @@ class FLayer internal constructor() {
             override val targetSize: IntSize get() = targetSize
         }
 
-        _layerOffset = offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+        _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+    }
+
+    private fun updateUiState() {
+        _uiState.value = LayerUiState(
+            isAttached = _isAttached,
+            alignment = _alignment,
+            target = _targetLayoutCoordinates != null,
+            offset = _offset,
+        )
     }
 
     @Composable
     internal fun Content() {
-        _scopeImpl._isVisible = if (_isAttached) {
+        val uiState by _uiState.collectAsState()
+
+        val isVisible = if (_isAttached) {
             if (_target.isEmpty()) {
                 true
             } else {
-                _targetLayoutCoordinates?.isAttached ?: false
+                _targetLayoutCoordinates?.isAttached == true
+            }
+        } else false
+
+        if (isVisible) {
+            SideEffect {
+                _scopeImpl._isVisible = true
             }
         } else {
-            false
+            _scopeImpl._isVisible = false
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            if (_targetLayoutCoordinates != null) {
-                LaunchedEffect(alignment) {
-                    updatePosition()
-                }
-
+            if (uiState.target) {
                 Box(modifier = Modifier
                     .onSizeChanged {
                         _layerSize = it
                     }
                     .offset {
-                        _layerOffset
+                        uiState.offset
                     }
                 ) {
                     _content.invoke(_scopeImpl)
                 }
             } else {
                 Box(
-                    modifier = Modifier.align(alignment)
+                    modifier = Modifier.align(uiState.alignment)
                 ) {
                     _content.invoke(_scopeImpl)
                 }
@@ -261,6 +292,13 @@ class FLayer internal constructor() {
         }
     }
 }
+
+private data class LayerUiState(
+    val isAttached: Boolean = false,
+    val alignment: Alignment = Alignment.Center,
+    val target: Boolean = false,
+    val offset: IntOffset = IntOffset.Zero,
+)
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())

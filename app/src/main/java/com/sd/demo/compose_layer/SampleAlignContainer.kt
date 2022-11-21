@@ -41,7 +41,7 @@ class SampleAlignContainer : ComponentActivity() {
 private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
-        layer.alignment = Alignment.Center
+        layer.setAlignment(Alignment.Center)
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
