@@ -49,7 +49,7 @@ class FLayer internal constructor() {
             updatePosition()
         }
 
-    private val _scopeImpl = FLayerScopeImpl()
+    private val _scopeImpl = LayerScopeImpl()
 
     /**
      * 设置内容
@@ -203,17 +203,17 @@ class FLayer internal constructor() {
             }
         }
     }
+
+    private class LayerScopeImpl : FLayerScope {
+        var _isVisible by mutableStateOf(false)
+
+        override val isVisible: Boolean
+            get() = _isVisible
+    }
 }
 
 interface FLayerScope {
     val isVisible: Boolean
-}
-
-private class FLayerScopeImpl : FLayerScope {
-    var _isVisible by mutableStateOf(false)
-
-    override val isVisible: Boolean
-        get() = _isVisible
 }
 
 interface OffsetInterceptorScope {
