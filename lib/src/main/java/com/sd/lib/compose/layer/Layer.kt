@@ -14,11 +14,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.properties.Delegates
 
-private val LayoutOffsetUnspecified = IntOffset.Zero
-
-/**
- * layer状态管理对象
- */
 class FLayer internal constructor() {
     private var _isAttached: Boolean by mutableStateOf(false)
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
@@ -229,6 +224,10 @@ class FLayer internal constructor() {
 
         override val isVisible: Boolean
             get() = _isVisible
+    }
+
+    companion object {
+        private val LayoutOffsetUnspecified = IntOffset.Zero
     }
 }
 
