@@ -5,21 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
-import kotlinx.coroutines.delay
 
 class SampleAlignTarget : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +31,7 @@ class SampleAlignTarget : ComponentActivity() {
                     FLayerContainer(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        AlignTarget()
+                        Content()
                     }
                 }
             }
@@ -39,9 +39,8 @@ class SampleAlignTarget : ComponentActivity() {
     }
 }
 
-
 @Composable
-fun AlignTarget() {
+private fun Content() {
 
     val layerTopStart = rememberFLayer()
     LaunchedEffect(layerTopStart) {
@@ -52,25 +51,23 @@ fun AlignTarget() {
         layerTopStart.attach(tag = "TopStart")
     }
 
-    var offset by remember { mutableStateOf(IntOffset.Zero) }
-
-    Box(
-        modifier = Modifier.offset { offset }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
+        Box(modifier = Modifier.height(200.dp))
         Box(
             modifier = Modifier
                 .size(250.dp)
                 .background(Color.LightGray)
                 .fLayerTarget("TopStart")
         )
-
-        Text(text = WindowInsets.statusBars.asPaddingValues().toString())
+        Box(modifier = Modifier.height(2000.dp))
     }
 
-    LaunchedEffect(Unit) {
-        delay(3000)
-        offset = IntOffset(0, 100)
-    }
 
 //    Box(modifier = Modifier
 //        .size(250.dp)
