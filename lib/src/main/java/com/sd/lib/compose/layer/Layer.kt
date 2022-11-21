@@ -58,7 +58,7 @@ class FLayer internal constructor() {
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
     /** 对齐坐标 */
-    private var layerOffset by mutableStateOf(IntOffsetUnspecified)
+    private var _layerOffset by mutableStateOf(IntOffsetUnspecified)
 
     /** 状态栏高度 */
     internal var statusBarHeight = 0
@@ -67,18 +67,20 @@ class FLayer internal constructor() {
             updatePosition()
         }
 
-    /** 目标信息 */
-    internal var targetLayoutCoordinates: LayoutCoordinates? = null
+    /** layer的大小 */
+    private var _layerSize = IntSize.Zero
         set(value) {
             field = value
             updatePosition()
+
         }
 
-    /** layer的大小 */
-    private var layerSize = IntSize.Zero
+    /** 目标信息 */
+    private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
             updatePosition()
+
         }
 
     /**
@@ -100,21 +102,21 @@ class FLayer internal constructor() {
      * 计算layer的位置
      */
     private fun updatePosition() {
-        val targetInfo = targetLayoutCoordinates
+        val targetInfo = _targetLayoutCoordinates
         if (targetInfo == null) {
-            layerOffset = IntOffsetUnspecified
+            _layerOffset = IntOffsetUnspecified
             return
         }
 
         val targetSize = targetInfo.size
         if (targetSize.width <= 0 || targetSize.height <= 0) {
-            layerOffset = IntOffsetUnspecified
+            _layerOffset = IntOffsetUnspecified
             return
         }
 
-        val layerSize = layerSize
+        val layerSize = _layerSize
         if (layerSize.width <= 0 || layerSize.height <= 0) {
-            layerOffset = IntOffsetUnspecified
+            _layerOffset = IntOffsetUnspecified
             return
         }
 
@@ -194,28 +196,31 @@ class FLayer internal constructor() {
             override val targetSize: IntSize
                 get() = targetSize
         }
-        layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
+        _layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
     }
 
     @Composable
     internal fun Content(manager: FLayerManager) {
-        if (_isAttached) {
-            targetLayoutCoordinates = manager.findTarget(_targetTag)
+        val isVisible = if (_isAttached) {
+            _targetLayoutCoordinates = manager.findTarget(_targetTag)
+            if (_targetTag.isEmpty()) true else _targetLayoutCoordinates != null
+        } else {
+            false
         }
 
-        AnimatedVisibility(visible = _isAttached) {
+        AnimatedVisibility(visible = isVisible) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (targetLayoutCoordinates != null) {
+                if (_targetLayoutCoordinates != null) {
                     LaunchedEffect(alignment) {
                         updatePosition()
                     }
 
                     Box(modifier = Modifier
                         .onSizeChanged {
-                            layerSize = it
+                            _layerSize = it
                         }
                         .offset {
-                            layerOffset
+                            _layerOffset
                         }
                     ) {
                         _content.invoke()
