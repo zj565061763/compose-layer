@@ -40,17 +40,13 @@ class FLayer internal constructor() {
 
     private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            if (updateOffset()) {
-                updateUiState()
-            }
+            updateOffset()
         }
     }
 
     private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            if (updateOffset()) {
-                updateUiState()
-            }
+            updateOffset()
         }
     }
 
@@ -65,9 +61,7 @@ class FLayer internal constructor() {
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
-            if (updateOffset()) {
-                updateUiState()
-            }
+            updateOffset()
         }
 
     private var _layerManager: LayerManager? = null
@@ -100,6 +94,7 @@ class FLayer internal constructor() {
     fun attach(target: String = "") {
         _target = target
         _isAttached = true
+        updateOffset()
         updateUiState()
     }
 
@@ -130,7 +125,6 @@ class FLayer internal constructor() {
      * 计算layer的位置
      */
     private fun updateOffset(): Boolean {
-        if (!_isAttached) return false
         val targetLayout = _targetLayoutCoordinates ?: return false
 
         val targetSize = targetLayout.size
@@ -209,6 +203,8 @@ class FLayer internal constructor() {
         }
 
         _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+        updateUiState()
+
         return true
     }
 
