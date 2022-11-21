@@ -35,20 +35,22 @@ class FLayer internal constructor() {
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
 
     private var _isAttached = false
-    private var _offset = LayoutOffsetUnspecified
+    private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
     private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updateOffset()
-            updateUiState()
+            if (updateOffset()) {
+                updateUiState()
+            }
         }
     }
 
     private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updateOffset()
-            updateUiState()
+            if (updateOffset()) {
+                updateUiState()
+            }
         }
     }
 
@@ -63,8 +65,9 @@ class FLayer internal constructor() {
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
-            updateOffset()
-            updateUiState()
+            if (updateOffset()) {
+                updateUiState()
+            }
         }
 
     private var _layerManager: LayerManager? = null
@@ -104,7 +107,6 @@ class FLayer internal constructor() {
      * 移除
      */
     fun detach() {
-        _target = ""
         _isAttached = false
         updateUiState()
     }
@@ -127,23 +129,18 @@ class FLayer internal constructor() {
     /**
      * 计算layer的位置
      */
-    private fun updateOffset() {
-        val targetInfo = _targetLayoutCoordinates
-        if (targetInfo == null) {
-            _offset = LayoutOffsetUnspecified
-            return
-        }
+    private fun updateOffset(): Boolean {
+        if (!_isAttached) return false
+        val targetLayout = _targetLayoutCoordinates ?: return false
 
-        val targetSize = targetInfo.size
+        val targetSize = targetLayout.size
         if (targetSize.width <= 0 || targetSize.height <= 0) {
-            _offset = LayoutOffsetUnspecified
-            return
+            return false
         }
 
         val layerSize = _layerSize
         if (layerSize.width <= 0 || layerSize.height <= 0) {
-            _offset = LayoutOffsetUnspecified
-            return
+            return false
         }
 
         var offsetX = 0f
@@ -196,7 +193,7 @@ class FLayer internal constructor() {
             y = offsetY.takeIf { !it.isNaN() } ?: 0f,
         )
 
-        val windowOffset = targetInfo.localToWindow(localOffset)
+        val windowOffset = targetLayout.localToWindow(localOffset)
         val x = windowOffset.x.takeIf { !offsetX.isNaN() } ?: 0f
         val y = windowOffset.y.takeIf { !offsetX.isNaN() } ?: 0f
 
@@ -212,11 +209,20 @@ class FLayer internal constructor() {
         }
 
         _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+        return true
     }
 
     private fun updateUiState() {
+        val isVisible = if (_isAttached) {
+            if (_target.isEmpty()) {
+                true
+            } else {
+                _targetLayoutCoordinates?.isAttached == true
+            }
+        } else false
+
         _uiState.value = LayerUiState(
-            isAttached = _isAttached,
+            isVisible = isVisible,
             alignment = _alignment,
             target = _targetLayoutCoordinates != null,
             offset = _offset,
@@ -227,20 +233,8 @@ class FLayer internal constructor() {
     internal fun Content() {
         val uiState by _uiState.collectAsState()
 
-        val isVisible = if (_isAttached) {
-            if (_target.isEmpty()) {
-                true
-            } else {
-                _targetLayoutCoordinates?.isAttached == true
-            }
-        } else false
-
-        if (isVisible) {
-            SideEffect {
-                _scopeImpl._isVisible = true
-            }
-        } else {
-            _scopeImpl._isVisible = false
+        LaunchedEffect(uiState.isVisible) {
+            _scopeImpl._isVisible = uiState.isVisible
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -273,8 +267,6 @@ class FLayer internal constructor() {
     }
 
     companion object {
-        private val LayoutOffsetUnspecified = IntOffset.Zero
-
         fun getXCenter(targetSize: IntSize, layerSize: IntSize): Float {
             return (targetSize.width - layerSize.width) / 2f
         }
@@ -294,7 +286,7 @@ class FLayer internal constructor() {
 }
 
 private data class LayerUiState(
-    val isAttached: Boolean = false,
+    val isVisible: Boolean = false,
     val alignment: Alignment = Alignment.Center,
     val target: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
