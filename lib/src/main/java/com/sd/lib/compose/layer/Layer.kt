@@ -181,12 +181,12 @@ class FLayer internal constructor() {
             }
         }
 
-        val offset = Offset(
+        val localOffset = Offset(
             x = offsetX.takeIf { !it.isNaN() } ?: 0f,
             y = offsetY.takeIf { !it.isNaN() } ?: 0f,
         )
 
-        val windowOffset = targetInfo.localToWindow(offset)
+        val windowOffset = targetInfo.localToWindow(localOffset)
         val x = windowOffset.x.takeIf { !offsetX.isNaN() } ?: 0f
         val y = windowOffset.y.takeIf { !offsetX.isNaN() } ?: 0f
 
