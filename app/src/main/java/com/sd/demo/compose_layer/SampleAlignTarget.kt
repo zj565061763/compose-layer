@@ -46,12 +46,11 @@ class SampleAlignTarget : ComponentActivity() {
 @Composable
 private fun Content() {
 
-    val target = "target"
-    TargetView(target)
+    TargetView("hello")
 
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
-        layer.setAlignment(Alignment.Center)
+        layer.setTarget("hello")
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
@@ -75,15 +74,15 @@ private fun Content() {
             end = "TopEnd",
             onClickStart = {
                 layer.setAlignment(Alignment.TopStart)
-                layer.attach(target)
+                layer.attach()
             },
             onClickCenter = {
                 layer.setAlignment(Alignment.TopCenter)
-                layer.attach(target)
+                layer.attach()
             },
             onClickEnd = {
                 layer.setAlignment(Alignment.TopEnd)
-                layer.attach(target)
+                layer.attach()
             },
         )
 

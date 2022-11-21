@@ -38,13 +38,13 @@ class FLayer internal constructor() {
     private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
+    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             updateOffset()
         }
     }
 
-    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+    private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             updateOffset()
         }
@@ -82,6 +82,13 @@ class FLayer internal constructor() {
     }
 
     /**
+     * 设置目标
+     */
+    fun setTarget(target: String) {
+        _target = target
+    }
+
+    /**
      * 设置坐标拦截器
      */
     fun setOffsetInterceptor(interceptor: (OffsetInterceptorScope.() -> IntOffset)?) {
@@ -91,8 +98,7 @@ class FLayer internal constructor() {
     /**
      * 添加到容器
      */
-    fun attach(target: String = "") {
-        _target = target
+    fun attach() {
         _isAttached = true
         updateOffset()
         updateUiState()
