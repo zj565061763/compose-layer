@@ -3,9 +3,9 @@ package com.sd.lib.compose.layer
 import androidx.compose.runtime.*
 import androidx.compose.ui.layout.LayoutCoordinates
 
-internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
+internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
-internal class FLayerManager {
+internal class LayerManager {
     private val _layerHolder = mutableStateListOf<FLayer>()
     private val _layerTarget = mutableStateMapOf<String, TargetLayoutCoordinates>()
 

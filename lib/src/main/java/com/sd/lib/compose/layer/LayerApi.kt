@@ -17,8 +17,8 @@ fun FLayerContainer(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val layerManager = remember { FLayerManager() }
-    CompositionLocalProvider(LocalFLayerManager provides layerManager) {
+    val layerManager = remember { LayerManager() }
+    CompositionLocalProvider(LocalLayerManager provides layerManager) {
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
@@ -31,8 +31,8 @@ fun FLayerContainer(
 
 @Composable
 fun rememberFLayer(): FLayer {
-    val layerManager = checkNotNull(LocalFLayerManager.current) {
-        "CompositionLocal LocalFLayerManager not present"
+    val layerManager = checkNotNull(LocalLayerManager.current) {
+        "CompositionLocal LocalLayerManager not present"
     }
     return layerManager.layer()
 }
@@ -44,8 +44,8 @@ fun Modifier.fLayerTarget(
     tag: String,
 ) = composed {
     val tagUpdated by rememberUpdatedState(tag)
-    val layerManager = checkNotNull(LocalFLayerManager.current) {
-        "CompositionLocal LocalFLayerManager not present"
+    val layerManager = checkNotNull(LocalLayerManager.current) {
+        "CompositionLocal LocalLayerManager not present"
     }
 
     DisposableEffect(layerManager, tag) {

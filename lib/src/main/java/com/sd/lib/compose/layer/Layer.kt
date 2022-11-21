@@ -164,7 +164,7 @@ class FLayer internal constructor() {
     }
 
     @Composable
-    internal fun Content(manager: FLayerManager) {
+    internal fun Content(manager: LayerManager) {
         _scopeImpl._isVisible = if (_isAttached) {
             if (_targetTag.isEmpty()) {
                 true
