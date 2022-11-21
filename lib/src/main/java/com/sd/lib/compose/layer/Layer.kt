@@ -2,14 +2,15 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 
@@ -46,25 +47,11 @@ class FLayer internal constructor() {
             updatePosition()
         }
 
-    /** 是否检测状态栏 */
-    var checkStatusBarHeight: Boolean = false
-        set(value) {
-            field = value
-            updatePosition()
-        }
-
     /** 坐标拦截 */
     var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
 
     /** 对齐坐标 */
     private var _layerOffset by mutableStateOf(IntOffsetUnspecified)
-
-    /** 状态栏高度 */
-    internal var statusBarHeight = 0
-        set(value) {
-            field = value
-            updatePosition()
-        }
 
     /** layer的大小 */
     private var _layerSize = IntSize.Zero
@@ -191,7 +178,7 @@ class FLayer internal constructor() {
 
         val intOffset = IntOffset(
             x = x.toInt(),
-            y = y.toInt() - (statusBarHeight.takeIf { checkStatusBarHeight } ?: 0),
+            y = y.toInt(),
         )
 
         val offsetInterceptorInfo = object : OffsetInterceptorInfo {
@@ -219,10 +206,6 @@ class FLayer internal constructor() {
             }
         } else {
             false
-        }
-
-        if (isVisible) {
-            statusBarHeight = WindowInsets.statusBars.getBottom(LocalDensity.current)
         }
 
         AnimatedVisibility(visible = isVisible) {
