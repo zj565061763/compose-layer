@@ -210,8 +210,14 @@ class FLayer internal constructor() {
     @Composable
     internal fun Content(manager: FLayerManager) {
         val isVisible = if (_isAttached) {
-            _targetLayoutCoordinates = manager.findTarget(_targetTag)
-            if (_targetTag.isEmpty()) true else _targetLayoutCoordinates != null
+            if (_targetTag.isEmpty()) {
+                true
+            } else {
+                manager.findTarget(_targetTag).let {
+                    _targetLayoutCoordinates = it
+                    it != null && it.isAttached
+                }
+            }
         } else {
             false
         }
