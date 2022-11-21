@@ -177,16 +177,23 @@ class FLayer internal constructor() {
                 offsetY = Utils.getYEnd(targetSize, layerSize)
             }
             else -> {
-                throw RuntimeException("unknown Alignment:$alignment")
+                error("unknown Alignment:$alignment")
             }
         }
 
-        val offset = Offset(x = offsetX.takeIf { it.isNaN().not() } ?: 0f, y = offsetY.takeIf { it.isNaN().not() } ?: 0f)
-        val windowOffset = targetInfo.localToWindow(offset)
+        val offset = Offset(
+            x = offsetX.takeIf { !it.isNaN() } ?: 0f,
+            y = offsetY.takeIf { !it.isNaN() } ?: 0f,
+        )
 
-        val x = windowOffset.x.takeIf { offsetX.isNaN().not() } ?: 0f
-        val y = windowOffset.y.takeIf { offsetY.isNaN().not() } ?: 0f
-        val intOffset = IntOffset(x = x.toInt(), y = y.toInt() - (statusBarHeight.takeIf { checkStatusBarHeight } ?: 0))
+        val windowOffset = targetInfo.localToWindow(offset)
+        val x = windowOffset.x.takeIf { !offsetX.isNaN() } ?: 0f
+        val y = windowOffset.y.takeIf { !offsetX.isNaN() } ?: 0f
+
+        val intOffset = IntOffset(
+            x = x.toInt(),
+            y = y.toInt() - (statusBarHeight.takeIf { checkStatusBarHeight } ?: 0),
+        )
 
         val offsetInterceptorInfo = object : OffsetInterceptorInfo {
             override val offset: IntOffset
@@ -196,6 +203,7 @@ class FLayer internal constructor() {
             override val targetSize: IntSize
                 get() = targetSize
         }
+
         _layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
     }
 
