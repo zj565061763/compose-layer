@@ -2,15 +2,12 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.layout.LayoutCoordinates
-import java.util.concurrent.atomic.AtomicLong
 
 internal val LocalFLayerManager = compositionLocalOf<FLayerManager?> { null }
 
 internal class FLayerManager {
     private val _layerHolder = mutableStateListOf<FLayer>()
     private val _layerTarget = mutableStateMapOf<String, TargetLayoutCoordinates>()
-
-    private val _targetLayoutId = AtomicLong()
 
     @Composable
     fun layer(): FLayer {
@@ -25,15 +22,15 @@ internal class FLayerManager {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
-        logMsg { "addTarget $tag -> $layoutCoordinates" }
+        val old = _layerTarget[tag]
+        val id = if (old == null) true else !old.id
         _layerTarget[tag] = TargetLayoutCoordinates(
-            id = _targetLayoutId.incrementAndGet(),
+            id = id,
             layoutCoordinates = layoutCoordinates
         )
     }
 
     fun removeTarget(tag: String) {
-        logMsg { "removeTarget $tag" }
         _layerTarget.remove(tag)
     }
 
@@ -50,6 +47,6 @@ internal class FLayerManager {
 }
 
 private data class TargetLayoutCoordinates(
-    val id: Long,
+    val id: Boolean,
     val layoutCoordinates: LayoutCoordinates,
 )
