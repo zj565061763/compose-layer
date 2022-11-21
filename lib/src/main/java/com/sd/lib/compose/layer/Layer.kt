@@ -12,19 +12,9 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import kotlin.properties.Delegates
 
 internal val IntOffsetUnspecified = IntOffset(Int.MIN_VALUE, Int.MIN_VALUE)
-
-interface OffsetInterceptorInfo {
-    /** 当前计算的layer坐标 */
-    val offset: IntOffset
-
-    /** layer大小 */
-    val layerSize: IntSize
-
-    /** 目标大小 */
-    val targetSize: IntSize
-}
 
 /**
  * layer状态管理对象
@@ -39,33 +29,24 @@ class FLayer internal constructor() {
     /** 对齐方式 */
     var alignment: Alignment by mutableStateOf(Alignment.BottomCenter)
 
-    /** 四条边上居中的时候，是否对齐外边 */
-    var centerOutside: Boolean = false
-        set(value) {
-            field = value
-            updatePosition()
-        }
-
     /** 坐标拦截 */
-    var offsetInterceptor: (OffsetInterceptorInfo.() -> IntOffset?)? = null
+    var offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset?)? = null
 
     /** 对齐坐标 */
     private var _layerOffset by mutableStateOf(IntOffsetUnspecified)
 
     /** layer的大小 */
-    private var _layerSize = IntSize.Zero
-        set(value) {
-            field = value
+    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
             updatePosition()
-
         }
+    }
 
     /** 目标信息 */
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
             updatePosition()
-
         }
 
     private val _scopeImpl = FLayerScopeImpl()
@@ -125,10 +106,6 @@ class FLayer internal constructor() {
             Alignment.TopCenter -> {
                 offsetX = Utils.getXCenter(targetSize, layerSize)
                 offsetY = 0f
-                if (centerOutside) {
-                    offsetX = Float.NaN
-                    offsetY = -layerSize.height.toFloat()
-                }
             }
             Alignment.TopEnd -> {
                 offsetX = Utils.getXEnd(targetSize, layerSize)
@@ -137,10 +114,6 @@ class FLayer internal constructor() {
             Alignment.CenterStart -> {
                 offsetX = 0f
                 offsetY = Utils.getYCenter(targetSize, layerSize)
-                if (centerOutside) {
-                    offsetX = -layerSize.width.toFloat()
-                    offsetY = Float.NaN
-                }
             }
             Alignment.Center -> {
                 offsetX = Utils.getXCenter(targetSize, layerSize)
@@ -149,10 +122,6 @@ class FLayer internal constructor() {
             Alignment.CenterEnd -> {
                 offsetX = Utils.getXEnd(targetSize, layerSize)
                 offsetY = Utils.getYCenter(targetSize, layerSize)
-                if (centerOutside) {
-                    offsetX += layerSize.width.toFloat()
-                    offsetY = Float.NaN
-                }
             }
             Alignment.BottomStart -> {
                 offsetX = 0f
@@ -161,10 +130,6 @@ class FLayer internal constructor() {
             Alignment.BottomCenter -> {
                 offsetX = Utils.getXCenter(targetSize, layerSize)
                 offsetY = Utils.getYEnd(targetSize, layerSize)
-                if (centerOutside) {
-                    offsetX = Float.NaN
-                    offsetY += layerSize.height.toFloat()
-                }
             }
             Alignment.BottomEnd -> {
                 offsetX = Utils.getXEnd(targetSize, layerSize)
@@ -189,16 +154,13 @@ class FLayer internal constructor() {
             y = y.toInt(),
         )
 
-        val offsetInterceptorInfo = object : OffsetInterceptorInfo {
-            override val offset: IntOffset
-                get() = intOffset
-            override val layerSize: IntSize
-                get() = layerSize
-            override val targetSize: IntSize
-                get() = targetSize
+        val offsetInterceptorScope = object : OffsetInterceptorScope {
+            override val offset: IntOffset get() = intOffset
+            override val layerSize: IntSize get() = layerSize
+            override val targetSize: IntSize get() = targetSize
         }
 
-        _layerOffset = offsetInterceptor?.invoke(offsetInterceptorInfo) ?: intOffset
+        _layerOffset = offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
     }
 
     @Composable
@@ -252,6 +214,17 @@ private class FLayerScopeImpl : FLayerScope {
 
     override val isVisible: Boolean
         get() = _isVisible
+}
+
+interface OffsetInterceptorScope {
+    /** 当前计算的layer坐标 */
+    val offset: IntOffset
+
+    /** layer大小 */
+    val layerSize: IntSize
+
+    /** 目标大小 */
+    val targetSize: IntSize
 }
 
 private object Utils {
