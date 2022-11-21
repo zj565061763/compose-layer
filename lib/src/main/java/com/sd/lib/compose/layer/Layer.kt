@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.properties.Delegates
 
-internal val IntOffsetUnspecified = IntOffset(Int.MIN_VALUE, Int.MIN_VALUE)
+private val LayoutOffsetUnspecified = IntOffset.Zero
 
 /**
  * layer状态管理对象
@@ -33,7 +33,7 @@ class FLayer internal constructor() {
     var offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset?)? = null
 
     /** 对齐坐标 */
-    private var _layerOffset by mutableStateOf(IntOffsetUnspecified)
+    private var _layerOffset by mutableStateOf(LayoutOffsetUnspecified)
 
     /** layer的大小 */
     private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
@@ -79,19 +79,19 @@ class FLayer internal constructor() {
     private fun updatePosition() {
         val targetInfo = _targetLayoutCoordinates
         if (targetInfo == null) {
-            _layerOffset = IntOffsetUnspecified
+            _layerOffset = LayoutOffsetUnspecified
             return
         }
 
         val targetSize = targetInfo.size
         if (targetSize.width <= 0 || targetSize.height <= 0) {
-            _layerOffset = IntOffsetUnspecified
+            _layerOffset = LayoutOffsetUnspecified
             return
         }
 
         val layerSize = _layerSize
         if (layerSize.width <= 0 || layerSize.height <= 0) {
-            _layerOffset = IntOffsetUnspecified
+            _layerOffset = LayoutOffsetUnspecified
             return
         }
 
