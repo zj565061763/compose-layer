@@ -23,9 +23,6 @@ class FLayer internal constructor() {
     private var _isAttached: Boolean by mutableStateOf(false)
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
 
-    /** 目标Tag */
-    private var _targetTag: String by mutableStateOf("")
-
     /** 对齐方式 */
     var alignment: Alignment by mutableStateOf(Alignment.BottomCenter)
 
@@ -42,6 +39,14 @@ class FLayer internal constructor() {
         }
     }
 
+    /** 目标Tag */
+    private var _targetTag by Delegates.observable("") { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            _layerManager?.unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
+            _layerManager?.registerTargetLayoutCallback(newValue, _targetLayoutCallback)
+        }
+    }
+
     /** 目标信息 */
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
@@ -49,6 +54,7 @@ class FLayer internal constructor() {
             updatePosition()
         }
 
+    private var _layerManager: LayerManager? = null
     private val _scopeImpl = LayerScopeImpl()
 
     /**
@@ -63,6 +69,7 @@ class FLayer internal constructor() {
      */
     fun attach(tag: String = "") {
         _targetTag = tag
+        _targetLayoutCoordinates = _layerManager?.findTarget(tag)
         _isAttached = true
     }
 
@@ -71,6 +78,22 @@ class FLayer internal constructor() {
      */
     fun detach() {
         _isAttached = false
+        _targetTag = ""
+    }
+
+    internal fun attachToManager(manager: LayerManager) {
+        _layerManager = manager
+    }
+
+    internal fun detachFromManager() {
+        detach()
+        _layerManager = null
+    }
+
+    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit by lazy {
+        {
+            _targetLayoutCoordinates = it
+        }
     }
 
     /**
