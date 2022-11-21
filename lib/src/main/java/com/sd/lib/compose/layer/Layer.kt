@@ -14,6 +14,21 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.properties.Delegates
 
+interface FLayerScope {
+    val isVisible: Boolean
+}
+
+interface OffsetInterceptorScope {
+    /** 当前计算的layer坐标 */
+    val offset: IntOffset
+
+    /** layer大小 */
+    val layerSize: IntSize
+
+    /** 目标大小 */
+    val targetSize: IntSize
+}
+
 class FLayer internal constructor() {
     private var _isAttached: Boolean by mutableStateOf(false)
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
@@ -229,21 +244,6 @@ class FLayer internal constructor() {
     companion object {
         private val LayoutOffsetUnspecified = IntOffset.Zero
     }
-}
-
-interface FLayerScope {
-    val isVisible: Boolean
-}
-
-interface OffsetInterceptorScope {
-    /** 当前计算的layer坐标 */
-    val offset: IntOffset
-
-    /** layer大小 */
-    val layerSize: IntSize
-
-    /** 目标大小 */
-    val targetSize: IntSize
 }
 
 private object Utils {
