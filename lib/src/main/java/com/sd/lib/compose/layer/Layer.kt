@@ -85,6 +85,13 @@ class FLayer internal constructor() {
     }
 
     /**
+     * 移除
+     */
+    fun detach() {
+        _isAttached = false
+    }
+
+    /**
      * 计算layer的位置
      */
     private fun updatePosition() {
