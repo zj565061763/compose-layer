@@ -40,14 +40,14 @@ class FLayer internal constructor() {
 
     private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updatePosition()
+            updateOffset()
             updateUiState()
         }
     }
 
     private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updatePosition()
+            updateOffset()
             updateUiState()
         }
     }
@@ -63,7 +63,7 @@ class FLayer internal constructor() {
     private var _targetLayoutCoordinates: LayoutCoordinates? = null
         set(value) {
             field = value
-            updatePosition()
+            updateOffset()
             updateUiState()
         }
 
@@ -127,7 +127,7 @@ class FLayer internal constructor() {
     /**
      * 计算layer的位置
      */
-    private fun updatePosition() {
+    private fun updateOffset() {
         val targetInfo = _targetLayoutCoordinates
         if (targetInfo == null) {
             _offset = LayoutOffsetUnspecified
