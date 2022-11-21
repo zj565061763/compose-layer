@@ -17,11 +17,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
@@ -44,13 +42,26 @@ class SampleAlignTarget : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
 
     val target = "target"
-    val listLayer = layers()
-
     TargetView(target)
+
+    val layer = rememberFLayer()
+    LaunchedEffect(layer) {
+        layer.alignment = Alignment.Center
+        layer.setContent {
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                ColorBox(Color.Red, "Box")
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -58,123 +69,30 @@ private fun Content() {
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Spacer(modifier = Modifier.height(50.dp))
-        Button(
-            onClick = {
-                listLayer.forEach { it.attach(target) }
-            }
-        ) {
-            Text(text = "Attach")
-        }
+        ButtonRow(
+            start = "TopStart",
+            center = "TopCenter",
+            end = "TopEnd",
+            onClickStart = {
+                layer.alignment = Alignment.TopStart
+                layer.attach(target)
+            },
+            onClickCenter = {
+                layer.alignment = Alignment.TopCenter
+                layer.attach(target)
+            },
+            onClickEnd = {
+                layer.alignment = Alignment.TopEnd
+                layer.attach(target)
+            },
+        )
 
         Button(
-            onClick = {
-                listLayer.forEach { it.detach() }
-            }
+            onClick = { layer.detach() }
         ) {
             Text(text = "Detach")
         }
     }
-
-
-//    Box(modifier = Modifier
-//        .size(250.dp)
-//        .background(Color.LightGray)
-//
-//        .fLayer {
-//            it.alignment = Alignment.CenterStart
-//            it.centerOutside = false
-//            ColorBox(Color.Red.copy(alpha = 0.5f), "4")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.Center
-//            ColorBox(Color.Green.copy(alpha = 0.5f), "5")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.CenterEnd
-//            it.centerOutside = false
-//            ColorBox(Color.Blue.copy(alpha = 0.5f), "6")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.BottomStart
-//            ColorBox(Color.Red.copy(alpha = 0.2f), "7")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.BottomCenter
-//            it.centerOutside = false
-//            ColorBox(Color.Green.copy(alpha = 0.2f), "8")
-//        }
-//
-//        .fLayer {
-//            it.alignment = Alignment.BottomEnd
-//            ColorBox(Color.Blue.copy(alpha = 0.2f), "9")
-//        }
-//
-//        .fLayer {
-//            AnimateBlurBox()
-//        }
-//    )
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-private fun layers(): List<FLayer> {
-    // TopStart
-    val layerTopStart = rememberFLayer().also { layer ->
-        LaunchedEffect(layer) {
-            layer.alignment = Alignment.TopStart
-            layer.setContent {
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = scaleIn() + slideIn { IntOffset(-it.width / 2, -it.height / 2) },
-                    exit = scaleOut() + slideOut { IntOffset(-it.width / 2, -it.height / 2) },
-                ) {
-                    ColorBox(Color.Red.copy(alpha = 0.8f), "1")
-                }
-            }
-        }
-    }
-
-    // TopCenter
-    val layerTopCenter = rememberFLayer().also { layer ->
-        LaunchedEffect(layer) {
-            layer.alignment = Alignment.TopCenter
-            layer.setContent {
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = scaleIn() + slideInVertically(),
-                    exit = scaleOut() + slideOutVertically(),
-                ) {
-                    ColorBox(Color.Green.copy(alpha = 0.8f), "2")
-                }
-            }
-        }
-    }
-
-    // TopStart
-    val layerTopEnd = rememberFLayer().also { layer ->
-        LaunchedEffect(layer) {
-            layer.alignment = Alignment.TopEnd
-            layer.setContent {
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = scaleIn() + slideIn { IntOffset(it.width / 2, -it.height / 2) },
-                    exit = scaleOut() + slideOut { IntOffset(it.width / 2, -it.height / 2) },
-                ) {
-                    ColorBox(Color.Blue.copy(alpha = 0.8f), "3")
-                }
-            }
-        }
-    }
-
-    return listOf(
-        layerTopStart,
-        layerTopCenter,
-        layerTopEnd,
-    )
 }
 
 @Composable
@@ -197,5 +115,40 @@ private fun TargetView(
                 .fLayerTarget(target)
         )
         Box(modifier = Modifier.height(2000.dp))
+    }
+}
+
+@Composable
+private fun ButtonRow(
+    modifier: Modifier = Modifier,
+    start: String,
+    center: String,
+    end: String,
+    onClickStart: () -> Unit,
+    onClickCenter: () -> Unit,
+    onClickEnd: () -> Unit,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Button(
+            onClick = onClickStart
+        ) {
+            Text(text = start)
+        }
+
+        Button(
+            onClick = onClickCenter
+        ) {
+            Text(text = center)
+        }
+
+        Button(
+            onClick = onClickEnd
+        ) {
+            Text(text = end)
+        }
     }
 }
