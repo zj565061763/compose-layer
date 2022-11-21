@@ -24,7 +24,7 @@ class SampleAlignContainer : ComponentActivity() {
                     FLayerContainer(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        AlignContainer()
+                        Content()
                     }
                 }
             }
@@ -33,7 +33,7 @@ class SampleAlignContainer : ComponentActivity() {
 }
 
 @Composable
-private fun AlignContainer() {
+private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.alignment = Alignment.TopCenter
