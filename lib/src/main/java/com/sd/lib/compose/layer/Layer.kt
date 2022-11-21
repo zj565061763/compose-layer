@@ -137,36 +137,36 @@ class FLayer internal constructor() {
                 offsetY = 0f
             }
             Alignment.TopCenter -> {
-                offsetX = Utils.getXCenter(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, layerSize)
                 offsetY = 0f
             }
             Alignment.TopEnd -> {
-                offsetX = Utils.getXEnd(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, layerSize)
                 offsetY = 0f
             }
             Alignment.CenterStart -> {
                 offsetX = 0f
-                offsetY = Utils.getYCenter(targetSize, layerSize)
+                offsetY = getYCenter(targetSize, layerSize)
             }
             Alignment.Center -> {
-                offsetX = Utils.getXCenter(targetSize, layerSize)
-                offsetY = Utils.getYCenter(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, layerSize)
+                offsetY = getYCenter(targetSize, layerSize)
             }
             Alignment.CenterEnd -> {
-                offsetX = Utils.getXEnd(targetSize, layerSize)
-                offsetY = Utils.getYCenter(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, layerSize)
+                offsetY = getYCenter(targetSize, layerSize)
             }
             Alignment.BottomStart -> {
                 offsetX = 0f
-                offsetY = Utils.getYEnd(targetSize, layerSize)
+                offsetY = getYEnd(targetSize, layerSize)
             }
             Alignment.BottomCenter -> {
-                offsetX = Utils.getXCenter(targetSize, layerSize)
-                offsetY = Utils.getYEnd(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, layerSize)
+                offsetY = getYEnd(targetSize, layerSize)
             }
             Alignment.BottomEnd -> {
-                offsetX = Utils.getXEnd(targetSize, layerSize)
-                offsetY = Utils.getYEnd(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, layerSize)
+                offsetY = getYEnd(targetSize, layerSize)
             }
             else -> {
                 error("unknown Alignment:$alignment")
@@ -243,24 +243,22 @@ class FLayer internal constructor() {
 
     companion object {
         private val LayoutOffsetUnspecified = IntOffset.Zero
-    }
-}
 
-private object Utils {
-    fun getXCenter(targetSize: IntSize, layerSize: IntSize): Float {
-        return (targetSize.width - layerSize.width) / 2f
-    }
+        fun getXCenter(targetSize: IntSize, layerSize: IntSize): Float {
+            return (targetSize.width - layerSize.width) / 2f
+        }
 
-    fun getXEnd(targetSize: IntSize, layerSize: IntSize): Float {
-        return (targetSize.width - layerSize.width).toFloat()
-    }
+        fun getXEnd(targetSize: IntSize, layerSize: IntSize): Float {
+            return (targetSize.width - layerSize.width).toFloat()
+        }
 
-    fun getYCenter(targetSize: IntSize, layerSize: IntSize): Float {
-        return (targetSize.height - layerSize.height) / 2f
-    }
+        fun getYCenter(targetSize: IntSize, layerSize: IntSize): Float {
+            return (targetSize.height - layerSize.height) / 2f
+        }
 
-    fun getYEnd(targetSize: IntSize, layerSize: IntSize): Float {
-        return (targetSize.height - layerSize.height).toFloat()
+        fun getYEnd(targetSize: IntSize, layerSize: IntSize): Float {
+            return (targetSize.height - layerSize.height).toFloat()
+        }
     }
 }
 
