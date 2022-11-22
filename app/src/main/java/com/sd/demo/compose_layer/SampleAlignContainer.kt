@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
+import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.rememberFLayer
 
@@ -36,12 +37,34 @@ class SampleAlignContainer : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+
 @Composable
 private fun Content() {
+    val layer1 = createLayer(Alignment.Center)
+    val layer2 = createLayer(Alignment.BottomCenter)
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Button(
+            onClick = {
+                layer1.attach()
+                layer2.attach()
+            }
+        ) {
+            Text(text = "Attach")
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun createLayer(alignment: Alignment): FLayer {
     val layer = rememberFLayer()
-    LaunchedEffect(layer) {
-        layer.setAlignment(Alignment.Center)
+    LaunchedEffect(layer, alignment) {
+        layer.setAlignment(alignment)
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
@@ -52,19 +75,5 @@ private fun Content() {
             }
         }
     }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Spacer(modifier = Modifier.height(50.dp))
-        Button(
-            onClick = {
-                layer.attach()
-            }
-        ) {
-            Text(text = "Attach")
-        }
-    }
+    return layer
 }
