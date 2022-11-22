@@ -42,11 +42,6 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setAlignment(Alignment.Center)
-        // 设置窗口行为，例如按返回键关闭layer，默认开启
-        layer.setDialogBehavior {
-            // 返回null，关闭窗口行为
-            null
-        }
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
