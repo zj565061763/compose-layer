@@ -32,6 +32,7 @@ internal class LayerManager {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+        if (tag.isEmpty()) return
         val old = _targetLayoutHolder[tag]
         if (old != null) {
             check(old == layoutCoordinates) { "Tag:$tag has already specified." }
