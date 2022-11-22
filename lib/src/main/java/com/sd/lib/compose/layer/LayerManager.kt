@@ -7,7 +7,7 @@ internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
-    private val _targetLayerHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
+    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
 
     @Composable
@@ -32,23 +32,23 @@ internal class LayerManager {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
-        val old = _targetLayerHolder[tag]
+        val old = _targetLayoutHolder[tag]
         if (old != null) {
             check(old == layoutCoordinates) { "Tag:$tag has already specified." }
         }
 
-        _targetLayerHolder[tag] = layoutCoordinates
+        _targetLayoutHolder[tag] = layoutCoordinates
         notifyTargetLayoutCallback(tag, layoutCoordinates)
     }
 
     fun removeTarget(tag: String) {
-        _targetLayerHolder.remove(tag)
+        _targetLayoutHolder.remove(tag)
         notifyTargetLayoutCallback(tag, null)
     }
 
     fun findTarget(tag: String): LayoutCoordinates? {
         if (tag.isEmpty()) return null
-        return _targetLayerHolder[tag]
+        return _targetLayoutHolder[tag]
     }
 
     fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
