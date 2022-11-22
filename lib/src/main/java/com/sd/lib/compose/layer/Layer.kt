@@ -245,9 +245,7 @@ class FLayer internal constructor() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .offset {
-                        uiState.offset
-                    }
+                    .offset { uiState.offset }
             ) {
                 Box(
                     modifier = Modifier.onSizeChanged {
