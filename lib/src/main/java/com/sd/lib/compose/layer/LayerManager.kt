@@ -1,7 +1,10 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.zIndex
 
 internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
@@ -9,6 +12,8 @@ internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
+
+    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
     @Composable
     fun layer(): FLayer {
@@ -18,6 +23,7 @@ internal class LayerManager {
             state.attachToManager(this@LayerManager)
             onDispose {
                 _layerHolder.remove(state)
+                _attachedLayerHolder.remove(state)
                 state.detachFromManager()
             }
         }
@@ -27,7 +33,10 @@ internal class LayerManager {
     @Composable
     fun Content() {
         _layerHolder.forEach { item ->
-            item.Content()
+            val zIndex = _attachedLayerHolder.indexOf(item).coerceAtLeast(0)
+            Box(modifier = Modifier.zIndex(zIndex.toFloat())) {
+                item.Content()
+            }
         }
     }
 
@@ -67,6 +76,13 @@ internal class LayerManager {
             if (holder.isEmpty()) {
                 _targetLayoutCallbackHolder.remove(tag)
             }
+        }
+    }
+
+    fun notifyLayerAttachState(layer: FLayer, isAttached: Boolean) {
+        _attachedLayerHolder.remove(layer)
+        if (isAttached && _layerHolder.contains(layer)) {
+            _attachedLayerHolder.add(layer)
         }
     }
 

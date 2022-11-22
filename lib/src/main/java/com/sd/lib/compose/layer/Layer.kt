@@ -132,6 +132,7 @@ class FLayer internal constructor() {
      */
     fun attach() {
         _isAttached = true
+        _layerManager?.notifyLayerAttachState(this, true)
         updateOffset()
         updateUiState()
     }
@@ -141,6 +142,7 @@ class FLayer internal constructor() {
      */
     fun detach() {
         _isAttached = false
+        _layerManager?.notifyLayerAttachState(this, false)
         updateUiState()
     }
 
