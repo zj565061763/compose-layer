@@ -33,7 +33,11 @@ interface OffsetInterceptorScope {
 }
 
 data class DialogBehavior(
+    /** 按返回键是否可以关闭 */
     val cancelable: Boolean = true,
+
+    /** 触摸到非内容区域是否关闭 */
+    val canceledOnTouchOutside: Boolean = true,
 ) {
     companion object {
         val Disabled = DialogBehavior()
