@@ -2,6 +2,7 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -9,8 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,11 +40,7 @@ data class DialogBehavior(
 
     /** 触摸到非内容区域是否关闭 */
     val canceledOnTouchOutside: Boolean = true,
-) {
-    companion object {
-        val Disabled = DialogBehavior()
-    }
-}
+)
 
 class FLayer internal constructor() {
     private val _uiState = MutableStateFlow(LayerUiState())
@@ -51,6 +49,8 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
+
+    private var _layerLayout: LayoutCoordinates? = null
 
     private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -81,7 +81,7 @@ class FLayer internal constructor() {
 
     private var _layerManager: LayerManager? = null
     private val _scopeImpl = LayerScopeImpl()
-    private var _dialogBehavior by mutableStateOf(DialogBehavior())
+    private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     /**
      * 设置内容
@@ -107,8 +107,8 @@ class FLayer internal constructor() {
     /**
      * 设置窗口行为
      */
-    fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior) {
-        _dialogBehavior = block(_dialogBehavior)
+    fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
+        _dialogBehavior = block(_dialogBehavior ?: DialogBehavior())
     }
 
     /**
@@ -263,7 +263,7 @@ class FLayer internal constructor() {
         }
 
         val behavior = _dialogBehavior
-        if (behavior != DialogBehavior.Disabled) {
+        if (behavior != null) {
             BackHandler(uiState.isVisible) {
                 if (behavior.cancelable) {
                     detach()
@@ -271,27 +271,46 @@ class FLayer internal constructor() {
             }
         }
 
+        var modifier = Modifier.fillMaxSize()
+        if (behavior != null && uiState.isVisible) {
+            modifier = modifier.pointerInput(behavior) {
+                forEachGesture {
+                    awaitPointerEventScope {
+                        val down = layerAwaitFirstDown()
+                        val downPosition = down.position
+                        logMsg { "down $downPosition" }
+                    }
+                }
+            }
+        }
+
         if (uiState.alignTarget) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset { uiState.offset }
+                modifier = modifier.offset { uiState.offset }
             ) {
-                Box(
-                    modifier = Modifier.onSizeChanged {
-                        _layerSize = it
-                    }
-                ) {
-                    _content.invoke(_scopeImpl)
-                }
+                ContentBox()
             }
         } else {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = modifier,
                 contentAlignment = uiState.alignment
             ) {
-                _content.invoke(_scopeImpl)
+                ContentBox()
             }
+        }
+    }
+
+    @Composable
+    private fun ContentBox(
+        modifier: Modifier = Modifier,
+    ) {
+        Box(
+            modifier = modifier.onGloballyPositioned {
+                _layerLayout = it
+                _layerSize = it.size
+            }
+        ) {
+            _content.invoke(_scopeImpl)
         }
     }
 
@@ -330,4 +349,14 @@ private data class LayerUiState(
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
+}
+
+private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(): PointerInputChange {
+    var event: PointerEvent
+    do {
+        event = awaitPointerEvent(PointerEventPass.Initial)
+    } while (
+        !event.changes.all { it.changedToDownIgnoreConsumed() }
+    )
+    return event.changes[0]
 }
