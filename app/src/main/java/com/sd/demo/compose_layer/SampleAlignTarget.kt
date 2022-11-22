@@ -51,6 +51,8 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setTarget("hello")
+        // 关闭窗口行为
+        layer.setDialogBehavior { null }
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
