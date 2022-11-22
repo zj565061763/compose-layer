@@ -27,8 +27,8 @@ interface OffsetInterceptorScope {
     /** 当前计算的layer坐标 */
     val offset: IntOffset
 
-    /** layer大小 */
-    val layerSize: IntSize
+    /** 内容大小 */
+    val contentSize: IntSize
 
     /** 目标大小 */
     val targetSize: IntSize
@@ -162,8 +162,8 @@ class FLayer internal constructor() {
             return false
         }
 
-        val layerSize = _contentSize
-        if (layerSize.width <= 0 || layerSize.height <= 0) {
+        val contentSize = _contentSize
+        if (contentSize.width <= 0 || contentSize.height <= 0) {
             return false
         }
 
@@ -176,36 +176,36 @@ class FLayer internal constructor() {
                 offsetY = 0f
             }
             Alignment.TopCenter -> {
-                offsetX = getXCenter(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, contentSize)
                 offsetY = 0f
             }
             Alignment.TopEnd -> {
-                offsetX = getXEnd(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, contentSize)
                 offsetY = 0f
             }
             Alignment.CenterStart -> {
                 offsetX = 0f
-                offsetY = getYCenter(targetSize, layerSize)
+                offsetY = getYCenter(targetSize, contentSize)
             }
             Alignment.Center -> {
-                offsetX = getXCenter(targetSize, layerSize)
-                offsetY = getYCenter(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, contentSize)
+                offsetY = getYCenter(targetSize, contentSize)
             }
             Alignment.CenterEnd -> {
-                offsetX = getXEnd(targetSize, layerSize)
-                offsetY = getYCenter(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, contentSize)
+                offsetY = getYCenter(targetSize, contentSize)
             }
             Alignment.BottomStart -> {
                 offsetX = 0f
-                offsetY = getYEnd(targetSize, layerSize)
+                offsetY = getYEnd(targetSize, contentSize)
             }
             Alignment.BottomCenter -> {
-                offsetX = getXCenter(targetSize, layerSize)
-                offsetY = getYEnd(targetSize, layerSize)
+                offsetX = getXCenter(targetSize, contentSize)
+                offsetY = getYEnd(targetSize, contentSize)
             }
             Alignment.BottomEnd -> {
-                offsetX = getXEnd(targetSize, layerSize)
-                offsetY = getYEnd(targetSize, layerSize)
+                offsetX = getXEnd(targetSize, contentSize)
+                offsetY = getYEnd(targetSize, contentSize)
             }
             else -> {
                 error("unknown Alignment:$_alignment")
@@ -228,7 +228,7 @@ class FLayer internal constructor() {
 
         val offsetInterceptorScope = object : OffsetInterceptorScope {
             override val offset: IntOffset get() = intOffset
-            override val layerSize: IntSize get() = layerSize
+            override val contentSize: IntSize get() = contentSize
             override val targetSize: IntSize get() = targetSize
         }
 
@@ -343,20 +343,20 @@ class FLayer internal constructor() {
     }
 
     companion object {
-        fun getXCenter(targetSize: IntSize, layerSize: IntSize): Float {
-            return (targetSize.width - layerSize.width) / 2f
+        fun getXCenter(targetSize: IntSize, contentSize: IntSize): Float {
+            return (targetSize.width - contentSize.width) / 2f
         }
 
-        fun getXEnd(targetSize: IntSize, layerSize: IntSize): Float {
-            return (targetSize.width - layerSize.width).toFloat()
+        fun getXEnd(targetSize: IntSize, contentSize: IntSize): Float {
+            return (targetSize.width - contentSize.width).toFloat()
         }
 
-        fun getYCenter(targetSize: IntSize, layerSize: IntSize): Float {
-            return (targetSize.height - layerSize.height) / 2f
+        fun getYCenter(targetSize: IntSize, contentSize: IntSize): Float {
+            return (targetSize.height - contentSize.height) / 2f
         }
 
-        fun getYEnd(targetSize: IntSize, layerSize: IntSize): Float {
-            return (targetSize.height - layerSize.height).toFloat()
+        fun getYEnd(targetSize: IntSize, contentSize: IntSize): Float {
+            return (targetSize.height - contentSize.height).toFloat()
         }
     }
 }
