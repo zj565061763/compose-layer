@@ -51,8 +51,9 @@ class FLayer internal constructor() {
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
     private var _layerLayout: LayoutCoordinates? = null
+    private var _contentLayout: LayoutCoordinates? = null
 
-    private var _layerSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+    private var _contentSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             updateOffset()
         }
@@ -161,7 +162,7 @@ class FLayer internal constructor() {
             return false
         }
 
-        val layerSize = _layerSize
+        val layerSize = _contentSize
         if (layerSize.width <= 0 || layerSize.height <= 0) {
             return false
         }
@@ -271,19 +272,7 @@ class FLayer internal constructor() {
             }
         }
 
-        var modifier = Modifier.fillMaxSize()
-        if (behavior != null && uiState.isVisible) {
-            modifier = modifier.pointerInput(behavior) {
-                forEachGesture {
-                    awaitPointerEventScope {
-                        val down = layerAwaitFirstDown()
-                        val downPosition = down.position
-                        logMsg { "down $downPosition" }
-                    }
-                }
-            }
-        }
-
+        val modifier = createModifier(uiState.isVisible)
         if (uiState.alignTarget) {
             Box(
                 modifier = modifier.offset { uiState.offset }
@@ -301,13 +290,45 @@ class FLayer internal constructor() {
     }
 
     @Composable
+    private fun createModifier(isVisible: Boolean): Modifier {
+        val behavior = _dialogBehavior
+        var modifier = Modifier.fillMaxSize()
+        if (behavior != null && isVisible) {
+            modifier = modifier
+                .onGloballyPositioned { _layerLayout = it }
+                .pointerInput(behavior) {
+                    forEachGesture {
+                        awaitPointerEventScope {
+                            val down = layerAwaitFirstDown()
+                            val downPosition = down.position
+
+                            val layerLayout = _layerLayout
+                            val contentLayout = _contentLayout
+                            if (layerLayout != null && contentLayout != null) {
+                                val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
+                                if (contentRect.contains(downPosition)) {
+                                    // 触摸到内容区域
+                                } else {
+                                    if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                                        detach()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+        }
+        return modifier
+    }
+
+    @Composable
     private fun ContentBox(
         modifier: Modifier = Modifier,
     ) {
         Box(
             modifier = modifier.onGloballyPositioned {
-                _layerLayout = it
-                _layerSize = it.size
+                _contentLayout = it
+                _contentSize = it.size
             }
         ) {
             _content.invoke(_scopeImpl)
