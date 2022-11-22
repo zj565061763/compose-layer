@@ -40,8 +40,8 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer1 = createLayer(Alignment.Center)
-    val layer2 = createLayer(Alignment.BottomCenter)
+    val layer1 = createLayer("1", Alignment.Center)
+    val layer2 = createLayer("2", Alignment.BottomCenter)
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -50,8 +50,8 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                layer1.attach()
                 layer2.attach()
+                layer1.attach()
             }
         ) {
             Text(text = "Attach")
@@ -61,7 +61,10 @@ private fun Content() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun createLayer(alignment: Alignment): FLayer {
+private fun createLayer(
+    text: String,
+    alignment: Alignment,
+): FLayer {
     val layer = rememberFLayer()
     LaunchedEffect(layer, alignment) {
         layer.setAlignment(alignment)
@@ -71,7 +74,7 @@ private fun createLayer(alignment: Alignment): FLayer {
                 enter = scaleIn(),
                 exit = scaleOut(),
             ) {
-                ColorBox(Color.Red, "Box")
+                ColorBox(Color.Red, text)
             }
         }
     }
