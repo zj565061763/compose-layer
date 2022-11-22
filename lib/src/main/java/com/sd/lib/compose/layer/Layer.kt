@@ -63,6 +63,7 @@ class FLayer internal constructor() {
         set(value) {
             field = value
             updateOffset()
+            updateUiState()
         }
 
     private var _layerManager: LayerManager? = null
