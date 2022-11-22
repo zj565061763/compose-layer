@@ -309,6 +309,7 @@ class FLayer internal constructor() {
                                 if (contentRect.contains(downPosition)) {
                                     // 触摸到内容区域
                                 } else {
+                                    down.consume()
                                     if (behavior.cancelable && behavior.canceledOnTouchOutside) {
                                         detach()
                                     }
@@ -377,7 +378,7 @@ private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(): PointerInputCh
     do {
         event = awaitPointerEvent(PointerEventPass.Initial)
     } while (
-        !event.changes.all { it.changedToDownIgnoreConsumed() }
+        !event.changes.all { it.changedToDown() }
     )
     return event.changes[0]
 }
