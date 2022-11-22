@@ -228,7 +228,7 @@ class FLayer internal constructor() {
         _uiState.value = LayerUiState(
             isVisible = isVisible,
             alignment = _alignment,
-            target = _targetLayoutCoordinates != null,
+            alignTarget = _targetLayoutCoordinates != null,
             offset = _offset,
         )
     }
@@ -241,24 +241,28 @@ class FLayer internal constructor() {
             _scopeImpl._isVisible = uiState.isVisible
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (uiState.target) {
-                Box(modifier = Modifier
-                    .onSizeChanged {
-                        _layerSize = it
-                    }
+        if (uiState.alignTarget) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
                     .offset {
                         uiState.offset
                     }
-                ) {
-                    _content.invoke(_scopeImpl)
-                }
-            } else {
+            ) {
                 Box(
-                    modifier = Modifier.align(uiState.alignment)
+                    modifier = Modifier.onSizeChanged {
+                        _layerSize = it
+                    }
                 ) {
                     _content.invoke(_scopeImpl)
                 }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = uiState.alignment
+            ) {
+                _content.invoke(_scopeImpl)
             }
         }
     }
@@ -292,7 +296,7 @@ class FLayer internal constructor() {
 private data class LayerUiState(
     val isVisible: Boolean = false,
     val alignment: Alignment = Alignment.Center,
-    val target: Boolean = false,
+    val alignTarget: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
 )
 
