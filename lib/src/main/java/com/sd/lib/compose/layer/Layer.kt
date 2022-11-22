@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.properties.Delegates
 
 interface FLayerScope {
+    /** 内容是否可见 */
     val isVisible: Boolean
 }
 
