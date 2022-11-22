@@ -45,8 +45,8 @@ private fun Content() {
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = scaleIn() + slideInVertically(),
-                exit = scaleOut() + slideOutVertically(),
+                enter = scaleIn(),
+                exit = scaleOut(),
             ) {
                 ColorBox(Color.Red, "Box")
             }
