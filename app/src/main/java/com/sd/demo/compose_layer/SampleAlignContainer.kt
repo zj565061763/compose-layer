@@ -66,13 +66,5 @@ private fun Content() {
         ) {
             Text(text = "Attach")
         }
-
-        Button(
-            onClick = {
-                layer.detach()
-            }
-        ) {
-            Text(text = "Detach")
-        }
     }
 }

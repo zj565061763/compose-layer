@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
@@ -280,32 +279,26 @@ class FLayer internal constructor() {
             }
         }
 
-        val contentScope: @Composable BoxScope.() -> Unit = {
-            if (behavior != null) {
-                val alpha by animateFloatAsState(targetValue = if (uiState.isVisible) 1.0f else 0f)
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .alpha(alpha)
-                        .background(behavior.backgroundColor)
-                )
-            }
-
-            ContentBox()
-        }
-
         val modifier = createModifier(uiState.isVisible)
         if (uiState.alignTarget) {
-            Box(
-                modifier = modifier.offset { uiState.offset },
-                content = contentScope,
-            )
+            Box(modifier = modifier) {
+                BackgroundBox(uiState.isVisible)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .offset { uiState.offset },
+                ) {
+                    ContentBox()
+                }
+            }
         } else {
             Box(
                 modifier = modifier,
                 contentAlignment = uiState.alignment,
-                content = contentScope,
-            )
+            ) {
+                BackgroundBox(uiState.isVisible)
+                ContentBox()
+            }
         }
     }
 
@@ -340,6 +333,22 @@ class FLayer internal constructor() {
                 }
         }
         return modifier
+    }
+
+    @Composable
+    private fun BackgroundBox(
+        isVisible: Boolean,
+        modifier: Modifier = Modifier,
+    ) {
+        _dialogBehavior?.let { behavior ->
+            val alpha by animateFloatAsState(targetValue = if (isVisible) 1.0f else 0f)
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .alpha(alpha)
+                    .background(behavior.backgroundColor)
+            )
+        }
     }
 
     @Composable
