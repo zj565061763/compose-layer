@@ -44,7 +44,8 @@ private fun Content() {
         layer.setAlignment(Alignment.Center)
         // 设置窗口行为，例如按返回键关闭layer，默认开启
         layer.setDialogBehavior {
-            it.copy(cancelable = false)
+            // 返回null，关闭窗口行为
+            null
         }
         layer.setContent {
             AnimatedVisibility(
