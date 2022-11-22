@@ -43,8 +43,9 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setAlignment(Alignment.Center)
-        // 开启窗口行为，例如按返回键关闭layer，默认开启
+        // 设置窗口行为，例如按返回键关闭layer，默认开启
         layer.setDialogBehavior {
+            // 关闭窗口行为
             DialogBehavior.Disabled
         }
         layer.setContent {
