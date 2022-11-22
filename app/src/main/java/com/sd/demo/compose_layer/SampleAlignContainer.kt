@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
+import com.sd.lib.compose.layer.DialogBehavior
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.rememberFLayer
 
@@ -42,6 +43,10 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setAlignment(Alignment.Center)
+        // 开启窗口行为，例如按返回键关闭layer，默认开启
+        layer.setDialogBehavior {
+            DialogBehavior.Disabled
+        }
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,

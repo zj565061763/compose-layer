@@ -1,6 +1,7 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -29,6 +30,14 @@ interface OffsetInterceptorScope {
 
     /** 目标大小 */
     val targetSize: IntSize
+}
+
+data class DialogBehavior(
+    val cancelable: Boolean = true,
+) {
+    companion object {
+        val Disabled = DialogBehavior()
+    }
 }
 
 class FLayer internal constructor() {
@@ -68,6 +77,7 @@ class FLayer internal constructor() {
 
     private var _layerManager: LayerManager? = null
     private val _scopeImpl = LayerScopeImpl()
+    private var _dialogBehavior by mutableStateOf(DialogBehavior())
 
     /**
      * 设置内容
@@ -88,6 +98,13 @@ class FLayer internal constructor() {
      */
     fun setTarget(target: String) {
         _target = target
+    }
+
+    /**
+     * 设置窗口行为
+     */
+    fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior) {
+        _dialogBehavior = block(_dialogBehavior)
     }
 
     /**
@@ -239,6 +256,15 @@ class FLayer internal constructor() {
 
         LaunchedEffect(uiState.isVisible) {
             _scopeImpl._isVisible = uiState.isVisible
+        }
+
+        val behavior = _dialogBehavior
+        if (behavior != DialogBehavior.Disabled) {
+            BackHandler(uiState.isVisible) {
+                if (behavior.cancelable) {
+                    detach()
+                }
+            }
         }
 
         if (uiState.alignTarget) {
