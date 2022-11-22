@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
@@ -279,9 +280,8 @@ class FLayer internal constructor() {
             }
         }
 
-        val modifier = createModifier(uiState.isVisible)
         if (uiState.alignTarget) {
-            Box(modifier = modifier) {
+            LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
                 Box(
                     modifier = Modifier
@@ -292,18 +292,18 @@ class FLayer internal constructor() {
                 }
             }
         } else {
-            Box(
-                modifier = modifier,
-                contentAlignment = uiState.alignment,
-            ) {
+            LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                ContentBox()
+                ContentBox(modifier = Modifier.align(uiState.alignment))
             }
         }
     }
 
     @Composable
-    private fun createModifier(isVisible: Boolean): Modifier {
+    private fun LayerBox(
+        isVisible: Boolean,
+        content: @Composable BoxScope.() -> Unit,
+    ) {
         val behavior = _dialogBehavior
         var modifier = Modifier.fillMaxSize()
         if (behavior != null && isVisible) {
@@ -332,18 +332,20 @@ class FLayer internal constructor() {
                     }
                 }
         }
-        return modifier
+
+        Box(modifier = modifier) {
+            content()
+        }
     }
 
     @Composable
     private fun BackgroundBox(
         isVisible: Boolean,
-        modifier: Modifier = Modifier,
     ) {
         _dialogBehavior?.let { behavior ->
             val alpha by animateFloatAsState(targetValue = if (isVisible) 1.0f else 0f)
             Box(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .alpha(alpha)
                     .background(behavior.backgroundColor)
