@@ -315,12 +315,7 @@ class FLayer internal constructor() {
         var modifier = Modifier.fillMaxSize()
 
         if (isVisible) {
-            modifier = modifier
-                .onGloballyPositioned { _layerLayout = it }
-//                .pointerInput(Unit) {
-//                    detectTouchInside()
-//                }
-
+            modifier = modifier.onGloballyPositioned { _layerLayout = it }
             _dialogBehavior?.let { behavior ->
                 modifier = modifier.pointerInput(behavior) {
                     detectTouchOutside(behavior)
@@ -359,25 +354,6 @@ class FLayer internal constructor() {
             }
         ) {
             _content.invoke(_scopeImpl)
-        }
-    }
-
-    private suspend fun PointerInputScope.detectTouchInside() {
-        forEachGesture {
-            awaitPointerEventScope {
-                val down = layerAwaitFirstDown(PointerEventPass.Final)
-                val downPosition = down.position
-
-                val layerLayout = _layerLayout
-                val contentLayout = _contentLayout
-                if (layerLayout != null && contentLayout != null) {
-                    val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-                    if (contentRect.contains(downPosition)) {
-                        // 触摸到内容区域
-                        down.consume()
-                    }
-                }
-            }
         }
     }
 
