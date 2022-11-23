@@ -312,14 +312,20 @@ class FLayer internal constructor() {
         isVisible: Boolean,
         content: @Composable BoxScope.() -> Unit,
     ) {
-        val behavior = _dialogBehavior
         var modifier = Modifier.fillMaxSize()
-        if (behavior != null && isVisible) {
+
+        if (isVisible) {
             modifier = modifier
                 .onGloballyPositioned { _layerLayout = it }
-                .pointerInput(behavior) {
+//                .pointerInput(Unit) {
+//                    detectTouchInside()
+//                }
+
+            _dialogBehavior?.let { behavior ->
+                modifier = modifier.pointerInput(behavior) {
                     detectTouchOutside(behavior)
                 }
+            }
         }
 
         Box(modifier = modifier) {
@@ -353,6 +359,25 @@ class FLayer internal constructor() {
             }
         ) {
             _content.invoke(_scopeImpl)
+        }
+    }
+
+    private suspend fun PointerInputScope.detectTouchInside() {
+        forEachGesture {
+            awaitPointerEventScope {
+                val down = layerAwaitFirstDown(PointerEventPass.Final)
+                val downPosition = down.position
+
+                val layerLayout = _layerLayout
+                val contentLayout = _contentLayout
+                if (layerLayout != null && contentLayout != null) {
+                    val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
+                    if (contentRect.contains(downPosition)) {
+                        // 触摸到内容区域
+                        down.consume()
+                    }
+                }
+            }
         }
     }
 
