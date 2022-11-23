@@ -359,7 +359,7 @@ class FLayer internal constructor() {
     private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
         forEachGesture {
             awaitPointerEventScope {
-                val down = layerAwaitFirstDown()
+                val down = layerAwaitFirstDown(PointerEventPass.Initial)
                 val downPosition = down.position
 
                 val layerLayout = _layerLayout
@@ -416,10 +416,12 @@ internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
 }
 
-private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(): PointerInputChange {
+private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
+    pass: PointerEventPass
+): PointerInputChange {
     var event: PointerEvent
     do {
-        event = awaitPointerEvent(PointerEventPass.Initial)
+        event = awaitPointerEvent(pass)
     } while (
         !event.changes.all { it.changedToDown() }
     )
