@@ -12,8 +12,8 @@ internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
     private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
-    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
-    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
+    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = HashMap()
+    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = HashMap()
 
     @Composable
     fun layer(): FLayer {
@@ -41,6 +41,7 @@ internal class LayerManager {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+        logMsg { "+++++ target $tag" }
         if (tag.isEmpty()) return
         val old = _targetLayoutHolder[tag]
         if (old != null) {
@@ -52,6 +53,7 @@ internal class LayerManager {
     }
 
     fun removeTarget(tag: String) {
+        logMsg { "----- target $tag" }
         _targetLayoutHolder.remove(tag)
         notifyTargetLayoutCallback(tag, null)
     }
