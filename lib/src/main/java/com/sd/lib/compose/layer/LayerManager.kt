@@ -10,10 +10,10 @@ internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
+    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
+
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = mutableMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
-
-    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
     @Composable
     fun layer(): FLayer {
