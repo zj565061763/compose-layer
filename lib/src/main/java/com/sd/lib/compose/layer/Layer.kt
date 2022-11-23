@@ -318,26 +318,7 @@ class FLayer internal constructor() {
             modifier = modifier
                 .onGloballyPositioned { _layerLayout = it }
                 .pointerInput(behavior) {
-                    forEachGesture {
-                        awaitPointerEventScope {
-                            val down = layerAwaitFirstDown()
-                            val downPosition = down.position
-
-                            val layerLayout = _layerLayout
-                            val contentLayout = _contentLayout
-                            if (layerLayout != null && contentLayout != null) {
-                                val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-                                if (contentRect.contains(downPosition)) {
-                                    // 触摸到内容区域
-                                } else {
-                                    down.consume()
-                                    if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                                        detach()
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    detectTouchOutside(behavior)
                 }
         }
 
@@ -372,6 +353,29 @@ class FLayer internal constructor() {
             }
         ) {
             _content.invoke(_scopeImpl)
+        }
+    }
+
+    private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
+        forEachGesture {
+            awaitPointerEventScope {
+                val down = layerAwaitFirstDown()
+                val downPosition = down.position
+
+                val layerLayout = _layerLayout
+                val contentLayout = _contentLayout
+                if (layerLayout != null && contentLayout != null) {
+                    val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
+                    if (contentRect.contains(downPosition)) {
+                        // 触摸到内容区域
+                    } else {
+                        down.consume()
+                        if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                            detach()
+                        }
+                    }
+                }
+            }
         }
     }
 
