@@ -63,7 +63,7 @@ internal class LayerManager {
 
     fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
         if (tag.isEmpty()) return
-        val holder = _targetLayoutCallbackHolder[tag] ?: mutableSetOf<(LayoutCoordinates?) -> Unit>().also {
+        val holder = _targetLayoutCallbackHolder[tag] ?: hashSetOf<(LayoutCoordinates?) -> Unit>().also {
             _targetLayoutCallbackHolder[tag] = it
         }
         holder.add(callback)
