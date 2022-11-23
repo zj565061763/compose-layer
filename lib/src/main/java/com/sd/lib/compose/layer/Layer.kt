@@ -92,6 +92,10 @@ class FLayer internal constructor() {
     private val _scopeImpl = LayerScopeImpl()
     private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
 
+    /** 是否可见 */
+    var isVisible by mutableStateOf(false)
+        private set
+
     /**
      * 设置内容
      */
@@ -263,6 +267,8 @@ class FLayer internal constructor() {
             alignTarget = _targetLayoutCoordinates != null,
             offset = _offset,
         )
+
+        this.isVisible = isVisible
     }
 
     @Composable
