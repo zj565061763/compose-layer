@@ -12,8 +12,8 @@ internal class LayerManager {
     private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
     private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
-    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = HashMap()
-    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = HashMap()
+    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
+    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
     @Composable
     fun layer(): FLayer {
