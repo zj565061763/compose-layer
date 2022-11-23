@@ -41,7 +41,6 @@ internal class LayerManager {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
-        logMsg { "+++++ target $tag" }
         if (tag.isEmpty()) return
         val old = _targetLayoutHolder[tag]
         if (old != null) {
@@ -53,7 +52,6 @@ internal class LayerManager {
     }
 
     fun removeTarget(tag: String) {
-        logMsg { "----- target $tag" }
         _targetLayoutHolder.remove(tag)
         notifyTargetLayoutCallback(tag, null)
     }
