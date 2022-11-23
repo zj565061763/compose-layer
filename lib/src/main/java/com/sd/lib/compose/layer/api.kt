@@ -3,7 +3,10 @@ package com.sd.lib.compose.layer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -43,7 +46,6 @@ fun rememberFLayer(): FLayer {
 fun Modifier.fLayerTarget(
     tag: String,
 ) = composed {
-    val tagUpdated by rememberUpdatedState(tag)
     val layerManager = checkNotNull(LocalLayerManager.current) {
         "CompositionLocal LocalLayerManager not present"
     }
@@ -55,6 +57,6 @@ fun Modifier.fLayerTarget(
     }
 
     this.onGloballyPositioned {
-        layerManager.addTarget(tagUpdated, it)
+        layerManager.addTarget(tag, it)
     }
 }
