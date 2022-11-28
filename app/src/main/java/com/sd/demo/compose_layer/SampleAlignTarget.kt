@@ -32,10 +32,9 @@ class SampleAlignTarget : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        FLayerContainer(modifier = Modifier.fillMaxSize()) {
-                            Content()
-                        }
+                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                        val layer = createLayer()
+                        Content(layer)
                     }
                 }
             }
@@ -45,10 +44,7 @@ class SampleAlignTarget : ComponentActivity() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun Content() {
-
-    TargetView("hello")
-
+private fun createLayer(): FLayer {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setTarget("hello")
@@ -64,6 +60,12 @@ private fun Content() {
             }
         }
     }
+    return layer
+}
+
+@Composable
+private fun Content(layer: FLayer) {
+    TargetView("hello")
 
     Column(
         modifier = Modifier.fillMaxSize(),
