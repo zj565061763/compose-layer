@@ -205,8 +205,8 @@ class FLayer internal constructor() {
 
                     val offsetInterceptorScope = object : OffsetInterceptorScope {
                         override val offset: IntOffset get() = intOffset
-                        override val contentSize: IntSize get() = _contentLayoutCoordinates?.size ?: IntSize.Zero
-                        override val targetSize: IntSize get() = _targetLayoutCoordinates?.size ?: IntSize.Zero
+                        override val contentSize: IntSize get() = IntSize(source.width, source.height)
+                        override val targetSize: IntSize get() = IntSize(target.width, target.height)
                     }
 
                     _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
