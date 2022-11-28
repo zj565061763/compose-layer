@@ -58,7 +58,6 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun createLayer(
     text: String,
