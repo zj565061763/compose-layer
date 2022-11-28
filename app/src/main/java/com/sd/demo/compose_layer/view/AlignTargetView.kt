@@ -6,7 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +34,8 @@ private fun TargetView(
     target: String,
     modifier: Modifier = Modifier,
 ) {
+    var showTarget by remember { mutableStateOf(true) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -42,12 +44,26 @@ private fun TargetView(
         verticalArrangement = Arrangement.Center,
     ) {
         Box(modifier = Modifier.height(300.dp))
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .background(Color.LightGray)
-                .fLayerTarget(target)
-        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (showTarget) {
+                Box(
+                    modifier = Modifier
+                        .size(250.dp)
+                        .background(Color.LightGray)
+                        .fLayerTarget(target)
+                )
+            }
+
+            Button(
+                onClick = {
+                    showTarget = !showTarget
+                },
+            ) {
+                Text(if (showTarget) "Hide target" else "Show target")
+            }
+        }
+
         Box(modifier = Modifier.height(2000.dp))
     }
 }
@@ -122,7 +138,7 @@ private fun ButtonsView(
         Button(
             onClick = { layer.detach() }
         ) {
-            Text(text = "Detach")
+            Text(text = "Detach layer")
         }
     }
 }
