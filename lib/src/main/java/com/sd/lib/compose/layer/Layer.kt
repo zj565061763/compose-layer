@@ -276,7 +276,7 @@ class FLayer internal constructor() {
         _uiState.value = LayerUiState(
             isVisible = isVisible,
             position = _position,
-            alignTarget = _target.isNotEmpty(),
+            hasTarget = _target.isNotEmpty(),
             offset = _offset,
         )
 
@@ -300,7 +300,7 @@ class FLayer internal constructor() {
             }
         }
 
-        if (uiState.alignTarget) {
+        if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
                 Box(
@@ -438,7 +438,7 @@ class FLayer internal constructor() {
 private data class LayerUiState(
     val isVisible: Boolean = false,
     val position: FLayer.Position = FLayer.Position.Center,
-    val alignTarget: Boolean = false,
+    val hasTarget: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
 )
 
