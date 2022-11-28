@@ -26,10 +26,8 @@ class SampleAlignContainer : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        FLayerContainer(modifier = Modifier.fillMaxSize()) {
-                            Content()
-                        }
+                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                        Content()
                     }
                 }
             }
