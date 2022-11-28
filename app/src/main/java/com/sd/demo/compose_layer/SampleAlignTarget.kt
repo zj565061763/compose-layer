@@ -35,17 +35,6 @@ class SampleAlignTarget : ComponentActivity() {
                     FLayerContainer(modifier = Modifier.fillMaxSize()) {
                         val layer = createLayer()
                         Content(layer)
-
-//                        FLayerContainer(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .height(500.dp)
-//                                .background(Color.Green.copy(0.3f))
-//                                .align(Alignment.BottomCenter)
-//                                .clipToBounds()
-//                        ) {
-//                            layer.UpdateContainer()
-//                        }
                     }
                 }
             }
