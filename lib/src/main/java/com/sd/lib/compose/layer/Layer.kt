@@ -208,9 +208,9 @@ class FLayer internal constructor() {
             Alignment.TopCenter -> _aligner.position = Aligner.Position.TopCenter
             Alignment.TopEnd -> _aligner.position = Aligner.Position.TopRight
 
-            Alignment.CenterStart -> _aligner.position = Aligner.Position.LeftCenter
+            Alignment.CenterStart -> _aligner.position = Aligner.Position.CenterLeft
             Alignment.Center -> _aligner.position = Aligner.Position.Center
-            Alignment.CenterEnd -> _aligner.position = Aligner.Position.RightCenter
+            Alignment.CenterEnd -> _aligner.position = Aligner.Position.CenterRight
 
             Alignment.BottomStart -> _aligner.position = Aligner.Position.BottomLeft
             Alignment.BottomCenter -> _aligner.position = Aligner.Position.BottomCenter
