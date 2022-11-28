@@ -5,10 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.forEachGesture
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,11 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.properties.Delegates
 
 interface FLayerScope {
@@ -59,6 +58,9 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
+
+    private var _checkOverflow by mutableStateOf(false)
+    private var _overflowUiState = MutableStateFlow(OverflowUiState())
 
     private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -201,18 +203,59 @@ class FLayer internal constructor() {
             this.sourceLayoutInfo = _sourceLayoutInfo
             this.callback = object : Aligner.Callback() {
                 override fun onUpdate(x: Int, y: Int, source: Aligner.SourceLayoutInfo, target: Aligner.LayoutInfo) {
-                    val intOffset = IntOffset(x, y)
+                    val offset = IntOffset(x, y)
 
                     val offsetInterceptorScope = object : OffsetInterceptorScope {
-                        override val offset: IntOffset get() = intOffset
+                        override val offset: IntOffset get() = offset
                         override val contentSize: IntSize get() = IntSize(source.width, source.height)
                         override val targetSize: IntSize get() = IntSize(target.width, target.height)
                     }
 
-                    _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+                    _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: offset
+                    checkOverflow(offset, source, target)
+
                     updateUiState()
                 }
             }
+        }
+    }
+
+    private fun checkOverflow(offset: IntOffset, source: Aligner.SourceLayoutInfo, target: Aligner.LayoutInfo) {
+        if (!_checkOverflow) return
+        val parent = source.parentLayoutInfo ?: return
+
+        val left = source.coordinate[0] + offset.x
+        val parentLeft = parent.coordinate[0]
+        val overflowStart = if (left < parentLeft) {
+            parentLeft - left
+        } else _overflowUiState.value.overflowStart
+
+        val right = left + source.width
+        val parentRight = parentLeft + parent.width
+        val overflowEnd = if (right > parentRight) {
+            right - parentRight
+        } else _overflowUiState.value.overflowEnd
+
+
+        val top = source.coordinate[1] + offset.y
+        val parentTop = parent.coordinate[1]
+        val overflowTop = if (top < parentTop) {
+            parentTop - top
+        } else _overflowUiState.value.overflowTop
+
+        val bottom = top + source.height
+        val parentBottom = parentTop + parent.height
+        val overflowBottom = if (bottom > parentBottom) {
+            bottom - parentBottom
+        } else _overflowUiState.value.overflowBottom
+
+        _overflowUiState.update {
+            it.copy(
+                overflowStart = overflowStart,
+                overflowEnd = overflowEnd,
+                overflowTop = overflowTop,
+                overflowBottom = overflowBottom,
+            )
         }
     }
 
@@ -293,6 +336,17 @@ class FLayer internal constructor() {
                 modifier = modifier.pointerInput(behavior) {
                     detectTouchOutside(behavior)
                 }
+            }
+
+            if (_checkOverflow) {
+                val overflowUiState by _overflowUiState.collectAsState()
+                val density = LocalDensity.current
+                modifier = modifier.padding(
+                    start = with(density) { overflowUiState.overflowStart.toDp() },
+                    end = with(density) { overflowUiState.overflowEnd.toDp() },
+                    top = with(density) { overflowUiState.overflowTop.toDp() },
+                    bottom = with(density) { overflowUiState.overflowBottom.toDp() },
+                )
             }
         }
 
@@ -388,6 +442,13 @@ private data class LayerUiState(
     val position: FLayer.Position = FLayer.Position.Center,
     val alignTarget: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
+)
+
+private data class OverflowUiState(
+    val overflowStart: Int = 0,
+    val overflowEnd: Int = 0,
+    val overflowTop: Int = 0,
+    val overflowBottom: Int = 0,
 )
 
 private open class LayerLayoutInfo() : Aligner.LayoutInfo {
