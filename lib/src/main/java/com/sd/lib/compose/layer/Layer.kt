@@ -62,10 +62,8 @@ class FLayer internal constructor() {
     private var _checkOverflow by mutableStateOf(false)
     private var _overflowUiState = MutableStateFlow(OverflowUiState())
 
-    private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
-        if (oldValue != newValue) {
-            _aligner.position = newValue.toAlignerPosition()
-        }
+    private var _position by Delegates.observable(Position.Center) { _, _, newValue ->
+        _aligner.position = newValue.toAlignerPosition()
     }
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
