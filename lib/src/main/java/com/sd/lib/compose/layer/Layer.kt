@@ -196,8 +196,9 @@ class FLayer internal constructor() {
 
     private val _targetLayoutInfo = LayerLayoutInfo()
     private val _sourceLayoutInfo = SourceLayerLayoutInfo()
-    private val _aligner by lazy {
+    private val _aligner: Aligner by lazy {
         FAligner().apply {
+            this.position = _position.toAlignerPosition()
             this.targetLayoutInfo = _targetLayoutInfo
             this.sourceLayoutInfo = _sourceLayoutInfo
             this.callback = object : Aligner.Callback() {
