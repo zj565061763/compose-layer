@@ -276,7 +276,7 @@ class FLayer internal constructor() {
         _uiState.value = LayerUiState(
             isVisible = isVisible,
             position = _position,
-            alignTarget = _targetLayoutCoordinates != null,
+            alignTarget = _target.isNotEmpty(),
             offset = _offset,
         )
 
