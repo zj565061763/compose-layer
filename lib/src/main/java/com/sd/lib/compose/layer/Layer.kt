@@ -22,6 +22,7 @@ import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
 interface FLayerScope {
@@ -313,7 +314,11 @@ class FLayer internal constructor() {
                         .fillMaxSize()
                         .offset { uiState.offset },
                 ) {
-                    ContentBox()
+                    if (_checkOverflow) {
+                        OverflowContentBox(uiState)
+                    } else {
+                        ContentBox()
+                    }
                 }
             }
         } else {
@@ -340,17 +345,6 @@ class FLayer internal constructor() {
                     detectTouchOutside(behavior)
                 }
             }
-
-            if (_checkOverflow) {
-                val overflowUiState by _overflowUiState.collectAsState()
-                val density = LocalDensity.current
-                modifier = modifier.padding(
-                    start = with(density) { overflowUiState.overflowStart.toDp() },
-                    end = with(density) { overflowUiState.overflowEnd.toDp() },
-                    top = with(density) { overflowUiState.overflowTop.toDp() },
-                    bottom = with(density) { overflowUiState.overflowBottom.toDp() },
-                )
-            }
         }
 
         Box(modifier = modifier) {
@@ -370,6 +364,38 @@ class FLayer internal constructor() {
                     .alpha(alpha)
                     .background(behavior.backgroundColor)
             )
+        }
+    }
+
+    @Composable
+    private fun OverflowContentBox(
+        uiState: LayerUiState
+    ) {
+        val overflowUiState by _overflowUiState.collectAsState()
+        val density = LocalDensity.current
+
+        BoxWithConstraints {
+            var modifier: Modifier = Modifier
+
+            if (overflowUiState.overflowStart != 0
+                || overflowUiState.overflowEnd != 0
+            ) {
+                val offsetDp = with(density) { uiState.offset.x.absoluteValue.toDp() }
+                val width = maxWidth - offsetDp
+                modifier = modifier.width(width)
+            }
+
+            if (overflowUiState.overflowTop != 0
+                || overflowUiState.overflowBottom != 0
+            ) {
+                val offsetDp = with(density) { uiState.offset.y.absoluteValue.toDp() }
+                val height = maxHeight - offsetDp
+                modifier = modifier.height(height)
+            }
+
+            Box(modifier = modifier) {
+                ContentBox()
+            }
         }
     }
 
