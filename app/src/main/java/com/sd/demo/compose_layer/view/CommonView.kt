@@ -1,4 +1,4 @@
-package com.sd.demo.compose_layer
+package com.sd.demo.compose_layer.view
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -13,13 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-@Composable
-private fun AlignTargetView(
-    modifier: Modifier = Modifier,
-) {
-
-}
 
 @Composable
 fun ColorBox(

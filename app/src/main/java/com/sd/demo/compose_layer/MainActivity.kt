@@ -53,6 +53,12 @@ private fun Content(
         }) {
             Text("Align target")
         }
+
+        Button(onClick = {
+            activity.startActivity(Intent(activity, SampleAlignTargetList::class.java))
+        }) {
+            Text("Align target list")
+        }
     }
 }
 

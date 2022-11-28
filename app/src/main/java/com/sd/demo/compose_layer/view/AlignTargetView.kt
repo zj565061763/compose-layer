@@ -1,4 +1,4 @@
-package com.sd.demo.compose_layer
+package com.sd.demo.compose_layer.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
