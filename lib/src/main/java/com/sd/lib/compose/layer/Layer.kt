@@ -211,8 +211,6 @@ class FLayer internal constructor() {
 
                     _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: offset
                     checkOverflow(offset, source, target)
-
-                    updateUiState()
                 }
             }
         }
@@ -261,7 +259,9 @@ class FLayer internal constructor() {
      * 计算位置
      */
     private fun updateOffset(): Boolean {
-        return _aligner.update()
+        return _aligner.update().also {
+            updateUiState()
+        }
     }
 
     private fun updateUiState() {
