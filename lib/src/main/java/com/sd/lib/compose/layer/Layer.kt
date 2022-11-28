@@ -360,24 +360,6 @@ class FLayer internal constructor() {
         override val isVisible: Boolean
             get() = _isVisible
     }
-
-    companion object {
-        fun getXCenter(targetSize: IntSize, contentSize: IntSize): Float {
-            return (targetSize.width - contentSize.width) / 2f
-        }
-
-        fun getXEnd(targetSize: IntSize, contentSize: IntSize): Float {
-            return (targetSize.width - contentSize.width).toFloat()
-        }
-
-        fun getYCenter(targetSize: IntSize, contentSize: IntSize): Float {
-            return (targetSize.height - contentSize.height) / 2f
-        }
-
-        fun getYEnd(targetSize: IntSize, contentSize: IntSize): Float {
-            return (targetSize.height - contentSize.height).toFloat()
-        }
-    }
 }
 
 private data class LayerUiState(
