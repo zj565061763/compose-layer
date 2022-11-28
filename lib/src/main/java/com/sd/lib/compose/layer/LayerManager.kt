@@ -15,6 +15,12 @@ internal class LayerManager {
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
+    private var _containerLayout: LayoutCoordinates? = null
+    private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates) -> Unit> = hashSetOf()
+
+    val containerLayout: LayoutCoordinates?
+        get() = _containerLayout
+
     @Composable
     fun layer(): FLayer {
         val state = remember { FLayer() }
@@ -38,6 +44,21 @@ internal class LayerManager {
                 item.Content()
             }
         }
+    }
+
+    fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
+        _containerLayout = layoutCoordinates
+        _containerLayoutCallbackHolder.toTypedArray().forEach {
+            it.invoke(layoutCoordinates)
+        }
+    }
+
+    fun registerContainerLayoutCallback(callback: (LayoutCoordinates) -> Unit) {
+        _containerLayoutCallbackHolder.add(callback)
+    }
+
+    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates) -> Unit) {
+        _containerLayoutCallbackHolder.remove(callback)
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {

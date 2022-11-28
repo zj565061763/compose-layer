@@ -23,7 +23,11 @@ fun FLayerContainer(
     val layerManager = remember { LayerManager() }
     CompositionLocalProvider(LocalLayerManager provides layerManager) {
         Box(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    layerManager.updateContainerLayout(it)
+                },
             contentAlignment = Alignment.Center,
         ) {
             content()

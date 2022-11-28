@@ -88,6 +88,13 @@ class FLayer internal constructor() {
             updateUiState()
         }
 
+    private var _containerLayoutCoordinates: LayoutCoordinates? = null
+        set(value) {
+            field = value
+            updateOffset()
+            updateUiState()
+        }
+
     private var _layerManager: LayerManager? = null
     private val _scopeImpl = LayerScopeImpl()
     private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
@@ -152,16 +159,28 @@ class FLayer internal constructor() {
 
     internal fun attachToManager(manager: LayerManager) {
         _layerManager = manager
+        _containerLayoutCoordinates = manager.containerLayout
+        manager.registerContainerLayoutCallback(_containerLayoutCallback)
     }
 
     internal fun detachFromManager() {
         detach()
-        _layerManager = null
+        _layerManager?.let {
+            it.unregisterContainerLayoutCallback(_containerLayoutCallback)
+            _containerLayoutCoordinates = null
+            _layerManager = null
+        }
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit by lazy {
         {
             _targetLayoutCoordinates = it
+        }
+    }
+
+    private val _containerLayoutCallback: (LayoutCoordinates) -> Unit by lazy {
+        {
+            _containerLayoutCoordinates = it
         }
     }
 
