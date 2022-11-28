@@ -20,6 +20,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.sd.lib.aligner.Aligner
+import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.properties.Delegates
 
@@ -58,18 +60,9 @@ class FLayer internal constructor() {
     private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _layerLayout: LayoutCoordinates? = null
-    private var _contentLayout: LayoutCoordinates? = null
-
-    private var _contentSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
-        if (oldValue != newValue) {
-            updateOffset()
-        }
-    }
-
     private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updateOffset()
+            updateAlignment()
         }
     }
 
@@ -81,19 +74,21 @@ class FLayer internal constructor() {
         }
     }
 
-    private var _targetLayoutCoordinates: LayoutCoordinates? = null
-        set(value) {
-            field = value
-            updateOffset()
-            updateUiState()
-        }
+    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        _targetLayoutInfo.layoutCoordinates = newValue
+        updateOffset()
+    }
 
-    private var _containerLayoutCoordinates: LayoutCoordinates? = null
-        set(value) {
-            field = value
-            updateOffset()
-            updateUiState()
-        }
+    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        _sourceLayoutInfo.parentLayerLayoutInfo.layoutCoordinates = newValue
+        updateOffset()
+    }
+
+    private var _layerLayoutCoordinates: LayoutCoordinates? = null
+    private var _contentLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        _sourceLayoutInfo.layoutCoordinates = newValue
+        updateOffset()
+    }
 
     private var _layerManager: LayerManager? = null
     private val _scopeImpl = LayerScopeImpl()
@@ -184,91 +179,50 @@ class FLayer internal constructor() {
         }
     }
 
+    private val _targetLayoutInfo = LayerLayoutInfo()
+    private val _sourceLayoutInfo = SourceLayerLayoutInfo()
+    private val _aligner by lazy {
+        FAligner().apply {
+            this.targetLayoutInfo = _targetLayoutInfo
+            this.sourceLayoutInfo = _sourceLayoutInfo
+            this.callback = object : Aligner.Callback() {
+                override fun onUpdate(x: Int, y: Int, source: Aligner.SourceLayoutInfo, target: Aligner.LayoutInfo) {
+                    val intOffset = IntOffset(x, y)
+
+                    val offsetInterceptorScope = object : OffsetInterceptorScope {
+                        override val offset: IntOffset get() = intOffset
+                        override val contentSize: IntSize get() = _contentLayoutCoordinates?.size ?: IntSize.Zero
+                        override val targetSize: IntSize get() = _targetLayoutCoordinates?.size ?: IntSize.Zero
+                    }
+
+                    _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
+                    updateUiState()
+                }
+            }
+        }
+    }
+
+    private fun updateAlignment() {
+        when (_alignment) {
+            Alignment.TopStart -> _aligner.position = Aligner.Position.TopLeft
+            Alignment.TopCenter -> _aligner.position = Aligner.Position.TopCenter
+            Alignment.TopEnd -> _aligner.position = Aligner.Position.TopRight
+
+            Alignment.CenterStart -> _aligner.position = Aligner.Position.LeftCenter
+            Alignment.Center -> _aligner.position = Aligner.Position.Center
+            Alignment.CenterEnd -> _aligner.position = Aligner.Position.RightCenter
+
+            Alignment.BottomStart -> _aligner.position = Aligner.Position.BottomLeft
+            Alignment.BottomCenter -> _aligner.position = Aligner.Position.BottomCenter
+            Alignment.BottomEnd -> _aligner.position = Aligner.Position.BottomRight
+        }
+    }
+
     /**
-     * 计算layer的位置
+     * 计算位置
      */
     private fun updateOffset(): Boolean {
-        val targetLayout = _targetLayoutCoordinates ?: return false
-
-        val targetSize = targetLayout.size
-        if (targetSize.width <= 0 || targetSize.height <= 0) {
-            return false
-        }
-
-        val contentSize = _contentSize
-        if (contentSize.width <= 0 || contentSize.height <= 0) {
-            return false
-        }
-
-        var offsetX = 0f
-        var offsetY = 0f
-
-        when (_alignment) {
-            Alignment.TopStart -> {
-                offsetX = 0f
-                offsetY = 0f
-            }
-            Alignment.TopCenter -> {
-                offsetX = getXCenter(targetSize, contentSize)
-                offsetY = 0f
-            }
-            Alignment.TopEnd -> {
-                offsetX = getXEnd(targetSize, contentSize)
-                offsetY = 0f
-            }
-            Alignment.CenterStart -> {
-                offsetX = 0f
-                offsetY = getYCenter(targetSize, contentSize)
-            }
-            Alignment.Center -> {
-                offsetX = getXCenter(targetSize, contentSize)
-                offsetY = getYCenter(targetSize, contentSize)
-            }
-            Alignment.CenterEnd -> {
-                offsetX = getXEnd(targetSize, contentSize)
-                offsetY = getYCenter(targetSize, contentSize)
-            }
-            Alignment.BottomStart -> {
-                offsetX = 0f
-                offsetY = getYEnd(targetSize, contentSize)
-            }
-            Alignment.BottomCenter -> {
-                offsetX = getXCenter(targetSize, contentSize)
-                offsetY = getYEnd(targetSize, contentSize)
-            }
-            Alignment.BottomEnd -> {
-                offsetX = getXEnd(targetSize, contentSize)
-                offsetY = getYEnd(targetSize, contentSize)
-            }
-            else -> {
-                error("unknown Alignment:$_alignment")
-            }
-        }
-
-        val localOffset = Offset(
-            x = offsetX.takeIf { !it.isNaN() } ?: 0f,
-            y = offsetY.takeIf { !it.isNaN() } ?: 0f,
-        )
-
-        val windowOffset = targetLayout.localToWindow(localOffset)
-        val x = windowOffset.x.takeIf { !offsetX.isNaN() } ?: 0f
-        val y = windowOffset.y.takeIf { !offsetX.isNaN() } ?: 0f
-
-        val intOffset = IntOffset(
-            x = x.toInt(),
-            y = y.toInt(),
-        )
-
-        val offsetInterceptorScope = object : OffsetInterceptorScope {
-            override val offset: IntOffset get() = intOffset
-            override val contentSize: IntSize get() = contentSize
-            override val targetSize: IntSize get() = targetSize
-        }
-
-        _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: intOffset
-        updateUiState()
-
-        return true
+        return _aligner.update()
     }
 
     private fun updateUiState() {
@@ -334,7 +288,9 @@ class FLayer internal constructor() {
         var modifier = Modifier.fillMaxSize()
 
         if (isVisible) {
-            modifier = modifier.onGloballyPositioned { _layerLayout = it }
+            modifier = modifier.onGloballyPositioned {
+                _layerLayoutCoordinates = it
+            }
             _dialogBehavior?.let { behavior ->
                 modifier = modifier.pointerInput(behavior) {
                     detectTouchOutside(behavior)
@@ -368,8 +324,7 @@ class FLayer internal constructor() {
     ) {
         Box(
             modifier = modifier.onGloballyPositioned {
-                _contentLayout = it
-                _contentSize = it.size
+                _contentLayoutCoordinates = it
             }
         ) {
             _content.invoke(_scopeImpl)
@@ -382,8 +337,8 @@ class FLayer internal constructor() {
                 val down = layerAwaitFirstDown(PointerEventPass.Initial)
                 val downPosition = down.position
 
-                val layerLayout = _layerLayout
-                val contentLayout = _contentLayout
+                val layerLayout = _layerLayoutCoordinates
+                val contentLayout = _contentLayoutCoordinates
                 if (layerLayout != null && contentLayout != null) {
                     val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
                     if (contentRect.contains(downPosition)) {
@@ -431,6 +386,36 @@ private data class LayerUiState(
     val alignTarget: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
 )
+
+private open class LayerLayoutInfo() : Aligner.LayoutInfo {
+    private val _coordinateArray = IntArray(2)
+    var layoutCoordinates: LayoutCoordinates? = null
+
+    override val isReady: Boolean
+        get() = width > 0 && height > 0
+
+    override val coordinate: IntArray
+        get() {
+            val layout = layoutCoordinates ?: return Aligner.LayoutInfo.coordinateUnspecified
+            val windowOffset = layout.localToWindow(Offset.Zero)
+            _coordinateArray[0] = windowOffset.x.toInt()
+            _coordinateArray[1] = windowOffset.y.toInt()
+            return _coordinateArray
+        }
+
+    override val height: Int
+        get() = layoutCoordinates?.size?.height ?: 0
+
+    override val width: Int
+        get() = layoutCoordinates?.size?.width ?: 0
+}
+
+private class SourceLayerLayoutInfo() : LayerLayoutInfo(), Aligner.SourceLayoutInfo {
+    val parentLayerLayoutInfo = LayerLayoutInfo()
+
+    override val parentLayoutInfo: Aligner.LayoutInfo
+        get() = parentLayerLayoutInfo
+}
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
