@@ -1,20 +1,18 @@
 package com.sd.demo.compose_layer
 
 import android.widget.Toast
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 
 @Composable
 fun ColorBox(
@@ -44,25 +42,15 @@ fun ColorBox(
     }
 }
 
-
 @Composable
-fun AnimateBlurBox(
-    modifier: Modifier = Modifier,
-) {
-    var visible by remember { mutableStateOf(false) }
-    val height by animateDpAsState(if (visible) 100.dp else 0.dp)
-    LaunchedEffect(true) {
-        while (true) {
-            visible = visible.not()
-            delay(2000)
+fun VerticalList() {
+    LazyColumn(modifier = Modifier.width(50.dp)) {
+        items(50) {
+            ColorBox(
+                color = Color.Red,
+                text = it.toString(),
+                modifier = Modifier.size(50.dp)
+            )
         }
     }
-
-    Box(
-        modifier = modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.3f), shape = MaterialTheme.shapes.medium)
-            .height(height)
-    )
 }
