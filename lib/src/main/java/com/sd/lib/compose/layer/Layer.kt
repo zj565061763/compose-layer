@@ -60,7 +60,7 @@ class FLayer internal constructor() {
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
     private var _checkOverflow by mutableStateOf(false)
-    private var _overflowUiState = MutableStateFlow(OverflowUiState())
+    private var _overflowUiState = MutableStateFlow(OverflowUiState.None)
 
     private var _position by Delegates.observable(Position.Center) { _, _, newValue ->
         _aligner.position = newValue.toAlignerPosition()
@@ -210,15 +210,20 @@ class FLayer internal constructor() {
                     }
 
                     _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: offset
-                    checkOverflow(offset, source, target)
+                    checkOverflow(offset, source)
                 }
             }
         }
     }
 
-    private fun checkOverflow(offset: IntOffset, source: Aligner.SourceLayoutInfo, target: Aligner.LayoutInfo) {
+    private fun checkOverflow(offset: IntOffset, source: Aligner.SourceLayoutInfo) {
         if (!_checkOverflow) return
-        val parent = source.parentLayoutInfo ?: return
+
+        val parent = source.parentLayoutInfo
+        if (parent == null) {
+            _overflowUiState.value = OverflowUiState.None
+            return
+        }
 
         val left = source.coordinate[0] + offset.x
         val parentLeft = parent.coordinate[0]
@@ -443,11 +448,20 @@ private data class LayerUiState(
 )
 
 private data class OverflowUiState(
-    val overflowStart: Int = 0,
-    val overflowEnd: Int = 0,
-    val overflowTop: Int = 0,
-    val overflowBottom: Int = 0,
-)
+    val overflowStart: Int,
+    val overflowEnd: Int,
+    val overflowTop: Int,
+    val overflowBottom: Int,
+) {
+    companion object {
+        val None = OverflowUiState(
+            overflowStart = 0,
+            overflowEnd = 0,
+            overflowTop = 0,
+            overflowBottom = 0,
+        )
+    }
+}
 
 private open class LayerLayoutInfo() : Aligner.LayoutInfo {
     private val _coordinateArray = IntArray(2)
