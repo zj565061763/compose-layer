@@ -68,7 +68,10 @@ private fun createLayer(
     LaunchedEffect(layer, position) {
         layer.setPosition(position)
         layer.setContent {
-            LayerContent(isVisible)
+            LayerContent(
+                isVisible = isVisible,
+                text = text,
+            )
         }
     }
     return layer
@@ -79,6 +82,7 @@ private fun createLayer(
 @Composable
 private fun LayerContent(
     isVisible: Boolean,
+    text: String,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -89,7 +93,7 @@ private fun LayerContent(
     ) {
         ColorBox(
             color = Color.Red,
-            text = "Box",
+            text = text,
         )
     }
 }
