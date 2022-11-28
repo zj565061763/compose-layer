@@ -23,17 +23,14 @@ internal class LayerManager {
 
     @Composable
     fun layer(): FLayer {
-        val state = remember { FLayer() }
-        DisposableEffect(state) {
-            _layerHolder.add(state)
-            state.attachToManager(this@LayerManager)
+        val layer = remember { FLayer() }
+        DisposableEffect(layer) {
+            attachLayer(layer)
             onDispose {
-                _layerHolder.remove(state)
-                _attachedLayerHolder.remove(state)
-                state.detachFromManager()
+                detachLayer(layer)
             }
         }
-        return state
+        return layer
     }
 
     @Composable
@@ -43,6 +40,20 @@ internal class LayerManager {
             Box(modifier = Modifier.zIndex(zIndex.toFloat())) {
                 item.Content()
             }
+        }
+    }
+
+    fun attachLayer(layer: FLayer) {
+        if (!_layerHolder.contains(layer)) {
+            _layerHolder.add(layer)
+            layer.attachToManager(this)
+        }
+    }
+
+    fun detachLayer(layer: FLayer) {
+        if (_layerHolder.remove(layer)) {
+            _attachedLayerHolder.remove(layer)
+            layer.detachFromManager()
         }
     }
 

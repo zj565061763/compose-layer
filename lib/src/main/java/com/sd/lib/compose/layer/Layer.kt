@@ -152,6 +152,20 @@ class FLayer internal constructor() {
         updateUiState()
     }
 
+    @Composable
+    fun UpdateContainer() {
+        val layerManager = checkNotNull(LocalLayerManager.current) {
+            "CompositionLocal LocalLayerManager not present"
+        }
+        LaunchedEffect(layerManager) {
+            val currentManager = _layerManager
+            if (currentManager != layerManager) {
+                currentManager?.detachLayer(this@FLayer)
+                layerManager.attachLayer(this@FLayer)
+            }
+        }
+    }
+
     internal fun attachToManager(manager: LayerManager) {
         _layerManager = manager
         _containerLayoutCoordinates = manager.containerLayout
