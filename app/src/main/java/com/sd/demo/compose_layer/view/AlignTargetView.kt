@@ -19,7 +19,11 @@ fun AlignTargetUi(
     layer: FLayer,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+    ) {
         TargetView("hello")
         ButtonsView(layer)
     }
@@ -58,8 +62,6 @@ private fun ButtonsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
         // Top
         ButtonRow(
             start = "TopStart",

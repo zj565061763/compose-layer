@@ -25,7 +25,11 @@ class SampleAlignTargetList : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                    FLayerContainer(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
                         val layer = createLayer()
                         AlignTargetUi(layer)
                     }
