@@ -35,6 +35,17 @@ class SampleAlignTarget : ComponentActivity() {
                     FLayerContainer(modifier = Modifier.fillMaxSize()) {
                         val layer = createLayer()
                         Content(layer)
+
+//                        FLayerContainer(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .height(500.dp)
+//                                .background(Color.Green.copy(0.3f))
+//                                .align(Alignment.BottomCenter)
+//                                .clipToBounds()
+//                        ) {
+//                            layer.UpdateContainer()
+//                        }
                     }
                 }
             }
@@ -72,7 +83,9 @@ private fun Content(layer: FLayer) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Top
         ButtonRow(
             start = "TopStart",
             center = "TopCenter",
@@ -87,6 +100,44 @@ private fun Content(layer: FLayer) {
             },
             onClickEnd = {
                 layer.setPosition(FLayer.Position.TopEnd)
+                layer.attach()
+            },
+        )
+
+        // Center
+        ButtonRow(
+            start = "CenterStart",
+            center = "Center",
+            end = "CenterEnd",
+            onClickStart = {
+                layer.setPosition(FLayer.Position.CenterStart)
+                layer.attach()
+            },
+            onClickCenter = {
+                layer.setPosition(FLayer.Position.Center)
+                layer.attach()
+            },
+            onClickEnd = {
+                layer.setPosition(FLayer.Position.CenterEnd)
+                layer.attach()
+            },
+        )
+
+        // Bottom
+        ButtonRow(
+            start = "BottomStart",
+            center = "BottomCenter",
+            end = "BottomEnd",
+            onClickStart = {
+                layer.setPosition(FLayer.Position.BottomStart)
+                layer.attach()
+            },
+            onClickCenter = {
+                layer.setPosition(FLayer.Position.BottomCenter)
+                layer.attach()
+            },
+            onClickEnd = {
+                layer.setPosition(FLayer.Position.BottomEnd)
                 layer.attach()
             },
         )
@@ -111,7 +162,7 @@ private fun TargetView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Box(modifier = Modifier.height(200.dp))
+        Box(modifier = Modifier.height(300.dp))
         Box(
             modifier = Modifier
                 .size(250.dp)
