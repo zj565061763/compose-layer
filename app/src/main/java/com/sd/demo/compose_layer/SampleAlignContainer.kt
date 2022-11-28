@@ -40,8 +40,8 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer1 = createLayer("1", Alignment.Center)
-    val layer2 = createLayer("2", Alignment.BottomCenter)
+    val layer1 = createLayer("1", FLayer.Position.Center)
+    val layer2 = createLayer("2", FLayer.Position.BottomCenter)
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -63,11 +63,11 @@ private fun Content() {
 @Composable
 private fun createLayer(
     text: String,
-    alignment: Alignment,
+    position: FLayer.Position,
 ): FLayer {
     val layer = rememberFLayer()
-    LaunchedEffect(layer, alignment) {
-        layer.setAlignment(alignment)
+    LaunchedEffect(layer, position) {
+        layer.setPosition(position)
         layer.setContent {
             AnimatedVisibility(
                 visible = isVisible,

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
+import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
@@ -75,15 +76,15 @@ private fun Content() {
             center = "TopCenter",
             end = "TopEnd",
             onClickStart = {
-                layer.setAlignment(Alignment.TopStart)
+                layer.setPosition(FLayer.Position.TopStart)
                 layer.attach()
             },
             onClickCenter = {
-                layer.setAlignment(Alignment.TopCenter)
+                layer.setPosition(FLayer.Position.TopCenter)
                 layer.attach()
             },
             onClickEnd = {
-                layer.setAlignment(Alignment.TopEnd)
+                layer.setPosition(FLayer.Position.TopEnd)
                 layer.attach()
             },
         )

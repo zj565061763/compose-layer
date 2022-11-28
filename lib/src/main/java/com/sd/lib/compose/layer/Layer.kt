@@ -60,9 +60,9 @@ class FLayer internal constructor() {
     private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _alignment by Delegates.observable(Alignment.Center) { _, oldValue, newValue ->
+    private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updateAlignment()
+            _aligner.position = newValue.toAlignerPosition()
         }
     }
 
@@ -106,10 +106,10 @@ class FLayer internal constructor() {
     }
 
     /**
-     * 设置对齐
+     * 设置对齐的位置
      */
-    fun setAlignment(alignment: Alignment) {
-        _alignment = alignment
+    fun setPosition(position: Position) {
+        _position = position
     }
 
     /**
@@ -202,22 +202,6 @@ class FLayer internal constructor() {
         }
     }
 
-    private fun updateAlignment() {
-        when (_alignment) {
-            Alignment.TopStart -> _aligner.position = Aligner.Position.TopLeft
-            Alignment.TopCenter -> _aligner.position = Aligner.Position.TopCenter
-            Alignment.TopEnd -> _aligner.position = Aligner.Position.TopRight
-
-            Alignment.CenterStart -> _aligner.position = Aligner.Position.CenterLeft
-            Alignment.Center -> _aligner.position = Aligner.Position.Center
-            Alignment.CenterEnd -> _aligner.position = Aligner.Position.CenterRight
-
-            Alignment.BottomStart -> _aligner.position = Aligner.Position.BottomLeft
-            Alignment.BottomCenter -> _aligner.position = Aligner.Position.BottomCenter
-            Alignment.BottomEnd -> _aligner.position = Aligner.Position.BottomRight
-        }
-    }
-
     /**
      * 计算位置
      */
@@ -236,7 +220,7 @@ class FLayer internal constructor() {
 
         _uiState.value = LayerUiState(
             isVisible = isVisible,
-            alignment = _alignment,
+            position = _position,
             alignTarget = _targetLayoutCoordinates != null,
             offset = _offset,
         )
@@ -275,7 +259,7 @@ class FLayer internal constructor() {
         } else {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                ContentBox(modifier = Modifier.align(uiState.alignment))
+                ContentBox(modifier = Modifier.align(uiState.position.toAlignment()))
             }
         }
     }
@@ -360,11 +344,34 @@ class FLayer internal constructor() {
         override val isVisible: Boolean
             get() = _isVisible
     }
+
+    enum class Position {
+        /** 顶部开始对齐 */
+        TopStart,
+        /** 顶部中间对齐 */
+        TopCenter,
+        /** 顶部结束对齐 */
+        TopEnd,
+
+        /** 中间开始对齐 */
+        CenterStart,
+        /** 中间对齐 */
+        Center,
+        /** 中间结束对齐 */
+        CenterEnd,
+
+        /** 底部开始对齐 */
+        BottomStart,
+        /** 底部中间对齐 */
+        BottomCenter,
+        /** 底部结束对齐 */
+        BottomEnd,
+    }
 }
 
 private data class LayerUiState(
     val isVisible: Boolean = false,
-    val alignment: Alignment = Alignment.Center,
+    val position: FLayer.Position = FLayer.Position.Center,
     val alignTarget: Boolean = false,
     val offset: IntOffset = IntOffset.Zero,
 )
@@ -401,6 +408,38 @@ private class SourceLayerLayoutInfo() : LayerLayoutInfo(), Aligner.SourceLayoutI
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
+}
+
+private fun FLayer.Position.toAlignment(): Alignment {
+    return when (this) {
+        FLayer.Position.TopStart -> Alignment.TopStart
+        FLayer.Position.TopCenter -> Alignment.TopCenter
+        FLayer.Position.TopEnd -> Alignment.TopEnd
+
+        FLayer.Position.CenterStart -> Alignment.CenterStart
+        FLayer.Position.Center -> Alignment.Center
+        FLayer.Position.CenterEnd -> Alignment.CenterEnd
+
+        FLayer.Position.BottomStart -> Alignment.BottomStart
+        FLayer.Position.BottomCenter -> Alignment.BottomCenter
+        FLayer.Position.BottomEnd -> Alignment.BottomEnd
+    }
+}
+
+private fun FLayer.Position.toAlignerPosition(): Aligner.Position {
+    return when (this) {
+        FLayer.Position.TopStart -> Aligner.Position.TopStart
+        FLayer.Position.TopCenter -> Aligner.Position.TopCenter
+        FLayer.Position.TopEnd -> Aligner.Position.TopEnd
+
+        FLayer.Position.CenterStart -> Aligner.Position.CenterStart
+        FLayer.Position.Center -> Aligner.Position.Center
+        FLayer.Position.CenterEnd -> Aligner.Position.CenterEnd
+
+        FLayer.Position.BottomStart -> Aligner.Position.BottomStart
+        FLayer.Position.BottomCenter -> Aligner.Position.BottomCenter
+        FLayer.Position.BottomEnd -> Aligner.Position.BottomEnd
+    }
 }
 
 private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
