@@ -61,9 +61,16 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _checkOverflowDirection: Direction? = Direction.Top
     private var _overflowFixedWidth: Int? = null
     private var _overflowFixedHeight: Int? = null
+
+    private var _fixOverflowDirection: Direction? by Delegates.observable(null) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            _overflowFixedWidth = null
+            _overflowFixedHeight = null
+            updateOffset()
+        }
+    }
 
     private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -136,6 +143,13 @@ class FLayer internal constructor() {
      */
     fun setOffsetInterceptor(interceptor: (OffsetInterceptorScope.() -> IntOffset)?) {
         _offsetInterceptor = interceptor
+    }
+
+    /**
+     * 设置修复溢出的方向
+     */
+    fun setFixOverflowDirection(direction: Direction?) {
+        _fixOverflowDirection = direction
     }
 
     /**
@@ -355,7 +369,7 @@ class FLayer internal constructor() {
             var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
             if (result != null) {
-                _checkOverflowDirection?.let {
+                _fixOverflowDirection?.let {
                     when (it) {
                         Direction.Start -> {
                             StartOverflowHandler().fixOverflow(result)?.let {
