@@ -64,11 +64,13 @@ class FLayer internal constructor() {
     private var _overflowFixedWidth: Int? = null
     private var _overflowFixedHeight: Int? = null
 
-    private var _position by Delegates.observable(Position.Center) { _, _, newValue ->
-        _overflowFixedWidth = null
-        _overflowFixedHeight = null
-        _aligner.setPosition(newValue.toAlignerPosition())
-        updateOffset()
+    private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            _overflowFixedWidth = null
+            _overflowFixedHeight = null
+            _aligner.setPosition(newValue.toAlignerPosition())
+            updateOffset()
+        }
     }
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
