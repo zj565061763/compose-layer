@@ -15,15 +15,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlin.math.absoluteValue
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.properties.Delegates
 
 interface FLayerScope {
@@ -58,14 +58,17 @@ class FLayer internal constructor() {
     private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
 
     private var _isAttached = false
-    private var _offset = IntOffset.Zero
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _checkOverflow by mutableStateOf(false)
-    private var _overflowUiState = MutableStateFlow(OverflowUiState.None)
+    private var _checkOverflow by mutableStateOf(true)
+    private var _overflowFixedWidth: Int? = null
+    private var _overflowFixedHeight: Int? = null
 
     private var _position by Delegates.observable(Position.Center) { _, _, newValue ->
+        _overflowFixedWidth = null
+        _overflowFixedHeight = null
         _aligner.setPosition(newValue.toAlignerPosition())
+        updateOffset()
     }
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
@@ -77,18 +80,15 @@ class FLayer internal constructor() {
     }
 
     private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        _targetLayoutInfo.layoutCoordinates = newValue
         updateOffset()
     }
 
     private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        _sourceContainerLayoutInfo.layoutCoordinates = newValue
         updateOffset()
     }
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        _sourceLayoutInfo.layoutCoordinates = newValue
         updateOffset()
     }
 
@@ -195,63 +195,10 @@ class FLayer internal constructor() {
         }
     }
 
-    private val _targetLayoutInfo = ComposeLayoutInfo()
-    private val _sourceLayoutInfo = ComposeLayoutInfo()
-    private val _sourceContainerLayoutInfo = ComposeLayoutInfo()
-
+    private var _alignerResult: Aligner.Result? = null
     private val _aligner: Aligner by lazy {
         FAligner().apply {
             this.setPosition(_position.toAlignerPosition())
-            this.setTargetLayoutInfo(_targetLayoutInfo)
-            this.setSourceLayoutInfo(_sourceLayoutInfo)
-            this.setSourceContainerLayoutInfo(_sourceContainerLayoutInfo)
-        }
-    }
-
-    private fun checkOverflow() {
-        if (!_checkOverflow) return
-
-        val source = _sourceLayoutInfo
-        val parent = _sourceContainerLayoutInfo
-        if (!source.isReady || !parent.isReady) {
-            _overflowUiState.value = OverflowUiState.None
-            return
-        }
-
-        val offset = _offset
-
-        val left = source.coordinate[0] + offset.x
-        val parentLeft = parent.coordinate[0]
-        val overflowStart = if (left < parentLeft) {
-            parentLeft - left
-        } else _overflowUiState.value.overflowStart
-
-        val right = left + source.width
-        val parentRight = parentLeft + parent.width
-        val overflowEnd = if (right > parentRight) {
-            right - parentRight
-        } else _overflowUiState.value.overflowEnd
-
-
-        val top = source.coordinate[1] + offset.y
-        val parentTop = parent.coordinate[1]
-        val overflowTop = if (top < parentTop) {
-            parentTop - top
-        } else _overflowUiState.value.overflowTop
-
-        val bottom = top + source.height
-        val parentBottom = parentTop + parent.height
-        val overflowBottom = if (bottom > parentBottom) {
-            bottom - parentBottom
-        } else _overflowUiState.value.overflowBottom
-
-        _overflowUiState.update {
-            it.copy(
-                overflowStart = overflowStart,
-                overflowEnd = overflowEnd,
-                overflowTop = overflowTop,
-                overflowBottom = overflowBottom,
-            )
         }
     }
 
@@ -259,10 +206,38 @@ class FLayer internal constructor() {
      * 计算位置
      */
     private fun updateOffset() {
-        _aligner.update()?.also {
-            _offset = IntOffset(it.x, it.y)
-            checkOverflow()
+        val target = _targetLayoutCoordinates
+        if (!target.isReady()) {
+            updateUiState()
+            return
         }
+
+        val source = _contentLayoutCoordinates
+        if (!source.isReady()) return
+
+        val container = _containerLayoutCoordinates
+        if (!container.isReady()) return
+
+        val targetCoordinates = target.coordinate()
+        val sourceCoordinates = source.coordinate()
+        val containerCoordinates = container.coordinate()
+
+        val input = Aligner.Input(
+            targetX = targetCoordinates.x.toInt(),
+            targetY = targetCoordinates.y.toInt(),
+            sourceX = sourceCoordinates.x.toInt(),
+            sourceY = sourceCoordinates.y.toInt(),
+            containerX = containerCoordinates.x.toInt(),
+            containerY = containerCoordinates.y.toInt(),
+            targetWidth = target.width(),
+            targetHeight = target.height(),
+            sourceWidth = source.width(),
+            sourceHeight = source.height(),
+            containerWidth = container.width(),
+            containerHeight = container.height(),
+        )
+
+        _alignerResult = _aligner.align(input)
         updateUiState()
     }
 
@@ -271,7 +246,7 @@ class FLayer internal constructor() {
             if (_target.isEmpty()) {
                 true
             } else {
-                _targetLayoutInfo.isReady
+                _targetLayoutCoordinates?.isAttached == true
             }
         } else false
 
@@ -279,7 +254,7 @@ class FLayer internal constructor() {
             isVisible = isVisible,
             position = _position,
             hasTarget = _target.isNotEmpty(),
-            offset = _offset,
+            alignerResult = _alignerResult,
         )
 
         this.isVisible = isVisible
@@ -305,12 +280,8 @@ class FLayer internal constructor() {
         if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                HasTargetBox(uiState) {
-                    if (_checkOverflow) {
-                        OverflowContentBox(uiState)
-                    } else {
-                        ContentBox()
-                    }
+                HasTargetBox(uiState.alignerResult) {
+                    ContentBox()
                 }
             }
         } else {
@@ -365,46 +336,78 @@ class FLayer internal constructor() {
 
     @Composable
     private fun HasTargetBox(
-        uiState: LayerUiState,
+        result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset { uiState.offset },
-        ) {
-            content()
-        }
-    }
-
-    @Composable
-    private fun OverflowContentBox(
-        uiState: LayerUiState
-    ) {
-        val overflowUiState by _overflowUiState.collectAsState()
-        val density = LocalDensity.current
-
-        BoxWithConstraints {
-            var modifier: Modifier = Modifier
-
-            if (overflowUiState.overflowStart != 0
-                || overflowUiState.overflowEnd != 0
-            ) {
-                val offsetDp = with(density) { uiState.offset.x.absoluteValue.toDp() }
-                val width = maxWidth - offsetDp
-                modifier = modifier.width(width)
+        SubcomposeLayout(Modifier.fillMaxSize()) { constraints ->
+            val measurable = subcompose(Unit) { content() }.let {
+                check(it.size == 1)
+                it.first()
             }
 
-            if (overflowUiState.overflowTop != 0
-                || overflowUiState.overflowBottom != 0
-            ) {
-                val offsetDp = with(density) { uiState.offset.y.absoluteValue.toDp() }
-                val height = maxHeight - offsetDp
-                modifier = modifier.height(height)
+            var x = result?.x ?: 0
+            var y = result?.y ?: 0
+
+            var isOverflow = false
+            var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
+
+            if (_checkOverflow) {
+                if (result != null) {
+                    val overflow = result.overflow
+
+                    // width
+                    val overflowWidth = overflow.start + overflow.end
+                    if (overflowWidth > 0) {
+                        val maxWidth = (result.input.sourceWidth - overflowWidth).coerceAtLeast(0)
+                        logMsg { "width ${result.input.sourceWidth} - $overflowWidth = $maxWidth" }
+                        constraintsCopy = constraintsCopy.copy(maxWidth = maxWidth)
+                        _overflowFixedWidth = maxWidth
+                        isOverflow = true
+                    } else {
+                        val fixedWidth = _overflowFixedWidth
+                        if (fixedWidth != null) {
+                            constraintsCopy = constraintsCopy.copy(maxWidth = fixedWidth)
+                        }
+                    }
+
+                    // height
+                    val overflowHeight = overflow.top + overflow.bottom
+                    if (overflowHeight > 0) {
+                        val maxHeight = (result.input.sourceHeight - overflowHeight).coerceAtLeast(0)
+                        logMsg { "height ${result.input.sourceHeight} - $overflowHeight = $maxHeight" }
+                        constraintsCopy = constraintsCopy.copy(maxHeight = maxHeight)
+                        _overflowFixedHeight = maxHeight
+                        isOverflow = true
+                    } else {
+                        val fixedHeight = _overflowFixedHeight
+                        if (fixedHeight != null) {
+                            constraintsCopy = constraintsCopy.copy(maxHeight = fixedHeight)
+                        }
+                    }
+                }
             }
 
-            Box(modifier = modifier) {
-                ContentBox()
+            val placeable = measurable.measure(constraintsCopy)
+            logMsg { "placeable (${placeable.width}, ${placeable.height})" }
+
+            if (isOverflow) {
+                result!!
+                logMsg { "old result (${result.x}, ${result.y})" }
+
+                val newResult = _aligner.align(
+                    result.input.copy(
+                        sourceWidth = placeable.width,
+                        sourceHeight = placeable.height,
+                    )
+                )
+                x = newResult.x
+                y = newResult.y
+
+                logMsg { "new result (${newResult.x}, ${newResult.y})" }
+            }
+
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                placeable.placeRelative(x, y)
             }
         }
     }
@@ -480,50 +483,34 @@ private data class LayerUiState(
     val isVisible: Boolean = false,
     val position: FLayer.Position = FLayer.Position.Center,
     val hasTarget: Boolean = false,
-    val offset: IntOffset = IntOffset.Zero,
+    val alignerResult: Aligner.Result? = null,
 )
-
-private data class OverflowUiState(
-    val overflowStart: Int,
-    val overflowEnd: Int,
-    val overflowTop: Int,
-    val overflowBottom: Int,
-) {
-    companion object {
-        val None = OverflowUiState(
-            overflowStart = 0,
-            overflowEnd = 0,
-            overflowTop = 0,
-            overflowBottom = 0,
-        )
-    }
-}
-
-private class ComposeLayoutInfo : Aligner.LayoutInfo {
-    private val _coordinateArray = IntArray(2)
-    var layoutCoordinates: LayoutCoordinates? = null
-
-    override val isReady: Boolean
-        get() = width > 0 && height > 0 && layoutCoordinates?.isAttached == true
-
-    override val coordinate: IntArray
-        get() {
-            val layout = layoutCoordinates ?: return Aligner.LayoutInfo.CoordinateUnspecified
-            val windowOffset = layout.localToWindow(Offset.Zero)
-            _coordinateArray[0] = windowOffset.x.toInt()
-            _coordinateArray[1] = windowOffset.y.toInt()
-            return _coordinateArray
-        }
-
-    override val height: Int
-        get() = layoutCoordinates?.size?.height ?: 0
-
-    override val width: Int
-        get() = layoutCoordinates?.size?.width ?: 0
-}
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
+}
+
+@OptIn(ExperimentalContracts::class)
+private fun LayoutCoordinates?.isReady(): Boolean {
+    contract {
+        returns(true) implies (this@isReady != null)
+    }
+    if (this == null) return false
+    if (!this.isAttached) return false
+    if (this.size.width <= 0 || this.size.height <= 0) return false
+    return true
+}
+
+private fun LayoutCoordinates.coordinate(): Offset {
+    return this.localToWindow(Offset.Zero)
+}
+
+private fun LayoutCoordinates.width(): Int {
+    return this.size.width
+}
+
+private fun LayoutCoordinates.height(): Int {
+    return this.size.height
 }
 
 private fun FLayer.Position.toAlignment(): Alignment {
