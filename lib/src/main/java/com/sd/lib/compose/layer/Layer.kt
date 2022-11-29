@@ -27,7 +27,7 @@ import kotlin.contracts.contract
 import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
-interface FLayerScope {
+interface FLayerContentScope {
     /** 内容是否可见 */
     val isVisible: Boolean
 }
@@ -56,7 +56,7 @@ data class DialogBehavior(
 
 class FLayer internal constructor() {
     private val _uiState = MutableStateFlow(LayerUiState())
-    private var _content: @Composable FLayerScope.() -> Unit by mutableStateOf({ })
+    private var _content: @Composable FLayerContentScope.() -> Unit by mutableStateOf({ })
 
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
@@ -104,7 +104,7 @@ class FLayer internal constructor() {
     }
 
     private var _layerManager: LayerManager? = null
-    private val _scopeImpl = LayerScopeImpl()
+    private val _contentScopeImpl = LayerContentScopeImpl()
     private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     /** 是否可见 */
@@ -118,7 +118,7 @@ class FLayer internal constructor() {
     /**
      * 设置内容
      */
-    fun setContent(content: @Composable FLayerScope.() -> Unit) {
+    fun setContent(content: @Composable FLayerContentScope.() -> Unit) {
         _content = content
     }
 
@@ -287,7 +287,7 @@ class FLayer internal constructor() {
         val uiState by _uiState.collectAsState()
 
         LaunchedEffect(uiState.isVisible) {
-            _scopeImpl._isVisible = uiState.isVisible
+            _contentScopeImpl._isVisible = uiState.isVisible
         }
 
         val behavior = _dialogBehavior
@@ -437,7 +437,7 @@ class FLayer internal constructor() {
                 _contentLayoutCoordinates = it
             }
         ) {
-            _content.invoke(_scopeImpl)
+            _content.invoke(_contentScopeImpl)
         }
     }
 
@@ -483,12 +483,9 @@ class FLayer internal constructor() {
             return null
         }
 
-        protected abstract fun getSize(result: Aligner.Result): Int
-
         protected abstract fun getValue(overflow: Aligner.Overflow): Int
-
+        protected abstract fun getSize(result: Aligner.Result): Int
         protected abstract fun getCacheSize(): Int?
-
         protected abstract fun setCacheSize(size: Int)
     }
 
@@ -524,7 +521,7 @@ class FLayer internal constructor() {
         override fun getValue(overflow: Aligner.Overflow): Int = overflow.bottom
     }
 
-    private class LayerScopeImpl : FLayerScope {
+    private class LayerContentScopeImpl : FLayerContentScope {
         var _isVisible by mutableStateOf(false)
 
         override val isVisible: Boolean
