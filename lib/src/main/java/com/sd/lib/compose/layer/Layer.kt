@@ -24,6 +24,7 @@ import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
 interface FLayerScope {
@@ -60,7 +61,7 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _checkOverflow by mutableStateOf(true)
+    private var _checkOverflowDirection: Direction? = Direction.Top
     private var _overflowFixedWidth: Int? = null
     private var _overflowFixedHeight: Int? = null
 
@@ -350,40 +351,35 @@ class FLayer internal constructor() {
             var x = result?.x ?: 0
             var y = result?.y ?: 0
 
-            var isOverflow = false
+            var overflowResult: Aligner.Result? = null
             var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
-            if (_checkOverflow) {
-                if (result != null) {
-                    val overflow = result.overflow
-
-                    // width
-                    val horizontalOverflow = overflow.horizontalOverflow
-                    if (horizontalOverflow > 0) {
-                        val maxWidth = (result.input.sourceWidth - horizontalOverflow).coerceAtLeast(1)
-                        logMsg { "width ${result.input.sourceWidth} - $horizontalOverflow = $maxWidth" }
-                        constraintsCopy = constraintsCopy.copy(maxWidth = maxWidth)
-                        _overflowFixedWidth = maxWidth
-                        isOverflow = true
-                    } else {
-                        val fixedWidth = _overflowFixedWidth
-                        if (fixedWidth != null) {
-                            constraintsCopy = constraintsCopy.copy(maxWidth = fixedWidth)
+            if (result != null) {
+                _checkOverflowDirection?.let {
+                    when (it) {
+                        Direction.Start -> {
+                            StartOverflowHandler().fixOverflow(result)?.let {
+                                constraintsCopy = constraintsCopy.copy(maxWidth = it)
+                                overflowResult = result
+                            }
                         }
-                    }
-
-                    // height
-                    val verticalOverflow = overflow.verticalOverflow
-                    if (verticalOverflow > 0) {
-                        val maxHeight = (result.input.sourceHeight - verticalOverflow).coerceAtLeast(1)
-                        logMsg { "height ${result.input.sourceHeight} - $verticalOverflow = $maxHeight" }
-                        constraintsCopy = constraintsCopy.copy(maxHeight = maxHeight)
-                        _overflowFixedHeight = maxHeight
-                        isOverflow = true
-                    } else {
-                        val fixedHeight = _overflowFixedHeight
-                        if (fixedHeight != null) {
-                            constraintsCopy = constraintsCopy.copy(maxHeight = fixedHeight)
+                        Direction.End -> {
+                            EndOverflowHandler().fixOverflow(result)?.let {
+                                constraintsCopy = constraintsCopy.copy(maxWidth = it)
+                                overflowResult = result
+                            }
+                        }
+                        Direction.Top -> {
+                            TopOverflowHandler().fixOverflow(result)?.let {
+                                constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                                overflowResult = result
+                            }
+                        }
+                        Direction.Bottom -> {
+                            BottomOverflowHandler().fixOverflow(result)?.let {
+                                constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                                overflowResult = result
+                            }
                         }
                     }
                 }
@@ -392,12 +388,11 @@ class FLayer internal constructor() {
             val placeable = measurable.measure(constraintsCopy)
             logMsg { "placeable (${placeable.width}, ${placeable.height})" }
 
-            if (isOverflow) {
-                result!!
-                logMsg { "old result (${result.x}, ${result.y})" }
+            overflowResult?.let {
+                logMsg { "old result (${it.x}, ${it.y})" }
 
                 val newResult = _aligner.align(
-                    result.input.copy(
+                    it.input.copy(
                         sourceWidth = placeable.width,
                         sourceHeight = placeable.height,
                     )
@@ -450,6 +445,66 @@ class FLayer internal constructor() {
         }
     }
 
+    private abstract class OverflowHandler {
+        fun fixOverflow(result: Aligner.Result): Int? {
+            val overflow = getValue(result.overflow)
+            if (overflow > 0) {
+                val newSize = (getSize(result) - overflow).coerceAtLeast(1)
+                return newSize.also { setCacheSize(it) }
+            } else {
+                val cacheSize = getCacheSize()
+                if (cacheSize != null) {
+                    return if (overflow < 0) {
+                        (cacheSize + overflow.absoluteValue).also { setCacheSize(it) }
+                    } else {
+                        cacheSize
+                    }
+                }
+            }
+            return null
+        }
+
+        protected abstract fun getSize(result: Aligner.Result): Int
+
+        protected abstract fun getValue(overflow: Aligner.Overflow): Int
+
+        protected abstract fun getCacheSize(): Int?
+
+        protected abstract fun setCacheSize(size: Int)
+    }
+
+    private abstract inner class HorizontalOverflowHandler : OverflowHandler() {
+        override fun getSize(result: Aligner.Result): Int = result.input.sourceWidth
+        override fun getCacheSize(): Int? = _overflowFixedWidth
+        override fun setCacheSize(size: Int) {
+            _overflowFixedWidth = size
+        }
+    }
+
+    private abstract inner class VerticalOverflowHandler : OverflowHandler() {
+        override fun getSize(result: Aligner.Result): Int = result.input.sourceHeight
+        override fun getCacheSize(): Int? = _overflowFixedHeight
+        override fun setCacheSize(size: Int) {
+            _overflowFixedHeight = size
+        }
+    }
+
+    private inner class StartOverflowHandler : HorizontalOverflowHandler() {
+        override fun getValue(overflow: Aligner.Overflow): Int = overflow.start
+    }
+
+    private inner class EndOverflowHandler : HorizontalOverflowHandler() {
+        override fun getValue(overflow: Aligner.Overflow): Int = overflow.end
+    }
+
+    private inner class TopOverflowHandler : VerticalOverflowHandler() {
+        override fun getValue(overflow: Aligner.Overflow): Int = overflow.top
+    }
+
+    private inner class BottomOverflowHandler : VerticalOverflowHandler() {
+        override fun getValue(overflow: Aligner.Overflow): Int = overflow.bottom
+    }
+
     private class LayerScopeImpl : FLayerScope {
         var _isVisible by mutableStateOf(false)
 
@@ -478,6 +533,13 @@ class FLayer internal constructor() {
         BottomCenter,
         /** 底部结束对齐 */
         BottomEnd,
+    }
+
+    enum class Direction {
+        Start,
+        End,
+        Top,
+        Bottom,
     }
 }
 

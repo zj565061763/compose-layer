@@ -43,7 +43,7 @@ private fun TargetView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Box(modifier = Modifier.height(300.dp))
+        Box(modifier = Modifier.height(800.dp))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (showTarget) {
