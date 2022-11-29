@@ -358,7 +358,7 @@ class FLayer internal constructor() {
                     // width
                     val overflowWidth = overflow.start + overflow.end
                     if (overflowWidth > 0) {
-                        val maxWidth = (result.input.sourceWidth - overflowWidth).coerceAtLeast(0)
+                        val maxWidth = (result.input.sourceWidth - overflowWidth).coerceAtLeast(1)
                         logMsg { "width ${result.input.sourceWidth} - $overflowWidth = $maxWidth" }
                         constraintsCopy = constraintsCopy.copy(maxWidth = maxWidth)
                         _overflowFixedWidth = maxWidth
@@ -373,7 +373,7 @@ class FLayer internal constructor() {
                     // height
                     val overflowHeight = overflow.top + overflow.bottom
                     if (overflowHeight > 0) {
-                        val maxHeight = (result.input.sourceHeight - overflowHeight).coerceAtLeast(0)
+                        val maxHeight = (result.input.sourceHeight - overflowHeight).coerceAtLeast(1)
                         logMsg { "height ${result.input.sourceHeight} - $overflowHeight = $maxHeight" }
                         constraintsCopy = constraintsCopy.copy(maxHeight = maxHeight)
                         _overflowFixedHeight = maxHeight
