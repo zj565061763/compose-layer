@@ -305,11 +305,7 @@ class FLayer internal constructor() {
         if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .offset { uiState.offset },
-                ) {
+                HasTargetBox(uiState) {
                     if (_checkOverflow) {
                         OverflowContentBox(uiState)
                     } else {
@@ -364,6 +360,20 @@ class FLayer internal constructor() {
                         .background(behavior.backgroundColor)
                 )
             }
+        }
+    }
+
+    @Composable
+    private fun HasTargetBox(
+        uiState: LayerUiState,
+        content: @Composable () -> Unit,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { uiState.offset },
+        ) {
+            content()
         }
     }
 
