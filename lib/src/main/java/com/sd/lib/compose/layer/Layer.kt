@@ -286,7 +286,7 @@ class FLayer internal constructor() {
     internal fun Content() {
         val uiState by _uiState.collectAsState()
 
-        LaunchedEffect(uiState.isVisible) {
+        SideEffect {
             _contentScopeImpl._isVisible = uiState.isVisible
         }
 
