@@ -65,7 +65,7 @@ class FLayer internal constructor() {
     private var _overflowUiState = MutableStateFlow(OverflowUiState.None)
 
     private var _position by Delegates.observable(Position.Center) { _, _, newValue ->
-        _aligner.position = newValue.toAlignerPosition()
+        _aligner.setPosition(newValue.toAlignerPosition())
     }
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
@@ -82,7 +82,7 @@ class FLayer internal constructor() {
     }
 
     private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        _sourceLayoutInfo.parentLayerLayoutInfo.layoutCoordinates = newValue
+        _sourceContainerLayoutInfo.layoutCoordinates = newValue
         updateOffset()
     }
 
@@ -195,38 +195,30 @@ class FLayer internal constructor() {
         }
     }
 
-    private val _targetLayoutInfo = LayerLayoutInfo()
-    private val _sourceLayoutInfo = SourceLayerLayoutInfo()
+    private val _targetLayoutInfo = ComposeLayoutInfo()
+    private val _sourceLayoutInfo = ComposeLayoutInfo()
+    private val _sourceContainerLayoutInfo = ComposeLayoutInfo()
+
     private val _aligner: Aligner by lazy {
         FAligner().apply {
-            this.position = _position.toAlignerPosition()
-            this.targetLayoutInfo = _targetLayoutInfo
-            this.sourceLayoutInfo = _sourceLayoutInfo
-            this.callback = object : Aligner.Callback() {
-                override fun onUpdate(x: Int, y: Int, source: Aligner.SourceLayoutInfo, target: Aligner.LayoutInfo) {
-                    val offset = IntOffset(x, y)
-
-                    val offsetInterceptorScope = object : OffsetInterceptorScope {
-                        override val offset: IntOffset get() = offset
-                        override val contentSize: IntSize get() = IntSize(source.width, source.height)
-                        override val targetSize: IntSize get() = IntSize(target.width, target.height)
-                    }
-
-                    _offset = _offsetInterceptor?.invoke(offsetInterceptorScope) ?: offset
-                    checkOverflow(offset, source)
-                }
-            }
+            this.setPosition(_position.toAlignerPosition())
+            this.setTargetLayoutInfo(_targetLayoutInfo)
+            this.setSourceLayoutInfo(_sourceLayoutInfo)
+            this.setSourceContainerLayoutInfo(_sourceContainerLayoutInfo)
         }
     }
 
-    private fun checkOverflow(offset: IntOffset, source: Aligner.SourceLayoutInfo) {
+    private fun checkOverflow() {
         if (!_checkOverflow) return
 
-        val parent = source.parentLayoutInfo
-        if (parent == null) {
+        val source = _sourceLayoutInfo
+        val parent = _sourceContainerLayoutInfo
+        if (!source.isReady || !parent.isReady) {
             _overflowUiState.value = OverflowUiState.None
             return
         }
+
+        val offset = _offset
 
         val left = source.coordinate[0] + offset.x
         val parentLeft = parent.coordinate[0]
@@ -266,10 +258,12 @@ class FLayer internal constructor() {
     /**
      * 计算位置
      */
-    private fun updateOffset(): Boolean {
-        return _aligner.update().also {
-            updateUiState()
+    private fun updateOffset() {
+        _aligner.update()?.also {
+            _offset = IntOffset(it.x, it.y)
+            checkOverflow()
         }
+        updateUiState()
     }
 
     private fun updateUiState() {
@@ -277,7 +271,7 @@ class FLayer internal constructor() {
             if (_target.isEmpty()) {
                 true
             } else {
-                _targetLayoutCoordinates?.isAttached == true
+                _targetLayoutInfo.isReady
             }
         } else false
 
@@ -495,16 +489,16 @@ private data class OverflowUiState(
     }
 }
 
-private open class LayerLayoutInfo() : Aligner.LayoutInfo {
+private class ComposeLayoutInfo : Aligner.LayoutInfo {
     private val _coordinateArray = IntArray(2)
     var layoutCoordinates: LayoutCoordinates? = null
 
     override val isReady: Boolean
-        get() = width > 0 && height > 0
+        get() = width > 0 && height > 0 && layoutCoordinates?.isAttached == true
 
     override val coordinate: IntArray
         get() {
-            val layout = layoutCoordinates ?: return Aligner.LayoutInfo.coordinateUnspecified
+            val layout = layoutCoordinates ?: return Aligner.LayoutInfo.CoordinateUnspecified
             val windowOffset = layout.localToWindow(Offset.Zero)
             _coordinateArray[0] = windowOffset.x.toInt()
             _coordinateArray[1] = windowOffset.y.toInt()
@@ -516,13 +510,6 @@ private open class LayerLayoutInfo() : Aligner.LayoutInfo {
 
     override val width: Int
         get() = layoutCoordinates?.size?.width ?: 0
-}
-
-private class SourceLayerLayoutInfo() : LayerLayoutInfo(), Aligner.SourceLayoutInfo {
-    val parentLayerLayoutInfo = LayerLayoutInfo()
-
-    override val parentLayoutInfo: Aligner.LayoutInfo
-        get() = parentLayerLayoutInfo
 }
 
 internal inline fun logMsg(block: () -> String) {
