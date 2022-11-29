@@ -74,6 +74,7 @@ class FLayer internal constructor() {
 
     private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
+            positionState = newValue
             _overflowFixedWidth = null
             _overflowFixedHeight = null
             _aligner.setPosition(newValue.toAlignerPosition())
@@ -107,7 +108,11 @@ class FLayer internal constructor() {
     private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     /** 是否可见 */
-    var isVisible by mutableStateOf(false)
+    var isVisibleState: Boolean by mutableStateOf(false)
+        private set
+
+    /** [Position] */
+    var positionState: Position by mutableStateOf(_position)
         private set
 
     /**
@@ -274,7 +279,7 @@ class FLayer internal constructor() {
             alignerResult = _alignerResult,
         )
 
-        this.isVisible = isVisible
+        this.isVisibleState = isVisible
     }
 
     @Composable

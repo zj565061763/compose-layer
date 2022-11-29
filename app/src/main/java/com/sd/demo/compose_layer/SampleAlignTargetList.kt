@@ -47,6 +47,25 @@ private fun createLayer(): FLayer {
             LayerContent(isVisible)
         }
     }
+
+    LaunchedEffect(layer.positionState) {
+        when (layer.positionState) {
+            FLayer.Position.TopStart,
+            FLayer.Position.TopCenter,
+            FLayer.Position.TopEnd -> {
+                layer.setFixOverflowDirection(FLayer.Direction.Bottom)
+            }
+            FLayer.Position.BottomStart,
+            FLayer.Position.BottomCenter,
+            FLayer.Position.BottomEnd -> {
+                layer.setFixOverflowDirection(FLayer.Direction.Top)
+            }
+            else -> {
+                layer.setFixOverflowDirection(null)
+            }
+        }
+    }
+
     return layer
 }
 
