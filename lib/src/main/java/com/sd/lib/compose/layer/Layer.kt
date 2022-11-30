@@ -302,7 +302,7 @@ class FLayer internal constructor() {
                         ContentBox()
                     }
                 } else {
-                    FixOverflowBox(uiState.alignerResult) {
+                    FixOverflowBox(uiState.alignerResult, uiState.fixOverflowDirection) {
                         ContentBox()
                     }
                 }
@@ -342,6 +342,7 @@ class FLayer internal constructor() {
     @Composable
     private fun FixOverflowBox(
         result: Aligner.Result?,
+        fixOverflowDirection: Int,
         content: @Composable () -> Unit,
     ) {
         if (result == null) {
@@ -365,10 +366,24 @@ class FLayer internal constructor() {
 
                 // 检查是否溢出
                 with(originalResult.sourceOverflow) {
-                    if (verticalOverflow > 0) {
-                        val maxHeight = (originalResult.input.sourceHeight - verticalOverflow).coerceAtLeast(1)
-                        logMsg { "height ${originalResult.input.sourceHeight} - $verticalOverflow = $maxHeight" }
-                        constraints = constraints.copy(maxHeight = maxHeight)
+                    kotlin.run {
+                        var overHeight = 0
+                        if (OverflowDirection.hasTop(fixOverflowDirection)) {
+                            if (top > 0) {
+                                overHeight += top
+                                logMsg { "top overflow $top" }
+                            }
+                        }
+                        if (OverflowDirection.hasBottom(fixOverflowDirection)) {
+                            if (bottom > 0) {
+                                overHeight += bottom
+                                logMsg { "bottom overflow $bottom" }
+                            }
+                        }
+                        if (overHeight > 0) {
+                            val maxHeight = (cs.maxHeight - overHeight).coerceAtLeast(1)
+                            constraints = constraints.copy(maxHeight = maxHeight)
+                        }
                     }
                 }
 
