@@ -307,7 +307,7 @@ class FLayer internal constructor() {
                         ContentBox()
                     }
                 } else {
-                    HasTargetBox(uiState.alignerResult) {
+                    FixOverflowBox(uiState.alignerResult) {
                         ContentBox()
                     }
                 }
@@ -345,7 +345,7 @@ class FLayer internal constructor() {
 
 
     @Composable
-    private fun HasTargetBox(
+    private fun FixOverflowBox(
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
