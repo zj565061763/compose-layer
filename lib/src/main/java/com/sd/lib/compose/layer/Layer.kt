@@ -228,11 +228,13 @@ class FLayer internal constructor() {
      * 计算位置
      */
     private fun updateOffset() {
+        updateOffsetInternal()
+        updateUiState()
+    }
+
+    private fun updateOffsetInternal() {
         val target = _targetLayoutCoordinates
-        if (!target.isReady()) {
-            updateUiState()
-            return
-        }
+        if (!target.isReady()) return
 
         val source = _contentLayoutCoordinates
         if (!source.isReady()) return
@@ -260,7 +262,6 @@ class FLayer internal constructor() {
         )
 
         _alignerResult = _aligner.align(input)
-        updateUiState()
     }
 
     private fun updateUiState() {
@@ -349,56 +350,60 @@ class FLayer internal constructor() {
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
-        SubcomposeLayout(Modifier.fillMaxSize()) { constraints ->
-            val measurable = subcompose(Unit) { content() }.let {
-                check(it.size == 1)
-                it.first()
-            }
+        if (result == null) {
+            OffsetBox(null, content)
+        } else {
+            SubcomposeLayout(Modifier.fillMaxSize()) { constraints ->
+                val measurable = subcompose(Unit) { content() }.let {
+                    check(it.size == 1)
+                    it.first()
+                }
 
-            var x = result?.x ?: 0
-            var y = result?.y ?: 0
+                var x = result?.x ?: 0
+                var y = result?.y ?: 0
 
-            var overflowResult: Aligner.Result? = null
-            var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
+                var overflowResult: Aligner.Result? = null
+                var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
-            if (result != null) {
-                var fixed = false
-                with(OverflowFix()) {
-                    fixVertical(result)?.let {
-                        fixed = true
-                        constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                if (result != null) {
+                    var fixed = false
+                    with(OverflowFix()) {
+                        fixVertical(result)?.let {
+                            fixed = true
+                            constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                        }
+                        fixHorizontal(result)?.let {
+                            fixed = true
+                            constraintsCopy = constraintsCopy.copy(maxWidth = it)
+                        }
                     }
-                    fixHorizontal(result)?.let {
-                        fixed = true
-                        constraintsCopy = constraintsCopy.copy(maxWidth = it)
+
+                    if (fixed) {
+                        overflowResult = result
                     }
                 }
 
-                if (fixed) {
-                    overflowResult = result
-                }
-            }
+                val placeable = measurable.measure(constraintsCopy)
+                logMsg { "placeable (${placeable.width}, ${placeable.height})" }
 
-            val placeable = measurable.measure(constraintsCopy)
-            logMsg { "placeable (${placeable.width}, ${placeable.height})" }
+                overflowResult?.let {
+                    logMsg { "old result (${it.x}, ${it.y})" }
 
-            overflowResult?.let {
-                logMsg { "old result (${it.x}, ${it.y})" }
-
-                val newResult = _aligner.align(
-                    it.input.copy(
-                        sourceWidth = placeable.width,
-                        sourceHeight = placeable.height,
+                    val newResult = _aligner.align(
+                        it.input.copy(
+                            sourceWidth = placeable.width,
+                            sourceHeight = placeable.height,
+                        )
                     )
-                )
-                x = newResult.x
-                y = newResult.y
+                    x = newResult.x
+                    y = newResult.y
 
-                logMsg { "new result (${newResult.x}, ${newResult.y})" }
-            }
+                    logMsg { "new result (${newResult.x}, ${newResult.y})" }
+                }
 
-            layout(constraints.maxWidth, constraints.maxHeight) {
-                placeable.placeRelative(x, y)
+                layout(constraints.maxWidth, constraints.maxHeight) {
+                    placeable.placeRelative(x, y)
+                }
             }
         }
     }
