@@ -452,24 +452,32 @@ class FLayer internal constructor() {
     }
 
     private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
-        forEachGesture {
-            awaitPointerEventScope {
-                val down = layerAwaitFirstDown(PointerEventPass.Initial)
-                val downPosition = down.position
+        if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+            detectTouchOutsideOnce(behavior)
+        } else {
+            forEachGesture {
+                detectTouchOutsideOnce(behavior)
+            }
+        }
+    }
 
-                val layerLayout = _layerLayoutCoordinates
-                val contentLayout = _contentLayoutCoordinates
-                if (layerLayout != null && contentLayout != null) {
-                    val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-                    if (contentRect.contains(downPosition)) {
-                        // 触摸到内容区域
-                    } else {
-                        if (behavior.consumeTouchOutside) {
-                            down.consume()
-                        }
-                        if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                            detach()
-                        }
+    private suspend fun PointerInputScope.detectTouchOutsideOnce(behavior: DialogBehavior) {
+        awaitPointerEventScope {
+            val down = layerAwaitFirstDown(PointerEventPass.Initial)
+            val downPosition = down.position
+
+            val layerLayout = _layerLayoutCoordinates
+            val contentLayout = _contentLayoutCoordinates
+            if (layerLayout != null && contentLayout != null) {
+                val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
+                if (contentRect.contains(downPosition)) {
+                    // 触摸到内容区域
+                } else {
+                    if (behavior.consumeTouchOutside) {
+                        down.consume()
+                    }
+                    if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                        detach()
                     }
                 }
             }
