@@ -201,16 +201,11 @@ class FLayer internal constructor() {
         }
     }
 
-    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit by lazy {
-        {
-            _targetLayoutCoordinates = it
-        }
+    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
+        _targetLayoutCoordinates = it
     }
-
-    private val _containerLayoutCallback: (LayoutCoordinates) -> Unit by lazy {
-        {
-            _containerLayoutCoordinates = it
-        }
+    private val _containerLayoutCallback: (LayoutCoordinates) -> Unit = {
+        _containerLayoutCoordinates = it
     }
 
     /**
