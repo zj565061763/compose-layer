@@ -354,45 +354,35 @@ class FLayer internal constructor() {
                 var y = result.y
 
                 // 原始大小
-                val originalPlaceable by lazy {
-                    placeable(null, cs.copy(minWidth = 0, minHeight = 0), content)
-                }
+                val originalPlaceable = placeable(null, cs.copy(minWidth = 0, minHeight = 0), content)
                 // 根据原始大小测量的结果
-                val originalResult by lazy {
-                    _aligner.align(
-                        result.input.copy(
-                            sourceWidth = originalPlaceable.width,
-                            sourceHeight = originalPlaceable.height,
-                        )
+                val originalResult = _aligner.align(
+                    result.input.copy(
+                        sourceWidth = originalPlaceable.width,
+                        sourceHeight = originalPlaceable.height,
                     )
-                }
+                )
 
-                var maxHeight = result.input.sourceHeight
-                with(result.sourceOverflow) {
+                with(originalResult.sourceOverflow) {
                     if (verticalOverflow > 0) {
-                        maxHeight = result.input.sourceHeight - verticalOverflow
-                    } else if (top < 0 && bottom < 0) {
-                        val overflow = originalResult.sourceOverflow
-                        if (overflow.verticalOverflow > 0) {
-                            maxHeight = originalResult.input.sourceHeight - overflow.verticalOverflow
-                        }
+                        val maxHeight = (originalResult.input.sourceHeight - verticalOverflow).coerceAtLeast(1)
+                        logMsg { "height ${originalResult.input.sourceHeight} - $verticalOverflow = $maxHeight" }
+                        constraints = constraints.copy(maxHeight = maxHeight)
                     }
                 }
 
-                constraints = constraints.copy(maxHeight = maxHeight.coerceAtLeast(1))
-
-                val placeable = placeable(Unit, constraints, content)
-                logMsg { "placeable (${placeable.width}, ${placeable.height})" }
-
-                if (maxHeight != result.input.sourceHeight) {
-                    _aligner.align(
-                        result.input.copy(
-                            sourceWidth = placeable.width,
-                            sourceHeight = placeable.height,
-                        )
-                    ).let {
-                        x = it.x
-                        y = it.y
+                val placeable = placeable(Unit, constraints, content).also { placeable ->
+                    logMsg { "placeable (${placeable.width}, ${placeable.height})" }
+                    if (constraints.maxHeight != cs.maxHeight) {
+                        _aligner.align(
+                            result.input.copy(
+                                sourceWidth = placeable.width,
+                                sourceHeight = placeable.height,
+                            )
+                        ).let {
+                            x = it.x
+                            y = it.y
+                        }
                     }
                 }
 
