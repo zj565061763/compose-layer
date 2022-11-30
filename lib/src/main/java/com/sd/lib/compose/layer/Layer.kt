@@ -359,27 +359,20 @@ class FLayer internal constructor() {
                     it.first()
                 }
 
-                var x = result?.x ?: 0
-                var y = result?.y ?: 0
+                var x = result.x
+                var y = result.y
 
                 var overflowResult: Aligner.Result? = null
                 var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
-                if (result != null) {
-                    var fixed = false
-                    with(OverflowFix()) {
-                        fixVertical(result)?.let {
-                            fixed = true
-                            constraintsCopy = constraintsCopy.copy(maxHeight = it)
-                        }
-                        fixHorizontal(result)?.let {
-                            fixed = true
-                            constraintsCopy = constraintsCopy.copy(maxWidth = it)
-                        }
-                    }
-
-                    if (fixed) {
+                with(OverflowFix()) {
+                    fixVertical(result)?.let {
                         overflowResult = result
+                        constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                    }
+                    fixHorizontal(result)?.let {
+                        overflowResult = result
+                        constraintsCopy = constraintsCopy.copy(maxWidth = it)
                     }
                 }
 
