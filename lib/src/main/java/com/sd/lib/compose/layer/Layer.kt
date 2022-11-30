@@ -227,29 +227,29 @@ class FLayer internal constructor() {
         val target = _targetLayoutCoordinates
         if (!target.isReady()) return null
 
-        val source = _contentLayoutCoordinates
-        if (!source.isReady()) return null
-
         val container = _containerLayoutCoordinates
         if (!container.isReady()) return null
 
+        val source = _contentLayoutCoordinates
+        if (!source.isReady()) return null
+
         val targetCoordinates = target.coordinate()
-        val sourceCoordinates = source.coordinate()
         val containerCoordinates = container.coordinate()
+        val sourceCoordinates = source.coordinate()
 
         val input = Aligner.Input(
             targetX = targetCoordinates.x.toInt(),
             targetY = targetCoordinates.y.toInt(),
-            sourceX = sourceCoordinates.x.toInt(),
-            sourceY = sourceCoordinates.y.toInt(),
             containerX = containerCoordinates.x.toInt(),
             containerY = containerCoordinates.y.toInt(),
+            sourceX = sourceCoordinates.x.toInt(),
+            sourceY = sourceCoordinates.y.toInt(),
             targetWidth = target.width(),
             targetHeight = target.height(),
-            sourceWidth = source.width(),
-            sourceHeight = source.height(),
             containerWidth = container.width(),
             containerHeight = container.height(),
+            sourceWidth = source.width(),
+            sourceHeight = source.height(),
         )
 
         _aligner.setPosition(_position.toAlignerPosition())
