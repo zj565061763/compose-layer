@@ -371,9 +371,9 @@ class FLayer internal constructor() {
                     }
                 }
 
-                val placeable = placeable(Unit, constraints, content).also { placeable ->
-                    logMsg { "placeable (${placeable.width}, ${placeable.height})" }
-                    if (constraints.maxHeight != cs.maxHeight) {
+                val placeable = if (constraints != cs) {
+                    // 约束条件变化后，重新计算坐标
+                    placeable(Unit, constraints, content).also { placeable ->
                         _aligner.align(
                             result.input.copy(
                                 sourceWidth = placeable.width,
@@ -384,6 +384,8 @@ class FLayer internal constructor() {
                             y = it.y
                         }
                     }
+                } else {
+                    originalPlaceable
                 }
 
                 layout(cs.maxWidth, cs.maxHeight) {
