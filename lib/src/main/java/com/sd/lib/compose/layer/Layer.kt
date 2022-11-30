@@ -330,69 +330,72 @@ class FLayer internal constructor() {
         fixOverflowDirection: Int,
         content: @Composable () -> Unit,
     ) {
-        if (result == null) {
-            OffsetBox(null, content)
-        } else {
-            SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
-                var constraints = cs.copy(minWidth = 0, minHeight = 0)
+        SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
+            var constraints = cs.copy(minWidth = 0, minHeight = 0)
 
-                var x = result.x
-                var y = result.y
+            if (result == null) {
+                val placeable = placeable("init", constraints, content)
+                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
+                }
+            }
 
-                // 原始大小
-                val originalPlaceable = placeable(null, constraints, content)
-                // 根据原始大小测量的结果
-                val originalResult = _aligner.align(
-                    result.input.copy(
-                        sourceWidth = originalPlaceable.width,
-                        sourceHeight = originalPlaceable.height,
-                    )
+            var x = result.x
+            var y = result.y
+
+            // 原始大小
+            val originalPlaceable = placeable(null, constraints, content)
+            // 根据原始大小测量的结果
+            val originalResult = _aligner.align(
+                result.input.copy(
+                    sourceWidth = originalPlaceable.width,
+                    sourceHeight = originalPlaceable.height,
                 )
+            )
 
-                // 检查是否溢出
-                with(originalResult.sourceOverflow) {
-                    kotlin.run {
-                        var overHeight = 0
-                        if (OverflowDirection.hasTop(fixOverflowDirection)) {
-                            if (top > 0) {
-                                overHeight += top
-                                logMsg { "top overflow $top" }
-                            }
-                        }
-                        if (OverflowDirection.hasBottom(fixOverflowDirection)) {
-                            if (bottom > 0) {
-                                overHeight += bottom
-                                logMsg { "bottom overflow $bottom" }
-                            }
-                        }
-                        if (overHeight > 0) {
-                            val maxHeight = (cs.maxHeight - overHeight).coerceAtLeast(1)
-                            constraints = constraints.copy(maxHeight = maxHeight)
+            // 检查是否溢出
+            with(originalResult.sourceOverflow) {
+                kotlin.run {
+                    var overHeight = 0
+                    if (OverflowDirection.hasTop(fixOverflowDirection)) {
+                        if (top > 0) {
+                            overHeight += top
+                            logMsg { "top overflow $top" }
                         }
                     }
-                }
-
-                val placeable = if (constraints != cs) {
-                    // 约束条件变化后，重新计算坐标
-                    placeable(Unit, constraints, content).also { placeable ->
-                        _aligner.align(
-                            result.input.copy(
-                                sourceWidth = placeable.width,
-                                sourceHeight = placeable.height,
-                            )
-                        ).let {
-                            x = it.x
-                            y = it.y
+                    if (OverflowDirection.hasBottom(fixOverflowDirection)) {
+                        if (bottom > 0) {
+                            overHeight += bottom
+                            logMsg { "bottom overflow $bottom" }
                         }
-                        logMsg { "size:(${placeable.width}, ${placeable.height}) offset:($x, $y)" }
                     }
-                } else {
-                    originalPlaceable
+                    if (overHeight > 0) {
+                        val maxHeight = (cs.maxHeight - overHeight).coerceAtLeast(1)
+                        constraints = constraints.copy(maxHeight = maxHeight)
+                    }
                 }
+            }
 
-                layout(cs.maxWidth, cs.maxHeight) {
-                    placeable.placeRelative(x, y)
+            val placeable = if (constraints != cs) {
+                // 约束条件变化后，重新计算坐标
+                placeable(Unit, constraints, content).also { placeable ->
+                    _aligner.align(
+                        result.input.copy(
+                            sourceWidth = placeable.width,
+                            sourceHeight = placeable.height,
+                        )
+                    ).let {
+                        x = it.x
+                        y = it.y
+                    }
+                    logMsg { "size:(${placeable.width}, ${placeable.height}) offset:($x, $y)" }
                 }
+            } else {
+                originalPlaceable
+            }
+
+            layout(cs.maxWidth, cs.maxHeight) {
+                placeable.placeRelative(x, y)
             }
         }
     }
