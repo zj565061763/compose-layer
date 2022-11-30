@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
@@ -18,12 +19,19 @@ import com.sd.demo.compose_layer.view.ColorBox
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.rememberFLayer
+import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleAlignTarget : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
+            val statusBarController = rememberStatusBarController()
+            SideEffect {
+                statusBarController.isLight = true
+                statusBarController.color = Color.Transparent
+            }
+
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     FLayerContainer(modifier = Modifier.fillMaxSize()) {

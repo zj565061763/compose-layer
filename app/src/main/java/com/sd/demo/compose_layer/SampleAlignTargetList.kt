@@ -26,13 +26,13 @@ class SampleAlignTargetList : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            AppTheme {
-                val statusBarController = rememberStatusBarController()
-                SideEffect {
-                    statusBarController.isLight = true
-                    statusBarController.color = Color.Transparent
-                }
+            val statusBarController = rememberStatusBarController()
+            SideEffect {
+                statusBarController.isLight = true
+                statusBarController.color = Color.Transparent
+            }
 
+            AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     FLayerContainer(modifier = Modifier.fillMaxSize()) {
                         val layer = createLayer()
