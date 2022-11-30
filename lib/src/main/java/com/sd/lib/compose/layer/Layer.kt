@@ -277,6 +277,7 @@ class FLayer internal constructor() {
             position = _position,
             hasTarget = _target.isNotEmpty(),
             alignerResult = _alignerResult,
+            fixOverflowDirection = _fixOverflowDirection,
         )
 
         this.isVisibleState = isVisible
@@ -290,8 +291,7 @@ class FLayer internal constructor() {
             _contentScopeImpl._isVisible = uiState.isVisible
         }
 
-        val behavior = _dialogBehavior
-        if (behavior != null) {
+        _dialogBehavior?.let { behavior ->
             BackHandler(uiState.isVisible) {
                 if (behavior.cancelable) {
                     detach()
@@ -302,8 +302,14 @@ class FLayer internal constructor() {
         if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                HasTargetBox(uiState.alignerResult) {
-                    ContentBox()
+                if (uiState.fixOverflowDirection == Direction.None) {
+                    OffsetBox(uiState.alignerResult) {
+                        ContentBox()
+                    }
+                } else {
+                    HasTargetBox(uiState.alignerResult) {
+                        ContentBox()
+                    }
                 }
             }
         } else {
@@ -337,24 +343,6 @@ class FLayer internal constructor() {
         }
     }
 
-    @Composable
-    private fun BackgroundBox(
-        isVisible: Boolean,
-    ) {
-        _dialogBehavior?.let { behavior ->
-            AnimatedVisibility(
-                visible = isVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(behavior.backgroundColor)
-                )
-            }
-        }
-    }
 
     @Composable
     private fun HasTargetBox(
@@ -374,9 +362,19 @@ class FLayer internal constructor() {
             var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
             if (result != null) {
-                val size = OverflowFix().fixSize(result)
-                constraintsCopy = constraintsCopy.copy(maxWidth = size.width, maxHeight = size.height)
-                if (_overflowFixedWidth != null || _overflowFixedHeight != null) {
+                var fixed = false
+                with(OverflowFix()) {
+                    fixVertical(result)?.let {
+                        fixed = true
+                        constraintsCopy = constraintsCopy.copy(maxHeight = it)
+                    }
+                    fixHorizontal(result)?.let {
+                        fixed = true
+                        constraintsCopy = constraintsCopy.copy(maxWidth = it)
+                    }
+                }
+
+                if (fixed) {
                     overflowResult = result
                 }
             }
@@ -422,6 +420,25 @@ class FLayer internal constructor() {
     }
 
     @Composable
+    private fun BackgroundBox(
+        isVisible: Boolean,
+    ) {
+        _dialogBehavior?.let { behavior ->
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(behavior.backgroundColor)
+                )
+            }
+        }
+    }
+
+    @Composable
     private fun ContentBox(
         modifier: Modifier = Modifier,
     ) {
@@ -458,43 +475,56 @@ class FLayer internal constructor() {
     }
 
     private inner class OverflowFix {
-        fun fixSize(result: Aligner.Result): IntSize {
+        fun fixVertical(result: Aligner.Result): Int? {
             val direction = _fixOverflowDirection
             val overflow = result.overflow
 
-            var height = result.input.sourceHeight
+            var size = result.input.sourceHeight
+            var fixed = false
+
             with(VerticalOverflowHandler()) {
                 if (Direction.hasTop(direction)) {
-                    fix(overflow.top, height)?.let {
-                        height = it
+                    fix(overflow.top, size)?.let {
+                        fixed = true
+                        size = it
                         setCacheSize(it)
                     }
                 }
                 if (Direction.hasBottom(direction)) {
-                    fix(overflow.bottom, height)?.let {
-                        height = it
+                    fix(overflow.bottom, size)?.let {
+                        fixed = true
+                        size = it
                         setCacheSize(it)
                     }
                 }
             }
+            return if (fixed) size else null
+        }
 
-            var width = result.input.sourceWidth
+        fun fixHorizontal(result: Aligner.Result): Int? {
+            val direction = _fixOverflowDirection
+            val overflow = result.overflow
+
+            var size = result.input.sourceWidth
+            var fixed = false
+
             with(HorizontalOverflowHandler()) {
                 if (Direction.hasStart(direction)) {
-                    fix(overflow.start, width)?.let {
-                        width = it
+                    fix(overflow.start, size)?.let {
+                        fixed = true
+                        size = it
                         setCacheSize(it)
                     }
                 }
                 if (Direction.hasEnd(direction)) {
-                    fix(overflow.end, width)?.let {
-                        width = it
+                    fix(overflow.end, size)?.let {
+                        fixed = true
+                        size = it
                         setCacheSize(it)
                     }
                 }
             }
-
-            return IntSize(width, height)
+            return if (fixed) size else null
         }
     }
 
@@ -585,6 +615,7 @@ private data class LayerUiState(
     val position: FLayer.Position = FLayer.Position.Center,
     val hasTarget: Boolean = false,
     val alignerResult: Aligner.Result? = null,
+    val fixOverflowDirection: Int = FLayer.Direction.None,
 )
 
 internal inline fun logMsg(block: () -> String) {
