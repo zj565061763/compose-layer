@@ -368,11 +368,11 @@ class FLayer internal constructor() {
                 }
 
                 var maxHeight = result.input.sourceHeight
-                with(result.overflow) {
+                with(result.sourceOverflow) {
                     if (verticalOverflow > 0) {
                         maxHeight = result.input.sourceHeight - verticalOverflow
                     } else if (top < 0 && bottom < 0) {
-                        val overflow = originalResult.overflow
+                        val overflow = originalResult.sourceOverflow
                         if (overflow.verticalOverflow > 0) {
                             maxHeight = originalResult.input.sourceHeight - overflow.verticalOverflow
                         }
