@@ -261,7 +261,7 @@ class FLayer internal constructor() {
             if (_target.isEmpty()) {
                 true
             } else {
-                _targetLayoutCoordinates?.isAttached == true
+                _targetLayoutCoordinates?.isReady() == true
             }
         } else false
 
