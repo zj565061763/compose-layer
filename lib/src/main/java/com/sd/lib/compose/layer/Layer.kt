@@ -25,7 +25,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.properties.Delegates
 
-interface FLayerContentScope {
+interface LayerContentScope {
     /** 内容是否可见 */
     val isVisible: Boolean
 }
@@ -54,7 +54,7 @@ data class DialogBehavior(
 
 class FLayer internal constructor() {
     private val _uiState = MutableStateFlow(LayerUiState())
-    private var _content: @Composable FLayerContentScope.() -> Unit by mutableStateOf({ })
+    private var _content: @Composable LayerContentScope.() -> Unit by mutableStateOf({ })
 
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
@@ -112,7 +112,7 @@ class FLayer internal constructor() {
     /**
      * 设置内容
      */
-    fun setContent(content: @Composable FLayerContentScope.() -> Unit) {
+    fun setContent(content: @Composable LayerContentScope.() -> Unit) {
         _content = content
     }
 
@@ -483,7 +483,7 @@ class FLayer internal constructor() {
         }
     }
 
-    private class LayerContentScopeImpl : FLayerContentScope {
+    private class LayerContentScopeImpl : LayerContentScope {
         var _isVisible by mutableStateOf(false)
 
         override val isVisible: Boolean
