@@ -14,9 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.*
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
@@ -24,7 +23,6 @@ import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.math.absoluteValue
 import kotlin.properties.Delegates
 
 interface FLayerContentScope {
@@ -349,50 +347,56 @@ class FLayer internal constructor() {
         if (result == null) {
             OffsetBox(null, content)
         } else {
-            SubcomposeLayout(Modifier.fillMaxSize()) { constraints ->
-                val measurable = subcompose(Unit) { content() }.let {
-                    check(it.size == 1)
-                    it.first()
-                }
+            SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
+                var constraints = cs.copy(minWidth = 0, minHeight = 0)
 
                 var x = result.x
                 var y = result.y
 
-                var overflowResult: Aligner.Result? = null
-                var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
-
-                with(VerticalOverflowHandler()) {
-                    fix(result)?.let {
-                        overflowResult = result
-                        constraintsCopy = constraintsCopy.copy(maxHeight = it)
-                    }
+                // 原始大小
+                val originalPlaceable by lazy {
+                    placeable(null, cs.copy(minWidth = 0, minHeight = 0), content)
                 }
-                with(HorizontalOverflowHandler()) {
-                    fix(result)?.let {
-                        overflowResult = result
-                        constraintsCopy = constraintsCopy.copy(maxWidth = it)
-                    }
+                // 根据原始大小测量的结果
+                val originalResult by lazy {
+                    _aligner.align(
+                        result.input.copy(
+                            sourceWidth = originalPlaceable.width,
+                            sourceHeight = originalPlaceable.height,
+                        )
+                    )
                 }
 
-                val placeable = measurable.measure(constraintsCopy)
+                var maxHeight = result.input.sourceHeight
+                with(result.overflow) {
+                    if (verticalOverflow > 0) {
+                        maxHeight = result.input.sourceHeight - verticalOverflow
+                    } else if (top < 0 && bottom < 0) {
+                        val overflow = originalResult.overflow
+                        if (overflow.verticalOverflow > 0) {
+                            maxHeight = originalResult.input.sourceHeight - overflow.verticalOverflow
+                        }
+                    }
+                }
+
+                constraints = constraints.copy(maxHeight = maxHeight.coerceAtLeast(1))
+
+                val placeable = placeable(Unit, constraints, content)
                 logMsg { "placeable (${placeable.width}, ${placeable.height})" }
 
-                overflowResult?.let {
-                    logMsg { "old result (${it.x}, ${it.y})" }
-
-                    val newResult = _aligner.align(
-                        it.input.copy(
+                if (maxHeight != result.input.sourceHeight) {
+                    _aligner.align(
+                        result.input.copy(
                             sourceWidth = placeable.width,
                             sourceHeight = placeable.height,
                         )
-                    )
-                    x = newResult.x
-                    y = newResult.y
-
-                    logMsg { "new result (${newResult.x}, ${newResult.y})" }
+                    ).let {
+                        x = it.x
+                        y = it.y
+                    }
                 }
 
-                layout(constraints.maxWidth, constraints.maxHeight) {
+                layout(cs.maxWidth, cs.maxHeight) {
                     placeable.placeRelative(x, y)
                 }
             }
@@ -467,94 +471,6 @@ class FLayer internal constructor() {
                     }
                 }
             }
-        }
-    }
-
-    private abstract inner class OverflowHandler {
-        protected fun fix(overflow: Int, size: Int, checkCache: Boolean): Int? {
-            if (overflow > 0) {
-                return (size - overflow).coerceAtLeast(1)
-            }
-
-            if (!checkCache) return null
-            val cacheSize = getCacheSize() ?: return null
-
-            return if (overflow < 0) {
-                (cacheSize + overflow.absoluteValue).also { setCacheSize(it) }
-            } else {
-                cacheSize
-            }
-        }
-
-        abstract fun fix(result: Aligner.Result): Int?
-
-        protected abstract fun getCacheSize(): Int?
-        protected abstract fun setCacheSize(size: Int)
-    }
-
-    private inner class VerticalOverflowHandler : OverflowHandler() {
-        override fun fix(result: Aligner.Result): Int? {
-            val direction = _fixOverflowDirection
-            val overflow = result.overflow
-
-            var size = result.input.sourceHeight
-            if (OverflowDirection.hasTop(direction)) {
-                fix(overflow.top, size, _fixOverflowInfo.isTopFixed)?.let {
-                    _fixOverflowInfo.isTopFixed = true
-                    size = it
-                }
-            }
-            if (OverflowDirection.hasBottom(direction)) {
-                fix(overflow.bottom, size, _fixOverflowInfo.isBottomFixed)?.let {
-                    _fixOverflowInfo.isBottomFixed = true
-                    size = it
-                }
-            }
-
-            val isFixed = _fixOverflowInfo.isTopFixed || _fixOverflowInfo.isBottomFixed
-            if (isFixed) {
-                setCacheSize(size)
-                return size
-            }
-            return null
-        }
-
-        override fun getCacheSize(): Int? = _fixOverflowInfo.fixedHeight
-        override fun setCacheSize(size: Int) {
-            _fixOverflowInfo.fixedHeight = size
-        }
-    }
-
-    private inner class HorizontalOverflowHandler : OverflowHandler() {
-        override fun fix(result: Aligner.Result): Int? {
-            val direction = _fixOverflowDirection
-            val overflow = result.overflow
-
-            var size = result.input.sourceWidth
-            if (OverflowDirection.hasStart(direction)) {
-                fix(overflow.start, size, _fixOverflowInfo.isStartFixed)?.let {
-                    _fixOverflowInfo.isStartFixed = true
-                    size = it
-                }
-            }
-            if (OverflowDirection.hasEnd(direction)) {
-                fix(overflow.end, size, _fixOverflowInfo.isEndFixed)?.let {
-                    _fixOverflowInfo.isEndFixed = true
-                    size = it
-                }
-            }
-
-            val isFixed = _fixOverflowInfo.isStartFixed || _fixOverflowInfo.isEndFixed
-            if (isFixed) {
-                setCacheSize(size)
-                return size
-            }
-            return null
-        }
-
-        override fun getCacheSize(): Int? = _fixOverflowInfo.fixedWidth
-        override fun setCacheSize(size: Int) {
-            _fixOverflowInfo.fixedWidth = size
         }
     }
 
@@ -700,4 +616,16 @@ private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
         !event.changes.all { it.changedToDown() }
     )
     return event.changes[0]
+}
+
+private fun SubcomposeMeasureScope.placeable(
+    slotId: Any?,
+    constraints: Constraints,
+    content: @Composable () -> Unit
+): Placeable {
+    val measurable = subcompose(slotId, content).let {
+        check(it.size == 1)
+        it.first()
+    }
+    return measurable.measure(constraints)
 }
