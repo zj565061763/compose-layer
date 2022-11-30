@@ -67,5 +67,5 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
     implementation(project(':lib'))
-    implementation "com.github.zj565061763:compose-systemui:1.0.0-alpha03"
+    implementation "com.github.zj565061763:compose-systemui:1.0.0-alpha04"
 }
