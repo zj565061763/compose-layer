@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -39,6 +40,16 @@ internal class LayerManager {
             val zIndex = _attachedLayerHolder.indexOf(item).coerceAtLeast(0)
             Box(modifier = Modifier.zIndex(zIndex.toFloat())) {
                 item.Content()
+            }
+        }
+
+        _attachedLayerHolder.forEach { item ->
+            item.dialogBehaviorState?.let { behavior ->
+                BackHandler(item.isVisibleState) {
+                    if (behavior.cancelable) {
+                        item.detach()
+                    }
+                }
             }
         }
     }

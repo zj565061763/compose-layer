@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -98,7 +97,7 @@ class FLayer internal constructor() {
 
     private var _layerManager: LayerManager? = null
     private val _contentScopeImpl = LayerContentScopeImpl()
-    private var _dialogBehavior: DialogBehavior? by mutableStateOf(DialogBehavior())
+    private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     /** 是否可见 */
     var isVisibleState: Boolean by mutableStateOf(false)
@@ -107,6 +106,10 @@ class FLayer internal constructor() {
     /** [Position] */
     var positionState: Position by mutableStateOf(_position)
         private set
+
+    /** 窗口行为 */
+    val dialogBehaviorState: DialogBehavior?
+        get() = _dialogBehaviorState
 
     /**
      * 设置内容
@@ -133,7 +136,7 @@ class FLayer internal constructor() {
      * 设置窗口行为
      */
     fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
-        _dialogBehavior = block(_dialogBehavior ?: DialogBehavior())
+        _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())
     }
 
     /**
@@ -279,14 +282,6 @@ class FLayer internal constructor() {
             _contentScopeImpl._isVisible = uiState.isVisible
         }
 
-        _dialogBehavior?.let { behavior ->
-            BackHandler(uiState.isVisible) {
-                if (behavior.cancelable) {
-                    detach()
-                }
-            }
-        }
-
         if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
@@ -319,7 +314,7 @@ class FLayer internal constructor() {
             modifier = modifier.onGloballyPositioned {
                 _layerLayoutCoordinates = it
             }
-            _dialogBehavior?.let { behavior ->
+            _dialogBehaviorState?.let { behavior ->
                 modifier = modifier.pointerInput(behavior) {
                     detectTouchOutside(behavior)
                 }
@@ -425,7 +420,7 @@ class FLayer internal constructor() {
     private fun BackgroundBox(
         isVisible: Boolean,
     ) {
-        _dialogBehavior?.let { behavior ->
+        _dialogBehaviorState?.let { behavior ->
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(),
