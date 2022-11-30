@@ -59,19 +59,18 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private val _fixOverflowInfo = FixOverflowInfo()
+    private val _aligner = FAligner()
+    private var _alignerResult: Aligner.Result? = null
 
     private var _fixOverflowDirection by Delegates.observable(OverflowDirection.None) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            _fixOverflowInfo.reset()
-            updateOffset()
+            updateUiState()
         }
     }
 
     private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             positionState = newValue
-            _aligner.setPosition(newValue.toAlignerPosition())
             updateOffset()
         }
     }
@@ -211,13 +210,6 @@ class FLayer internal constructor() {
         }
     }
 
-    private var _alignerResult: Aligner.Result? = null
-    private val _aligner: Aligner by lazy {
-        FAligner().apply {
-            this.setPosition(_position.toAlignerPosition())
-        }
-    }
-
     /**
      * 计算位置
      */
@@ -255,6 +247,7 @@ class FLayer internal constructor() {
             containerHeight = container.height(),
         )
 
+        _aligner.setPosition(_position.toAlignerPosition())
         return _aligner.align(input)
     }
 
@@ -536,25 +529,6 @@ private data class LayerUiState(
     val alignerResult: Aligner.Result? = null,
     val fixOverflowDirection: Int = FLayer.OverflowDirection.None,
 )
-
-private class FixOverflowInfo {
-    var isTopFixed = false
-    var isBottomFixed = false
-    var isStartFixed = false
-    var isEndFixed = false
-
-    var fixedWidth: Int? = null
-    var fixedHeight: Int? = null
-
-    fun reset() {
-        isTopFixed = false
-        isBottomFixed = false
-        isStartFixed = false
-        isEndFixed = false
-        fixedWidth = null
-        fixedHeight = null
-    }
-}
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
