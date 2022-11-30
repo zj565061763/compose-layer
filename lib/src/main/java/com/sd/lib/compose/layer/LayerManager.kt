@@ -24,9 +24,10 @@ internal class LayerManager {
 
     @Composable
     fun layer(): FLayer {
-        val layer = remember { FLayer() }
+        val layer = remember {
+            FLayer().also { attachLayer(it) }
+        }
         DisposableEffect(layer) {
-            attachLayer(layer)
             onDispose {
                 detachLayer(layer)
             }
