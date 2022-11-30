@@ -363,6 +363,7 @@ class FLayer internal constructor() {
                     )
                 )
 
+                // 检查是否溢出
                 with(originalResult.sourceOverflow) {
                     if (verticalOverflow > 0) {
                         val maxHeight = (originalResult.input.sourceHeight - verticalOverflow).coerceAtLeast(1)
