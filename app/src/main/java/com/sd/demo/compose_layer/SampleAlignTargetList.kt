@@ -53,7 +53,9 @@ class SampleAlignTargetList : ComponentActivity() {
 private fun Content() {
     val layer = createLayer()
     LazyColumn(
-        Modifier.fillMaxSize(),
+        Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         items(50) { index ->
