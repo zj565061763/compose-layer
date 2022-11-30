@@ -399,6 +399,7 @@ class FLayer internal constructor() {
                             x = it.x
                             y = it.y
                         }
+                        logMsg { "size:(${placeable.width}, ${placeable.height}) offset:($x, $y)" }
                     }
                 } else {
                     originalPlaceable
