@@ -355,7 +355,7 @@ class FLayer internal constructor() {
                 var y = result.y
 
                 // 原始大小
-                val originalPlaceable = placeable(null, cs.copy(minWidth = 0, minHeight = 0), content)
+                val originalPlaceable = placeable(null, constraints, content)
                 // 根据原始大小测量的结果
                 val originalResult = _aligner.align(
                     result.input.copy(
