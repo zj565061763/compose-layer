@@ -61,13 +61,11 @@ class FLayer internal constructor() {
     private var _isAttached = false
     private var _offsetInterceptor: (OffsetInterceptorScope.() -> IntOffset)? = null
 
-    private var _overflowFixedWidth: Int? = null
-    private var _overflowFixedHeight: Int? = null
+    private val _fixOverflowInfo = FixOverflowInfo()
 
     private var _fixOverflowDirection by Delegates.observable(OverflowDirection.None) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            _overflowFixedWidth = null
-            _overflowFixedHeight = null
+            _fixOverflowInfo.reset()
             updateOffset()
         }
     }
@@ -75,8 +73,6 @@ class FLayer internal constructor() {
     private var _position by Delegates.observable(Position.Center) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             positionState = newValue
-            _overflowFixedWidth = null
-            _overflowFixedHeight = null
             _aligner.setPosition(newValue.toAlignerPosition())
             updateOffset()
         }
@@ -365,12 +361,14 @@ class FLayer internal constructor() {
                 var overflowResult: Aligner.Result? = null
                 var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
-                with(OverflowFix()) {
-                    fixVertical(result)?.let {
+                with(VerticalOverflowHandler()) {
+                    fix(result)?.let {
                         overflowResult = result
                         constraintsCopy = constraintsCopy.copy(maxHeight = it)
                     }
-                    fixHorizontal(result)?.let {
+                }
+                with(HorizontalOverflowHandler()) {
+                    fix(result)?.let {
                         overflowResult = result
                         constraintsCopy = constraintsCopy.copy(maxWidth = it)
                     }
@@ -472,93 +470,91 @@ class FLayer internal constructor() {
         }
     }
 
-    private inner class OverflowFix {
-        fun fixVertical(result: Aligner.Result): Int? {
+    private abstract inner class OverflowHandler {
+        protected fun fix(overflow: Int, size: Int, checkCache: Boolean): Int? {
+            if (overflow > 0) {
+                return (size - overflow).coerceAtLeast(1)
+            }
+
+            if (!checkCache) return null
+            val cacheSize = getCacheSize() ?: return null
+
+            return if (overflow < 0) {
+                (cacheSize + overflow.absoluteValue).also { setCacheSize(it) }
+            } else {
+                cacheSize
+            }
+        }
+
+        abstract fun fix(result: Aligner.Result): Int?
+
+        protected abstract fun getCacheSize(): Int?
+        protected abstract fun setCacheSize(size: Int)
+    }
+
+    private inner class VerticalOverflowHandler : OverflowHandler() {
+        override fun fix(result: Aligner.Result): Int? {
             val direction = _fixOverflowDirection
             val overflow = result.overflow
 
             var size = result.input.sourceHeight
-            var fixed = false
-
-            with(VerticalOverflowHandler()) {
-                if (OverflowDirection.hasTop(direction)) {
-                    fix(overflow.top, size)?.let {
-                        fixed = true
-                        size = it
-                        setCacheSize(it)
-                    }
-                }
-                if (OverflowDirection.hasBottom(direction)) {
-                    fix(overflow.bottom, size)?.let {
-                        fixed = true
-                        size = it
-                        setCacheSize(it)
-                    }
+            if (OverflowDirection.hasTop(direction)) {
+                fix(overflow.top, size, _fixOverflowInfo.isTopFixed)?.let {
+                    _fixOverflowInfo.isTopFixed = true
+                    size = it
                 }
             }
-            return if (fixed) size else null
-        }
-
-        fun fixHorizontal(result: Aligner.Result): Int? {
-            val direction = _fixOverflowDirection
-            val overflow = result.overflow
-
-            var size = result.input.sourceWidth
-            var fixed = false
-
-            with(HorizontalOverflowHandler()) {
-                if (OverflowDirection.hasStart(direction)) {
-                    fix(overflow.start, size)?.let {
-                        fixed = true
-                        size = it
-                        setCacheSize(it)
-                    }
-                }
-                if (OverflowDirection.hasEnd(direction)) {
-                    fix(overflow.end, size)?.let {
-                        fixed = true
-                        size = it
-                        setCacheSize(it)
-                    }
+            if (OverflowDirection.hasBottom(direction)) {
+                fix(overflow.bottom, size, _fixOverflowInfo.isBottomFixed)?.let {
+                    _fixOverflowInfo.isBottomFixed = true
+                    size = it
                 }
             }
-            return if (fixed) size else null
-        }
-    }
 
-    private abstract class OverflowHandler {
-        fun fix(overflow: Int, size: Int): Int? {
-            return if (overflow > 0) {
-                (size - overflow).coerceAtLeast(1)
-            } else {
-                val cacheSize = getCacheSize()
-                if (cacheSize != null) {
-                    if (overflow < 0) {
-                        (cacheSize + overflow.absoluteValue).also { setCacheSize(it) }
-                    } else {
-                        cacheSize
-                    }
-                } else {
-                    null
-                }
+            val isFixed = _fixOverflowInfo.isTopFixed || _fixOverflowInfo.isBottomFixed
+            if (isFixed) {
+                setCacheSize(size)
+                return size
             }
+            return null
         }
 
-        abstract fun getCacheSize(): Int?
-        abstract fun setCacheSize(size: Int)
-    }
-
-    private inner class VerticalOverflowHandler : OverflowHandler() {
-        override fun getCacheSize(): Int? = _overflowFixedHeight
+        override fun getCacheSize(): Int? = _fixOverflowInfo.fixedHeight
         override fun setCacheSize(size: Int) {
-            _overflowFixedHeight = size
+            _fixOverflowInfo.fixedHeight = size
         }
     }
 
     private inner class HorizontalOverflowHandler : OverflowHandler() {
-        override fun getCacheSize(): Int? = _overflowFixedWidth
+        override fun fix(result: Aligner.Result): Int? {
+            val direction = _fixOverflowDirection
+            val overflow = result.overflow
+
+            var size = result.input.sourceWidth
+            if (OverflowDirection.hasStart(direction)) {
+                fix(overflow.start, size, _fixOverflowInfo.isStartFixed)?.let {
+                    _fixOverflowInfo.isStartFixed = true
+                    size = it
+                }
+            }
+            if (OverflowDirection.hasEnd(direction)) {
+                fix(overflow.end, size, _fixOverflowInfo.isEndFixed)?.let {
+                    _fixOverflowInfo.isEndFixed = true
+                    size = it
+                }
+            }
+
+            val isFixed = _fixOverflowInfo.isStartFixed || _fixOverflowInfo.isEndFixed
+            if (isFixed) {
+                setCacheSize(size)
+                return size
+            }
+            return null
+        }
+
+        override fun getCacheSize(): Int? = _fixOverflowInfo.fixedWidth
         override fun setCacheSize(size: Int) {
-            _overflowFixedWidth = size
+            _fixOverflowInfo.fixedWidth = size
         }
     }
 
@@ -615,6 +611,25 @@ private data class LayerUiState(
     val alignerResult: Aligner.Result? = null,
     val fixOverflowDirection: Int = FLayer.OverflowDirection.None,
 )
+
+private class FixOverflowInfo {
+    var isTopFixed = false
+    var isBottomFixed = false
+    var isStartFixed = false
+    var isEndFixed = false
+
+    var fixedWidth: Int? = null
+    var fixedHeight: Int? = null
+
+    fun reset() {
+        isTopFixed = false
+        isBottomFixed = false
+        isStartFixed = false
+        isEndFixed = false
+        fixedWidth = null
+        fixedHeight = null
+    }
+}
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
