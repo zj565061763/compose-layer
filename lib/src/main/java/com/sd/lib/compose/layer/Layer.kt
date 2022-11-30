@@ -228,19 +228,19 @@ class FLayer internal constructor() {
      * 计算位置
      */
     private fun updateOffset() {
-        updateOffsetInternal()
+        _alignerResult = updateOffsetInternal()
         updateUiState()
     }
 
-    private fun updateOffsetInternal() {
+    private fun updateOffsetInternal(): Aligner.Result? {
         val target = _targetLayoutCoordinates
-        if (!target.isReady()) return
+        if (!target.isReady()) return null
 
         val source = _contentLayoutCoordinates
-        if (!source.isReady()) return
+        if (!source.isReady()) return null
 
         val container = _containerLayoutCoordinates
-        if (!container.isReady()) return
+        if (!container.isReady()) return null
 
         val targetCoordinates = target.coordinate()
         val sourceCoordinates = source.coordinate()
@@ -261,7 +261,7 @@ class FLayer internal constructor() {
             containerHeight = container.height(),
         )
 
-        _alignerResult = _aligner.align(input)
+        return _aligner.align(input)
     }
 
     private fun updateUiState() {
