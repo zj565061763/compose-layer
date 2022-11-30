@@ -53,15 +53,15 @@ private fun createLayer(): FLayer {
             FLayer.Position.TopStart,
             FLayer.Position.TopCenter,
             FLayer.Position.TopEnd -> {
-                layer.setFixOverflowDirection(FLayer.Direction.Bottom)
+                layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
             }
             FLayer.Position.BottomStart,
             FLayer.Position.BottomCenter,
             FLayer.Position.BottomEnd -> {
-                layer.setFixOverflowDirection(FLayer.Direction.Top)
+                layer.setFixOverflowDirection(FLayer.OverflowDirection.Top)
             }
             else -> {
-                layer.setFixOverflowDirection(FLayer.Direction.None)
+                layer.setFixOverflowDirection(FLayer.OverflowDirection.None)
             }
         }
     }

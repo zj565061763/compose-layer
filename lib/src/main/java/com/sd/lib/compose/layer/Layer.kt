@@ -64,7 +64,7 @@ class FLayer internal constructor() {
     private var _overflowFixedWidth: Int? = null
     private var _overflowFixedHeight: Int? = null
 
-    private var _fixOverflowDirection by Delegates.observable(Direction.None) { _, oldValue, newValue ->
+    private var _fixOverflowDirection by Delegates.observable(OverflowDirection.None) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             _overflowFixedWidth = null
             _overflowFixedHeight = null
@@ -151,7 +151,7 @@ class FLayer internal constructor() {
     }
 
     /**
-     * 设置修复溢出的方向[Direction]
+     * 设置修复溢出的方向[OverflowDirection]
      */
     fun setFixOverflowDirection(direction: Int) {
         _fixOverflowDirection = direction
@@ -303,7 +303,7 @@ class FLayer internal constructor() {
         if (uiState.hasTarget) {
             LayerBox(uiState.isVisible) {
                 BackgroundBox(uiState.isVisible)
-                if (uiState.fixOverflowDirection == Direction.None) {
+                if (uiState.fixOverflowDirection == OverflowDirection.None) {
                     OffsetBox(uiState.alignerResult) {
                         ContentBox()
                     }
@@ -481,14 +481,14 @@ class FLayer internal constructor() {
             var fixed = false
 
             with(VerticalOverflowHandler()) {
-                if (Direction.hasTop(direction)) {
+                if (OverflowDirection.hasTop(direction)) {
                     fix(overflow.top, size)?.let {
                         fixed = true
                         size = it
                         setCacheSize(it)
                     }
                 }
-                if (Direction.hasBottom(direction)) {
+                if (OverflowDirection.hasBottom(direction)) {
                     fix(overflow.bottom, size)?.let {
                         fixed = true
                         size = it
@@ -507,14 +507,14 @@ class FLayer internal constructor() {
             var fixed = false
 
             with(HorizontalOverflowHandler()) {
-                if (Direction.hasStart(direction)) {
+                if (OverflowDirection.hasStart(direction)) {
                     fix(overflow.start, size)?.let {
                         fixed = true
                         size = it
                         setCacheSize(it)
                     }
                 }
-                if (Direction.hasEnd(direction)) {
+                if (OverflowDirection.hasEnd(direction)) {
                     fix(overflow.end, size)?.let {
                         fixed = true
                         size = it
@@ -592,7 +592,7 @@ class FLayer internal constructor() {
         BottomEnd,
     }
 
-    class Direction {
+    class OverflowDirection {
         companion object {
             const val None = 0
             const val Top = 1
@@ -613,7 +613,7 @@ private data class LayerUiState(
     val position: FLayer.Position = FLayer.Position.Center,
     val hasTarget: Boolean = false,
     val alignerResult: Aligner.Result? = null,
-    val fixOverflowDirection: Int = FLayer.Direction.None,
+    val fixOverflowDirection: Int = FLayer.OverflowDirection.None,
 )
 
 internal inline fun logMsg(block: () -> String) {
