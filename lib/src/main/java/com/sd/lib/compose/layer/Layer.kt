@@ -217,11 +217,13 @@ class FLayer internal constructor() {
      * 计算位置
      */
     private fun updateOffset() {
-        _alignerResult = updateOffsetInternal()
+        alignTarget()?.let {
+            _alignerResult = it
+        }
         updateUiState()
     }
 
-    private fun updateOffsetInternal(): Aligner.Result? {
+    private fun alignTarget(): Aligner.Result? {
         val target = _targetLayoutCoordinates
         if (!target.isReady()) return null
 
