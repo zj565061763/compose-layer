@@ -52,29 +52,13 @@ private fun createLayer(): FLayer {
         layer.setTarget("hello")
         // 关闭窗口行为
         layer.setDialogBehavior { null }
+        layer.setFixOverflowDirection(
+            FLayer.OverflowDirection.Bottom or FLayer.OverflowDirection.Top
+        )
         layer.setContent {
             LayerContent(isVisible)
         }
     }
-
-    LaunchedEffect(layer.positionState) {
-        when (layer.positionState) {
-            FLayer.Position.TopStart,
-            FLayer.Position.TopCenter,
-            FLayer.Position.TopEnd -> {
-                layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
-            }
-            FLayer.Position.BottomStart,
-            FLayer.Position.BottomCenter,
-            FLayer.Position.BottomEnd -> {
-                layer.setFixOverflowDirection(FLayer.OverflowDirection.Top)
-            }
-            else -> {
-                layer.setFixOverflowDirection(FLayer.OverflowDirection.None)
-            }
-        }
-    }
-
     return layer
 }
 
