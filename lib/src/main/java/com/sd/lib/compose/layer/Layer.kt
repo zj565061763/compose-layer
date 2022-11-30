@@ -47,6 +47,9 @@ data class DialogBehavior(
     /** 触摸到非内容区域是否关闭 */
     val canceledOnTouchOutside: Boolean = true,
 
+    /** 是否消费掉触摸到非内容区域的触摸事件 */
+    val consumeTouchOutside: Boolean = true,
+
     /** 背景颜色 */
     val backgroundColor: Color = Color.Black.copy(alpha = 0.25f)
 )
@@ -461,7 +464,9 @@ class FLayer internal constructor() {
                     if (contentRect.contains(downPosition)) {
                         // 触摸到内容区域
                     } else {
-                        down.consume()
+                        if (behavior.consumeTouchOutside) {
+                            down.consume()
+                        }
                         if (behavior.cancelable && behavior.canceledOnTouchOutside) {
                             detach()
                         }

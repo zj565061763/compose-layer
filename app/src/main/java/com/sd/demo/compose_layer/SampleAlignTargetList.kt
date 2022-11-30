@@ -86,6 +86,9 @@ private fun createLayer(): FLayer {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setPosition(FLayer.Position.TopStart)
+        layer.setDialogBehavior {
+            it.copy(consumeTouchOutside = false)
+        }
         layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
         layer.setContent {
             LayerContent(isVisible)
