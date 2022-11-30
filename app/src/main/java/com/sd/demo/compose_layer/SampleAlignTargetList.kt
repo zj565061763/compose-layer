@@ -61,7 +61,7 @@ private fun createLayer(): FLayer {
                 layer.setFixOverflowDirection(FLayer.Direction.Top)
             }
             else -> {
-                layer.setFixOverflowDirection(null)
+                layer.setFixOverflowDirection(FLayer.Direction.None)
             }
         }
     }

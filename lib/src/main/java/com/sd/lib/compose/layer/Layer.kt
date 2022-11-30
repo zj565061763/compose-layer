@@ -64,7 +64,7 @@ class FLayer internal constructor() {
     private var _overflowFixedWidth: Int? = null
     private var _overflowFixedHeight: Int? = null
 
-    private var _fixOverflowDirection: Direction? by Delegates.observable(null) { _, oldValue, newValue ->
+    private var _fixOverflowDirection by Delegates.observable(Direction.None) { _, oldValue, newValue ->
         if (oldValue != newValue) {
             _overflowFixedWidth = null
             _overflowFixedHeight = null
@@ -151,9 +151,9 @@ class FLayer internal constructor() {
     }
 
     /**
-     * 设置修复溢出的方向
+     * 设置修复溢出的方向[Direction]
      */
-    fun setFixOverflowDirection(direction: Direction?) {
+    fun setFixOverflowDirection(direction: Int) {
         _fixOverflowDirection = direction
     }
 
@@ -374,33 +374,10 @@ class FLayer internal constructor() {
             var constraintsCopy = constraints.copy(minWidth = 0, minHeight = 0)
 
             if (result != null) {
-                _fixOverflowDirection?.let {
-                    when (it) {
-                        Direction.Start -> {
-                            StartOverflowHandler().fixOverflow(result)?.let {
-                                constraintsCopy = constraintsCopy.copy(maxWidth = it)
-                                overflowResult = result
-                            }
-                        }
-                        Direction.End -> {
-                            EndOverflowHandler().fixOverflow(result)?.let {
-                                constraintsCopy = constraintsCopy.copy(maxWidth = it)
-                                overflowResult = result
-                            }
-                        }
-                        Direction.Top -> {
-                            TopOverflowHandler().fixOverflow(result)?.let {
-                                constraintsCopy = constraintsCopy.copy(maxHeight = it)
-                                overflowResult = result
-                            }
-                        }
-                        Direction.Bottom -> {
-                            BottomOverflowHandler().fixOverflow(result)?.let {
-                                constraintsCopy = constraintsCopy.copy(maxHeight = it)
-                                overflowResult = result
-                            }
-                        }
-                    }
+                val size = OverflowFix().fixSize(result)
+                constraintsCopy = constraintsCopy.copy(maxWidth = size.width, maxHeight = size.height)
+                if (_overflowFixedWidth != null || _overflowFixedHeight != null) {
+                    overflowResult = result
                 }
             }
 
@@ -425,6 +402,22 @@ class FLayer internal constructor() {
             layout(constraints.maxWidth, constraints.maxHeight) {
                 placeable.placeRelative(x, y)
             }
+        }
+    }
+
+    @Composable
+    private fun OffsetBox(
+        result: Aligner.Result?,
+        content: @Composable () -> Unit,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset {
+                    IntOffset(result?.x ?: 0, result?.y ?: 0)
+                }
+        ) {
+            content()
         }
     }
 
@@ -464,61 +457,81 @@ class FLayer internal constructor() {
         }
     }
 
+    private inner class OverflowFix {
+        fun fixSize(result: Aligner.Result): IntSize {
+            val direction = _fixOverflowDirection
+            val overflow = result.overflow
+
+            var height = result.input.sourceHeight
+            with(VerticalOverflowHandler()) {
+                if (Direction.hasTop(direction)) {
+                    fix(overflow.top, height)?.let {
+                        height = it
+                        setCacheSize(it)
+                    }
+                }
+                if (Direction.hasBottom(direction)) {
+                    fix(overflow.bottom, height)?.let {
+                        height = it
+                        setCacheSize(it)
+                    }
+                }
+            }
+
+            var width = result.input.sourceWidth
+            with(HorizontalOverflowHandler()) {
+                if (Direction.hasStart(direction)) {
+                    fix(overflow.start, width)?.let {
+                        width = it
+                        setCacheSize(it)
+                    }
+                }
+                if (Direction.hasEnd(direction)) {
+                    fix(overflow.end, width)?.let {
+                        width = it
+                        setCacheSize(it)
+                    }
+                }
+            }
+
+            return IntSize(width, height)
+        }
+    }
+
     private abstract class OverflowHandler {
-        fun fixOverflow(result: Aligner.Result): Int? {
-            val overflow = getValue(result.overflow)
-            if (overflow > 0) {
-                val newSize = (getSize(result) - overflow).coerceAtLeast(1)
-                return newSize.also { setCacheSize(it) }
+        fun fix(overflow: Int, size: Int): Int? {
+            return if (overflow > 0) {
+                (size - overflow).coerceAtLeast(1)
             } else {
                 val cacheSize = getCacheSize()
                 if (cacheSize != null) {
-                    return if (overflow < 0) {
+                    if (overflow < 0) {
                         (cacheSize + overflow.absoluteValue).also { setCacheSize(it) }
                     } else {
                         cacheSize
                     }
+                } else {
+                    null
                 }
             }
-            return null
         }
 
-        protected abstract fun getValue(overflow: Aligner.Overflow): Int
-        protected abstract fun getSize(result: Aligner.Result): Int
-        protected abstract fun getCacheSize(): Int?
-        protected abstract fun setCacheSize(size: Int)
+        abstract fun getCacheSize(): Int?
+        abstract fun setCacheSize(size: Int)
     }
 
-    private abstract inner class HorizontalOverflowHandler : OverflowHandler() {
-        override fun getSize(result: Aligner.Result): Int = result.input.sourceWidth
-        override fun getCacheSize(): Int? = _overflowFixedWidth
-        override fun setCacheSize(size: Int) {
-            _overflowFixedWidth = size
-        }
-    }
-
-    private abstract inner class VerticalOverflowHandler : OverflowHandler() {
-        override fun getSize(result: Aligner.Result): Int = result.input.sourceHeight
+    private inner class VerticalOverflowHandler : OverflowHandler() {
         override fun getCacheSize(): Int? = _overflowFixedHeight
         override fun setCacheSize(size: Int) {
             _overflowFixedHeight = size
         }
     }
 
-    private inner class StartOverflowHandler : HorizontalOverflowHandler() {
-        override fun getValue(overflow: Aligner.Overflow): Int = overflow.start
-    }
-
-    private inner class EndOverflowHandler : HorizontalOverflowHandler() {
-        override fun getValue(overflow: Aligner.Overflow): Int = overflow.end
-    }
-
-    private inner class TopOverflowHandler : VerticalOverflowHandler() {
-        override fun getValue(overflow: Aligner.Overflow): Int = overflow.top
-    }
-
-    private inner class BottomOverflowHandler : VerticalOverflowHandler() {
-        override fun getValue(overflow: Aligner.Overflow): Int = overflow.bottom
+    private inner class HorizontalOverflowHandler : OverflowHandler() {
+        override fun getCacheSize(): Int? = _overflowFixedWidth
+        override fun setCacheSize(size: Int) {
+            _overflowFixedWidth = size
+        }
     }
 
     private class LayerContentScopeImpl : FLayerContentScope {
@@ -551,11 +564,19 @@ class FLayer internal constructor() {
         BottomEnd,
     }
 
-    enum class Direction {
-        Start,
-        End,
-        Top,
-        Bottom,
+    class Direction {
+        companion object {
+            const val None = 0
+            const val Top = 1
+            const val Bottom = 2
+            const val Start = 4
+            const val End = 8
+
+            fun hasTop(value: Int) = Top and value != 0
+            fun hasBottom(value: Int) = Bottom and value != 0
+            fun hasStart(value: Int) = Start and value != 0
+            fun hasEnd(value: Int) = End and value != 0
+        }
     }
 }
 
