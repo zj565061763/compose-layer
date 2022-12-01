@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,6 +47,7 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setPosition(FLayer.Position.BottomCenter)
+        layer.setContent { LayerContent(isVisible, count = 5) }
     }
 
     val layerFixOverflow = rememberFLayer()
@@ -58,6 +58,7 @@ private fun Content() {
                     or FLayer.OverflowDirection.Start
                     or FLayer.OverflowDirection.End
         )
+        layerFixOverflow.setContent { LayerContent(isVisible, count = 50) }
     }
 
     Column(
@@ -76,9 +77,10 @@ private fun Content() {
         ) {
             Button(
                 onClick = {
-                    layer.setTarget("button1")
-                    layer.setContent { LayerContent(isVisible, count = 50) }
-                    layer.attach()
+                    layerFixOverflow.run {
+                        setTarget("button1")
+                        attach()
+                    }
                 },
                 modifier = Modifier.fLayerTarget("button1")
             ) {
@@ -87,46 +89,18 @@ private fun Content() {
 
             Button(
                 onClick = {
-                    layer.setTarget("button2")
-                    layer.setContent { LayerContent(isVisible, count = 5) }
-                    layer.attach()
+                    layer.run {
+                        setTarget("button2")
+                        layer.attach()
+                    }
                 },
                 modifier = Modifier.fLayerTarget("button2")
             ) {
                 Text("Attach2")
             }
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Button(
-                onClick = {
-                    layerFixOverflow.setTarget("button_overflow_1")
-                    layerFixOverflow.setContent { LayerContent(isVisible, count = 50) }
-                    layerFixOverflow.attach()
-                },
-                modifier = Modifier.fLayerTarget("button_overflow_1")
-            ) {
-                Text("Attach1")
-            }
-
-            Button(
-                onClick = {
-                    layerFixOverflow.setTarget("button_overflow_2")
-                    layerFixOverflow.setContent { LayerContent(isVisible, count = 5) }
-                    layerFixOverflow.attach()
-                },
-                modifier = Modifier.fLayerTarget("button_overflow_2")
-            ) {
-                Text("Attach2")
-            }
-        }
     }
 }
-
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
