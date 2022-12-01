@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import android.util.Log
 import androidx.annotation.CallSuper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -63,13 +62,13 @@ internal open class LayerImpl : Layer {
     @CallSuper
     override fun attach() {
         _isAttached = true
-        _layerManager?.notifyLayerAttachState(this, true)
+        _layerManager?.notifyLayerAttached(this)
     }
 
     @CallSuper
     override fun detach() {
         _isAttached = false
-        _layerManager?.notifyLayerAttachState(this, false)
+        _layerManager?.notifyLayerDetached(this)
     }
 
     @Composable
@@ -80,8 +79,8 @@ internal open class LayerImpl : Layer {
         LaunchedEffect(layerManager) {
             val currentManager = _layerManager
             if (currentManager != layerManager) {
-                currentManager?.detachLayer(this@LayerImpl)
-                layerManager.attachLayer(this@LayerImpl)
+                currentManager?.removeLayer(this@LayerImpl)
+                layerManager.addLayer(this@LayerImpl)
             }
         }
     }

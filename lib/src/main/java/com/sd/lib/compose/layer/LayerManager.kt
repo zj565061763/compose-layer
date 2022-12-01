@@ -22,11 +22,11 @@ internal class LayerManager {
     @Composable
     fun rememberLayer(): Layer {
         val layer = remember {
-            LayerImpl().also { attachLayer(it) }
+            LayerImpl().also { addLayer(it) }
         }
         DisposableEffect(layer) {
             onDispose {
-                detachLayer(layer)
+                removeLayer(layer)
             }
         }
         return layer
@@ -35,11 +35,11 @@ internal class LayerManager {
     @Composable
     fun rememberTargetLayer(): TargetLayer {
         val layer = remember {
-            TargetLayerImpl().also { attachLayer(it) }
+            TargetLayerImpl().also { addLayer(it) }
         }
         DisposableEffect(layer) {
             onDispose {
-                detachLayer(layer)
+                removeLayer(layer)
             }
         }
         return layer
@@ -65,25 +65,30 @@ internal class LayerManager {
         }
     }
 
-    fun attachLayer(layer: LayerImpl) {
+    fun addLayer(layer: LayerImpl) {
         if (!_layerHolder.contains(layer)) {
             _layerHolder.add(layer)
             layer.attachToManager(this)
         }
     }
 
-    fun detachLayer(layer: LayerImpl) {
+    fun removeLayer(layer: LayerImpl) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
             layer.detachFromManager(this)
         }
     }
 
-    fun notifyLayerAttachState(layer: LayerImpl, isAttached: Boolean) {
-        _attachedLayerHolder.remove(layer)
-        if (isAttached && _layerHolder.contains(layer)) {
-            _attachedLayerHolder.add(layer)
+    fun notifyLayerAttached(layer: LayerImpl) {
+        if (_layerHolder.contains(layer)) {
+            if (!_attachedLayerHolder.contains(layer)) {
+                _attachedLayerHolder.add(layer)
+            }
         }
+    }
+
+    fun notifyLayerDetached(layer: LayerImpl) {
+        _attachedLayerHolder.remove(layer)
     }
 
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
