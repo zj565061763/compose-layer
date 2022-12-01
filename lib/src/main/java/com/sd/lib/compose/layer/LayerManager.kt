@@ -107,9 +107,8 @@ internal class LayerManager {
         if (tag.isEmpty()) return
         val old = _targetLayoutHolder[tag]
         if (old != null) {
-            check(old == layoutCoordinates) { "Tag:$tag has already specified." }
+            check(old === layoutCoordinates) { "Tag:$tag has already specified." }
         }
-
         _targetLayoutHolder[tag] = layoutCoordinates
         notifyTargetLayoutCallback(tag, layoutCoordinates)
     }
@@ -140,10 +139,8 @@ internal class LayerManager {
     }
 
     private fun notifyTargetLayoutCallback(tag: String, layoutCoordinates: LayoutCoordinates?) {
-        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.let { holder ->
-            holder.forEach {
-                it.invoke(layoutCoordinates)
-            }
+        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.forEach {
+            it.invoke(layoutCoordinates)
         }
     }
 }
