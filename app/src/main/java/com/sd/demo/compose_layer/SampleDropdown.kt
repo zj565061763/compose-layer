@@ -12,10 +12,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
@@ -23,19 +23,12 @@ import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
-import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleDropdown : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            val statusBarController = rememberStatusBarController()
-            SideEffect {
-                statusBarController.isLight = true
-                statusBarController.color = Color.Transparent
-            }
-
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     FLayerContainer(modifier = Modifier.fillMaxSize()) {
@@ -91,11 +84,15 @@ private fun LayerContent(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = scaleIn() + slideInVertically(),
-        exit = scaleOut() + slideOutVertically(),
+        enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+        exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
         modifier = modifier,
     ) {
-        LazyColumn(modifier = Modifier.width(200.dp)) {
+        LazyColumn(
+            modifier = Modifier
+                .width(200.dp)
+                .navigationBarsPadding()
+        ) {
             items(50) { index ->
                 Box(
                     modifier = Modifier
