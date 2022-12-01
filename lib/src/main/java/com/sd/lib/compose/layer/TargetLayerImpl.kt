@@ -188,7 +188,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
             if (result == null) {
-                val placeable = placeable(Unit, cs, content)
+                val placeable = measureContent(Unit, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
                 }
@@ -198,21 +198,21 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             var y = result.y
 
             if (!_isAttached) {
-                val placeable = placeable(Unit, overflowConstraints ?: cs, content)
+                val placeable = measureContent(Unit, overflowConstraints ?: cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.placeRelative(x, y)
                 }
             }
 
             if (fixOverflowDirection == OverflowDirection.None) {
-                val placeable = placeable(Unit, cs, content)
+                val placeable = measureContent(Unit, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.placeRelative(x, y)
                 }
             }
 
             // 原始大小
-            val originalPlaceable = placeable(null, cs, content)
+            val originalPlaceable = measureContent(null, cs, content)
             // 根据原始大小测量的结果
             val originalResult = _aligner.align(
                 result.input.copy(
@@ -274,7 +274,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             val placeable = if (csOverflow != cs) {
                 // 约束条件变化后，重新计算坐标
-                placeable(Unit, csOverflow, content).also { placeable ->
+                measureContent(Unit, csOverflow, content).also { placeable ->
                     _aligner.align(
                         result.input.copy(
                             sourceWidth = placeable.width,
@@ -339,7 +339,7 @@ private fun LayoutCoordinates.coordinate(): Offset {
     return this.localToWindow(Offset.Zero)
 }
 
-private fun SubcomposeMeasureScope.placeable(
+private fun SubcomposeMeasureScope.measureContent(
     slotId: Any?,
     constraints: Constraints,
     content: @Composable () -> Unit
