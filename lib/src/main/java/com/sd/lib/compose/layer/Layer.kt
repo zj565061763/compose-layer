@@ -346,7 +346,7 @@ class FLayer internal constructor() {
             if (fixOverflowDirection == OverflowDirection.None) {
                 val placeable = placeable(Unit, constraints, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    placeable.place(x, y)
+                    placeable.placeRelative(x, y)
                 }
             }
 
