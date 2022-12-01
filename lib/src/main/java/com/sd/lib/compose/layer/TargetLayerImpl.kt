@@ -31,8 +31,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            _layerManager?.unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
-            _layerManager?.registerTargetLayoutCallback(newValue, _targetLayoutCallback)
+            _layerManager?.run {
+                unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
+                registerTargetLayoutCallback(newValue, _targetLayoutCallback)
+            }
         }
     }
 
