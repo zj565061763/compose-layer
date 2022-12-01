@@ -63,7 +63,7 @@ fun rememberTargetLayer(): TargetLayer {
 }
 
 /**
- * 设置Layer要对齐的目标，给目标设置唯一的[tag]
+ * 设置要对齐的目标并绑定唯一的[tag]
  */
 fun Modifier.layerTarget(
     tag: String,
@@ -83,10 +83,6 @@ fun Modifier.layerTarget(
     }
 }
 
-interface LayerContentScope {
-    /** 内容是否可见 */
-    val isVisible: Boolean
-}
 
 interface Layer {
     /**
@@ -107,7 +103,7 @@ interface Layer {
     /**
      * 设置内容
      */
-    fun setContent(content: @Composable LayerContentScope.() -> Unit)
+    fun setContent(content: @Composable ContentScope.() -> Unit)
 
     /**
      * 设置对齐的位置
@@ -181,17 +177,13 @@ interface Layer {
         /** 背景颜色 */
         val backgroundColor: Color = Color.Black.copy(alpha = 0.25f)
     )
-}
 
-interface OffsetTransformScope {
-    /** 当前计算的layer坐标 */
-    val offset: IntOffset
-
-    /** 内容大小 */
-    val contentSize: IntSize
-
-    /** 目标大小 */
-    val targetSize: IntSize
+    interface ContentScope {
+        /**
+         * 内容是否可见
+         */
+        val isVisible: Boolean
+    }
 }
 
 interface TargetLayer : Layer {
@@ -223,6 +215,17 @@ interface TargetLayer : Layer {
             fun hasStart(value: Int) = Start and value != 0
             fun hasEnd(value: Int) = End and value != 0
         }
+    }
+
+    interface OffsetTransformScope {
+        /** 当前计算的layer坐标 */
+        val offset: IntOffset
+
+        /** 内容大小 */
+        val contentSize: IntSize
+
+        /** 目标大小 */
+        val targetSize: IntSize
     }
 }
 

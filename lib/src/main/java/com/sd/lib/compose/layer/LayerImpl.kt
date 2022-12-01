@@ -15,8 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.sd.lib.compose.layer.Layer.DialogBehavior
-import com.sd.lib.compose.layer.Layer.Position
+import com.sd.lib.compose.layer.Layer.*
 
 internal open class LayerImpl : Layer {
     protected var _layerManager: LayerManager? = null
@@ -25,8 +24,8 @@ internal open class LayerImpl : Layer {
     protected var _isAttached by mutableStateOf(false)
         private set
 
-    private var _content: @Composable LayerContentScope.() -> Unit by mutableStateOf({ })
-    private val _contentScopeImpl = LayerContentScopeImpl()
+    private var _content: @Composable ContentScope.() -> Unit by mutableStateOf({ })
+    private val _contentScopeImpl = ContentScopeImpl()
 
     private var _positionState: Position by mutableStateOf(Position.Center)
 
@@ -44,7 +43,7 @@ internal open class LayerImpl : Layer {
     final override val dialogBehaviorState: DialogBehavior?
         get() = _dialogBehaviorState
 
-    final override fun setContent(content: @Composable LayerContentScope.() -> Unit) {
+    final override fun setContent(content: @Composable ContentScope.() -> Unit) {
         _content = content
     }
 
@@ -216,7 +215,7 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    internal class LayerContentScopeImpl : LayerContentScope {
+    internal class ContentScopeImpl : ContentScope {
         var _isVisible by mutableStateOf(false)
 
         override val isVisible: Boolean
