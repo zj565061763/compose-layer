@@ -45,7 +45,11 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setPosition(FLayer.Position.BottomCenter)
-        layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
+        layer.setFixOverflowDirection(
+            FLayer.OverflowDirection.Bottom
+                    or FLayer.OverflowDirection.Start
+                    or FLayer.OverflowDirection.End
+        )
     }
 
     Column(
