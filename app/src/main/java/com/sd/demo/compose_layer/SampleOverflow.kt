@@ -19,7 +19,7 @@ import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.*
 import java.util.*
 
-class SampleDropdown : ComponentActivity() {
+class SampleOverflow : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
