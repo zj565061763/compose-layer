@@ -252,7 +252,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         var count = 0
         while (true) {
             var hasOverflow = false
-            logMsg { "checkOverflow -----> ${++count}" }
 
             // 检查是否溢出
             with(result.sourceOverflow) {
@@ -283,20 +282,38 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 // Horizontal
                 kotlin.run {
                     var overSize = 0
+                    var isStartOverflow = false
+                    var isEndOverflow = false
+
                     if (OverflowDirection.hasStart(fixOverflowDirection)) {
                         if (start > 0) {
                             overSize += start
+                            isStartOverflow = true
                             logMsg { "start overflow $start" }
                         }
                     }
+
                     if (OverflowDirection.hasEnd(fixOverflowDirection)) {
                         if (end > 0) {
                             overSize += end
+                            isEndOverflow = true
                             logMsg { "end overflow $end" }
                         }
                     }
+
                     if (overSize > 0) {
                         hasOverflow = true
+
+                        /**
+                         * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                         */
+                        if (positionState.isCenterHorizontal) {
+                            if (isStartOverflow && isEndOverflow) {
+                            } else {
+                                overSize *= 2
+                            }
+                        }
+
                         val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
                         cs = cs.copy(maxWidth = maxSize).also {
                             resultConstraints = it
@@ -310,6 +327,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             } else {
                 break
             }
+
+            logMsg { "checkOverflow -----> ${++count}" }
         }
 
         return resultConstraints
@@ -366,6 +385,17 @@ private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeig
         )
     )
 }
+
+private val Layer.Position.isCenterHorizontal: Boolean
+    get() {
+        return when (this) {
+            Layer.Position.TopCenter,
+            Layer.Position.BottomCenter,
+            Layer.Position.Center,
+            -> true
+            else -> false
+        }
+    }
 
 private fun SubcomposeMeasureScope.measureContent(
     slotId: Any?,
