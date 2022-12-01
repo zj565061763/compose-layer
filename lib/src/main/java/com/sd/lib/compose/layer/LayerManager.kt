@@ -79,6 +79,13 @@ internal class LayerManager {
         }
     }
 
+    fun notifyLayerAttachState(layer: LayerImpl, isAttached: Boolean) {
+        _attachedLayerHolder.remove(layer)
+        if (isAttached && _layerHolder.contains(layer)) {
+            _attachedLayerHolder.add(layer)
+        }
+    }
+
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         _containerLayout = layoutCoordinates
         _containerLayoutCallbackHolder.toTypedArray().forEach {
@@ -112,11 +119,6 @@ internal class LayerManager {
         notifyTargetLayoutCallback(tag, null)
     }
 
-    fun findTarget(tag: String): LayoutCoordinates? {
-        if (tag.isEmpty()) return null
-        return _targetLayoutHolder[tag]
-    }
-
     fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
         if (tag.isEmpty()) return
         val holder = _targetLayoutCallbackHolder[tag] ?: hashSetOf<(LayoutCoordinates?) -> Unit>().also {
@@ -134,13 +136,6 @@ internal class LayerManager {
             if (holder.isEmpty()) {
                 _targetLayoutCallbackHolder.remove(tag)
             }
-        }
-    }
-
-    fun notifyLayerAttachState(layer: LayerImpl, isAttached: Boolean) {
-        _attachedLayerHolder.remove(layer)
-        if (isAttached && _layerHolder.contains(layer)) {
-            _attachedLayerHolder.add(layer)
         }
     }
 
