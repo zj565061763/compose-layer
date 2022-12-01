@@ -3,18 +3,24 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.*
-import java.util.*
+import com.sd.lib.compose.layer.Layer
+import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.layerTarget
+import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleDropDown : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +69,6 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun LayerContent(
     isVisible: Boolean,
@@ -71,8 +76,8 @@ private fun LayerContent(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-        exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+        enter = fadeIn(),
+        exit = fadeOut(),
         modifier = modifier,
     ) {
         VerticalList(
