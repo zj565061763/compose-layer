@@ -27,7 +27,7 @@ import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
 import com.sd.lib.compose.systemui.rememberStatusBarController
 
-class SampleAlignTargetList : ComponentActivity() {
+class SampleListMenu : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)

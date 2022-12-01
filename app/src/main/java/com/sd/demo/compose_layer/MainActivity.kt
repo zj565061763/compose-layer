@@ -61,9 +61,9 @@ private fun Content(
         }
 
         Button(onClick = {
-            activity.startActivity(Intent(activity, SampleAlignTargetList::class.java))
+            activity.startActivity(Intent(activity, SampleListMenu::class.java))
         }) {
-            Text("Align list")
+            Text("List menu")
         }
     }
 }
