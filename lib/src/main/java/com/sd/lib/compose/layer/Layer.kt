@@ -343,6 +343,13 @@ class FLayer internal constructor() {
             var x = result.x
             var y = result.y
 
+            if (fixOverflowDirection == OverflowDirection.None) {
+                val placeable = placeable(Unit, constraints, content)
+                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    placeable.place(x, y)
+                }
+            }
+
             // 原始大小
             val originalPlaceable = placeable(null, constraints, content)
             // 根据原始大小测量的结果
