@@ -190,6 +190,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         content: @Composable () -> Unit,
     ) {
         val fixOverflowDirection = _fixOverflowDirectionState
+        var overflowConstraints: Constraints? by remember { mutableStateOf(null) }
+
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
@@ -202,6 +204,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             var x = result.x
             var y = result.y
+
+            if (!_isAttached) {
+                val placeable = placeable(Unit, overflowConstraints ?: cs, content)
+                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    placeable.placeRelative(x, y)
+                }
+            }
 
             if (fixOverflowDirection == OverflowDirection.None) {
                 val placeable = placeable(Unit, cs, content)
@@ -241,7 +250,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     }
                     if (overSize > 0) {
                         val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                        csOverflow = csOverflow.copy(maxHeight = maxSize)
+                        csOverflow = csOverflow.copy(maxHeight = maxSize).also {
+                            overflowConstraints = it
+                        }
                     }
                 }
 
@@ -262,7 +273,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     }
                     if (overSize > 0) {
                         val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                        csOverflow = csOverflow.copy(maxWidth = maxSize)
+                        csOverflow = csOverflow.copy(maxWidth = maxSize).also {
+                            overflowConstraints = it
+                        }
                     }
                 }
             }
