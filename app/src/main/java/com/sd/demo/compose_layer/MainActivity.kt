@@ -57,7 +57,7 @@ private fun Content(
         Button(onClick = {
             activity.startActivity(Intent(activity, SampleAlignTargetList::class.java))
         }) {
-            Text("Align target list")
+            Text("Align list")
         }
     }
 }
