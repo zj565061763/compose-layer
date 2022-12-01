@@ -119,8 +119,9 @@ internal class LayerManager {
     }
 
     fun removeTarget(tag: String) {
-        _targetLayoutHolder.remove(tag)
-        notifyTargetLayoutCallback(tag, null)
+        if (_targetLayoutHolder.remove(tag) != null) {
+            notifyTargetLayoutCallback(tag, null)
+        }
     }
 
     fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
