@@ -452,12 +452,8 @@ class FLayer internal constructor() {
     }
 
     private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
-        if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+        forEachGesture {
             detectTouchOutsideOnce(behavior)
-        } else {
-            forEachGesture {
-                detectTouchOutsideOnce(behavior)
-            }
         }
     }
 
@@ -473,11 +469,13 @@ class FLayer internal constructor() {
                 if (contentRect.contains(downPosition)) {
                     // 触摸到内容区域
                 } else {
-                    if (behavior.consumeTouchOutside) {
-                        down.consume()
-                    }
                     if (behavior.cancelable && behavior.canceledOnTouchOutside) {
                         detach()
+                    }
+                    if (behavior.consumeTouchOutside) {
+                        down.consume()
+                    } else {
+                        // TODO 事件穿透
                     }
                 }
             }
