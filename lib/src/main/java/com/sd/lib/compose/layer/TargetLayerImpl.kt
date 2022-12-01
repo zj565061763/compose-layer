@@ -249,8 +249,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         var cs = cs
         var result = result
 
+        var count = 0
         while (true) {
             var hasOverflow = false
+            logMsg { "checkOverflow -----> ${++count}" }
 
             // 检查是否溢出
             with(result.sourceOverflow) {
