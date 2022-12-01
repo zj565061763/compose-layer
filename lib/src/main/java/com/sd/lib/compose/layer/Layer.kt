@@ -499,19 +499,29 @@ class FLayer internal constructor() {
         /** 顶部结束对齐 */
         TopEnd,
 
-        /** 中间开始对齐 */
-        CenterStart,
-        /** 中间对齐 */
-        Center,
-        /** 中间结束对齐 */
-        CenterEnd,
-
         /** 底部开始对齐 */
         BottomStart,
         /** 底部中间对齐 */
         BottomCenter,
         /** 底部结束对齐 */
         BottomEnd,
+
+        /** 开始顶部对齐 */
+        StartTop,
+        /** 开始中间对齐 */
+        StartCenter,
+        /** 开始底部对齐 */
+        StartBottom,
+
+        /** 开始顶部对齐 */
+        EndTop,
+        /** 开始中间对齐 */
+        EndCenter,
+        /** 开始底部对齐 */
+        EndBottom,
+
+        /** 中间对齐 */
+        Center,
     }
 
     class OverflowDirection {
@@ -567,17 +577,17 @@ private fun LayoutCoordinates.height(): Int {
 
 private fun FLayer.Position.toAlignment(): Alignment {
     return when (this) {
-        FLayer.Position.TopStart -> Alignment.TopStart
+        FLayer.Position.TopStart, FLayer.Position.StartTop -> Alignment.TopStart
         FLayer.Position.TopCenter -> Alignment.TopCenter
-        FLayer.Position.TopEnd -> Alignment.TopEnd
+        FLayer.Position.TopEnd, FLayer.Position.EndTop -> Alignment.TopEnd
 
-        FLayer.Position.CenterStart -> Alignment.CenterStart
+        FLayer.Position.StartCenter -> Alignment.CenterStart
         FLayer.Position.Center -> Alignment.Center
-        FLayer.Position.CenterEnd -> Alignment.CenterEnd
+        FLayer.Position.EndCenter -> Alignment.CenterEnd
 
-        FLayer.Position.BottomStart -> Alignment.BottomStart
+        FLayer.Position.BottomStart, FLayer.Position.StartBottom -> Alignment.BottomStart
         FLayer.Position.BottomCenter -> Alignment.BottomCenter
-        FLayer.Position.BottomEnd -> Alignment.BottomEnd
+        FLayer.Position.BottomEnd, FLayer.Position.EndBottom -> Alignment.BottomEnd
     }
 }
 
@@ -587,13 +597,19 @@ private fun FLayer.Position.toAlignerPosition(): Aligner.Position {
         FLayer.Position.TopCenter -> Aligner.Position.TopCenter
         FLayer.Position.TopEnd -> Aligner.Position.TopEnd
 
-        FLayer.Position.CenterStart -> Aligner.Position.CenterStart
-        FLayer.Position.Center -> Aligner.Position.Center
-        FLayer.Position.CenterEnd -> Aligner.Position.CenterEnd
-
         FLayer.Position.BottomStart -> Aligner.Position.BottomStart
         FLayer.Position.BottomCenter -> Aligner.Position.BottomCenter
         FLayer.Position.BottomEnd -> Aligner.Position.BottomEnd
+
+        FLayer.Position.StartTop -> Aligner.Position.StartTop
+        FLayer.Position.StartCenter -> Aligner.Position.StartCenter
+        FLayer.Position.StartBottom -> Aligner.Position.StartBottom
+
+        FLayer.Position.EndTop -> Aligner.Position.EndTop
+        FLayer.Position.EndCenter -> Aligner.Position.EndCenter
+        FLayer.Position.EndBottom -> Aligner.Position.EndBottom
+
+        FLayer.Position.Center -> Aligner.Position.Center
     }
 }
 

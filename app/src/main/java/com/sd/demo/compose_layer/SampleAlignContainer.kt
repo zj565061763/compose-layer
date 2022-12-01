@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.demo.compose_layer.view.ColorBox
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.rememberFLayer
@@ -35,7 +34,6 @@ class SampleAlignContainer : ComponentActivity() {
         }
     }
 }
-
 
 @Composable
 private fun Content() {
@@ -75,7 +73,6 @@ private fun createLayer(
     }
     return layer
 }
-
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
