@@ -42,7 +42,12 @@ class SampleDropdown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer = createLayer()
+    val layer = rememberFLayer()
+    LaunchedEffect(layer) {
+        layer.setPosition(FLayer.Position.BottomCenter)
+        layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -51,35 +56,43 @@ private fun Content() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(300.dp))
-        Button(
-            onClick = {
-                layer.setTarget("button")
-                layer.attach()
-            },
-            modifier = Modifier.fLayerTarget("button")
-        ) {
-            Text("Attach")
-        }
-    }
-}
 
-@Composable
-private fun createLayer(): FLayer {
-    val layer = rememberFLayer()
-    LaunchedEffect(layer) {
-        layer.setPosition(FLayer.Position.BottomCenter)
-        layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
-        layer.setContent {
-            LayerContent(isVisible)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = {
+                    layer.setTarget("button1")
+                    layer.setContent { LayerContent(isVisible, count = 50) }
+                    layer.attach()
+                },
+                modifier = Modifier.fLayerTarget("button1")
+            ) {
+                Text("Attach1")
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+            Button(
+                onClick = {
+                    layer.setTarget("button2")
+                    layer.setContent { LayerContent(isVisible, count = 5) }
+                    layer.attach()
+                },
+                modifier = Modifier.fLayerTarget("button2")
+            ) {
+                Text("Attach2")
+            }
         }
     }
-    return layer
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun LayerContent(
     isVisible: Boolean,
+    count: Int,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -90,10 +103,10 @@ private fun LayerContent(
     ) {
         LazyColumn(
             modifier = Modifier
-                .width(200.dp)
+                .fillMaxWidth()
                 .navigationBarsPadding()
         ) {
-            items(50) { index ->
+            items(count) { index ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
