@@ -85,7 +85,7 @@ private fun Content() {
 private fun createLayer(): FLayer {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
-        layer.setPosition(FLayer.Position.TopStart)
+        layer.setPosition(FLayer.Position.BottomStart)
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false)
         }
