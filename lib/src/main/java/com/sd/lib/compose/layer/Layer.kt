@@ -331,10 +331,10 @@ class FLayer internal constructor() {
         content: @Composable () -> Unit,
     ) {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
-            var constraints = cs.copy(minWidth = 0, minHeight = 0)
+            val cs = cs.copy(minWidth = 0, minHeight = 0)
 
             if (result == null) {
-                val placeable = placeable(Unit, constraints, content)
+                val placeable = placeable(Unit, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
                 }
@@ -344,14 +344,14 @@ class FLayer internal constructor() {
             var y = result.y
 
             if (fixOverflowDirection == OverflowDirection.None) {
-                val placeable = placeable(Unit, constraints, content)
+                val placeable = placeable(Unit, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.placeRelative(x, y)
                 }
             }
 
             // 原始大小
-            val originalPlaceable = placeable(null, constraints, content)
+            val originalPlaceable = placeable(null, cs, content)
             // 根据原始大小测量的结果
             val originalResult = _aligner.align(
                 result.input.copy(
@@ -359,6 +359,8 @@ class FLayer internal constructor() {
                     sourceHeight = originalPlaceable.height,
                 )
             )
+
+            var csOverflow = cs
 
             // 检查是否溢出
             with(originalResult.sourceOverflow) {
@@ -379,7 +381,7 @@ class FLayer internal constructor() {
                     }
                     if (overSize > 0) {
                         val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                        constraints = constraints.copy(maxHeight = maxSize)
+                        csOverflow = csOverflow.copy(maxHeight = maxSize)
                     }
                 }
 
@@ -400,14 +402,14 @@ class FLayer internal constructor() {
                     }
                     if (overSize > 0) {
                         val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                        constraints = constraints.copy(maxWidth = maxSize)
+                        csOverflow = csOverflow.copy(maxWidth = maxSize)
                     }
                 }
             }
 
-            val placeable = if (constraints != cs) {
+            val placeable = if (csOverflow != cs) {
                 // 约束条件变化后，重新计算坐标
-                placeable(Unit, constraints, content).also { placeable ->
+                placeable(Unit, csOverflow, content).also { placeable ->
                     _aligner.align(
                         result.input.copy(
                             sourceWidth = placeable.width,
