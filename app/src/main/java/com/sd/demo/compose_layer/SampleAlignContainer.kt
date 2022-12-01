@@ -16,9 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.FLayerContainer
-import com.sd.lib.compose.layer.rememberFLayer
+import com.sd.lib.compose.layer.Layer
+import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.rememberLayer
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +26,7 @@ class SampleAlignContainer : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                    LayerContainer(modifier = Modifier.fillMaxSize()) {
                         Content()
                     }
                 }
@@ -37,8 +37,8 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer1 = createLayer("1", FLayer.Position.Center)
-    val layer2 = createLayer("2", FLayer.Position.BottomCenter)
+    val layer1 = createLayer("1", Layer.Position.Center)
+    val layer2 = createLayer("2", Layer.Position.BottomCenter)
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -59,9 +59,9 @@ private fun Content() {
 @Composable
 private fun createLayer(
     text: String,
-    position: FLayer.Position,
-): FLayer {
-    val layer = rememberFLayer()
+    position: Layer.Position,
+): Layer {
+    val layer = rememberLayer()
     LaunchedEffect(layer, position) {
         layer.setPosition(position)
         layer.setContent {

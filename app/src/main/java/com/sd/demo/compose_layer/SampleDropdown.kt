@@ -20,10 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.FLayerContainer
-import com.sd.lib.compose.layer.fLayerTarget
-import com.sd.lib.compose.layer.rememberFLayer
+import com.sd.lib.compose.layer.*
 import java.util.*
 
 class SampleDropdown : ComponentActivity() {
@@ -33,7 +30,7 @@ class SampleDropdown : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                    LayerContainer(modifier = Modifier.fillMaxSize()) {
                         Content()
                     }
                 }
@@ -44,19 +41,19 @@ class SampleDropdown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer = rememberFLayer()
+    val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
-        layer.setPosition(FLayer.Position.BottomCenter)
+        layer.setPosition(Layer.Position.BottomCenter)
         layer.setContent { LayerContent(isVisible, count = 5) }
     }
 
-    val layerFixOverflow = rememberFLayer()
+    val layerFixOverflow = rememberTargetLayer()
     LaunchedEffect(layerFixOverflow) {
-        layerFixOverflow.setPosition(FLayer.Position.BottomCenter)
+        layerFixOverflow.setPosition(Layer.Position.BottomCenter)
         layerFixOverflow.setFixOverflowDirection(
-            FLayer.OverflowDirection.Bottom
-                    or FLayer.OverflowDirection.Start
-                    or FLayer.OverflowDirection.End
+            TargetLayer.OverflowDirection.Bottom
+                    or TargetLayer.OverflowDirection.Start
+                    or TargetLayer.OverflowDirection.End
         )
         layerFixOverflow.setContent { LayerContent(isVisible, count = 50) }
     }
@@ -82,7 +79,7 @@ private fun Content() {
                         attach()
                     }
                 },
-                modifier = Modifier.fLayerTarget("button1")
+                modifier = Modifier.layerTarget("button1")
             ) {
                 Text("Attach1")
             }
@@ -94,7 +91,7 @@ private fun Content() {
                         layer.attach()
                     }
                 },
-                modifier = Modifier.fLayerTarget("button2")
+                modifier = Modifier.layerTarget("button2")
             ) {
                 Text("Attach2")
             }

@@ -20,7 +20,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.properties.Delegates
 
-internal class FTargetLayer() : FLayer(), TargetLayer {
+internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private val _uiState = MutableStateFlow(UiState())
 
     private val _aligner = FAligner()

@@ -19,10 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.FLayerContainer
-import com.sd.lib.compose.layer.fLayerTarget
-import com.sd.lib.compose.layer.rememberFLayer
+import com.sd.lib.compose.layer.*
 import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleAlignTarget : ComponentActivity() {
@@ -38,7 +35,7 @@ class SampleAlignTarget : ComponentActivity() {
 
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                    LayerContainer(modifier = Modifier.fillMaxSize()) {
                         Content()
                     }
                 }
@@ -66,8 +63,8 @@ private fun Content() {
 }
 
 @Composable
-private fun createLayer(): FLayer {
-    val layer = rememberFLayer()
+private fun createLayer(): TargetLayer {
+    val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
         layer.setTarget("hello")
         // 关闭窗口行为
@@ -120,7 +117,7 @@ private fun TargetView(
                     modifier = Modifier
                         .size(150.dp)
                         .background(Color.LightGray)
-                        .fLayerTarget(target)
+                        .layerTarget(target)
                 )
             }
 
@@ -141,7 +138,7 @@ private fun TargetView(
 private fun ButtonsView(
     modifier: Modifier = Modifier,
     onClickDetach: () -> Unit,
-    onClick: (FLayer.Position) -> Unit,
+    onClick: (Layer.Position) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -155,13 +152,13 @@ private fun ButtonsView(
             center = "TopCenter",
             end = "TopEnd",
             onClickStart = {
-                onClick(FLayer.Position.TopStart)
+                onClick(Layer.Position.TopStart)
             },
             onClickCenter = {
-                onClick(FLayer.Position.TopCenter)
+                onClick(Layer.Position.TopCenter)
             },
             onClickEnd = {
-                onClick(FLayer.Position.TopEnd)
+                onClick(Layer.Position.TopEnd)
             },
         )
 
@@ -171,13 +168,13 @@ private fun ButtonsView(
             center = "BottomCenter",
             end = "BottomEnd",
             onClickStart = {
-                onClick(FLayer.Position.BottomStart)
+                onClick(Layer.Position.BottomStart)
             },
             onClickCenter = {
-                onClick(FLayer.Position.BottomCenter)
+                onClick(Layer.Position.BottomCenter)
             },
             onClickEnd = {
-                onClick(FLayer.Position.BottomEnd)
+                onClick(Layer.Position.BottomEnd)
             },
         )
 
@@ -188,7 +185,7 @@ private fun ButtonsView(
             end = "Detach",
             onClickStart = {},
             onClickCenter = {
-                onClick(FLayer.Position.Center)
+                onClick(Layer.Position.Center)
             },
             onClickEnd = {
                 onClickDetach()
@@ -201,13 +198,13 @@ private fun ButtonsView(
             center = "StartCenter",
             end = "StartBottom",
             onClickStart = {
-                onClick(FLayer.Position.StartTop)
+                onClick(Layer.Position.StartTop)
             },
             onClickCenter = {
-                onClick(FLayer.Position.StartCenter)
+                onClick(Layer.Position.StartCenter)
             },
             onClickEnd = {
-                onClick(FLayer.Position.StartBottom)
+                onClick(Layer.Position.StartBottom)
             },
         )
 
@@ -217,13 +214,13 @@ private fun ButtonsView(
             center = "EndCenter",
             end = "EndBottom",
             onClickStart = {
-                onClick(FLayer.Position.EndTop)
+                onClick(Layer.Position.EndTop)
             },
             onClickCenter = {
-                onClick(FLayer.Position.EndCenter)
+                onClick(Layer.Position.EndCenter)
             },
             onClickEnd = {
-                onClick(FLayer.Position.EndBottom)
+                onClick(Layer.Position.EndBottom)
             },
         )
     }

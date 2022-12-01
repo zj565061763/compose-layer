@@ -1,260 +1,231 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
-import androidx.annotation.CallSuper
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.*
-import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.sd.lib.compose.layer.Layer.DialogBehavior
-import com.sd.lib.compose.layer.Layer.Position
-import kotlin.properties.Delegates
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
-internal open class FLayer : Layer {
-    protected var _layerManager: LayerManager? = null
-        private set
-
-    protected var _isAttached by mutableStateOf(false)
-        private set
-
-    private var _content: @Composable LayerContentScope.() -> Unit by mutableStateOf({ })
-    private val _contentScopeImpl = LayerContentScopeImpl()
-
-    private var _positionState: Position by mutableStateOf(Position.Center)
-
-    private var _layerLayoutCoordinates: LayoutCoordinates? = null
-    private var _contentLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        onContentLayoutCoordinatesChanged()
-    }
-
-    private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
-
-    final override val isVisibleState: Boolean
-        get() = _contentScopeImpl.isVisible
-
-    final override val positionState: Position
-        get() = _positionState
-
-    final override val dialogBehaviorState: DialogBehavior?
-        get() = _dialogBehaviorState
-
-    final override fun setContent(content: @Composable LayerContentScope.() -> Unit) {
-        _content = content
-    }
-
-    override fun setPosition(position: Position) {
-        _positionState = position
-    }
-
-    final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
-        _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())
-    }
-
-    @CallSuper
-    override fun attach() {
-        _isAttached = true
-        _layerManager?.notifyLayerAttachState(this, true)
-    }
-
-    @CallSuper
-    override fun detach() {
-        _isAttached = false
-        _layerManager?.notifyLayerAttachState(this, false)
-    }
-
-    @Composable
-    override fun UpdateContainer() {
-        val layerManager = checkNotNull(LocalLayerManager.current) {
-            "CompositionLocal LocalLayerManager not present"
-        }
-        LaunchedEffect(layerManager) {
-            val currentManager = _layerManager
-            if (currentManager != layerManager) {
-                currentManager?.detachLayer(this@FLayer)
-                layerManager.attachLayer(this@FLayer)
-            }
-        }
-    }
-
-    /**
-     * Layer被添加到[manager]
-     */
-    @CallSuper
-    internal open fun attachToManager(manager: LayerManager) {
-        _layerManager = manager
-    }
-
-    /**
-     * Layer从[manager]上被移除
-     */
-    @CallSuper
-    internal open fun detachFromManager(manager: LayerManager) {
-        check(_layerManager === manager)
-        detach()
-        _layerManager = null
-    }
-
-    /**
-     * 设置内容可见状态
-     */
-    protected fun setContentVisible(visible: Boolean) {
-        _contentScopeImpl._isVisible = visible
-    }
-
-    /**
-     * 内容布局变化回调
-     */
-    protected open fun onContentLayoutCoordinatesChanged() {}
-
-    /**
-     * 渲染Layer内容
-     */
-    @Composable
-    internal open fun Content() {
-        SideEffect {
-            setContentVisible(_isAttached)
-        }
-
-        LayerBox(_isAttached) {
-            ContentBox(modifier = Modifier.align(positionState.toAlignment()))
-        }
-    }
-
-    @Composable
-    protected fun LayerBox(
-        isVisible: Boolean,
-        modifier: Modifier = Modifier,
-        content: @Composable BoxScope.() -> Unit,
-    ) {
-        var modifier = modifier.fillMaxSize()
-
-        if (isVisible) {
-            modifier = modifier.onGloballyPositioned {
-                _layerLayoutCoordinates = it
-            }
-            _dialogBehaviorState?.let { behavior ->
-                modifier = modifier.pointerInput(behavior) {
-                    detectTouchOutside(behavior)
-                }
-            }
-        }
-
-        Box(modifier = modifier) {
-            BackgroundBox(isVisible)
-            content()
-        }
-    }
-
-    @Composable
-    private fun BackgroundBox(
-        isVisible: Boolean,
-    ) {
-        _dialogBehaviorState?.let { behavior ->
-            AnimatedVisibility(
-                visible = isVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(behavior.backgroundColor)
-                )
-            }
-        }
-    }
-
-    @Composable
-    protected fun ContentBox(
-        modifier: Modifier = Modifier,
-    ) {
+/**
+ * 用来存放Layer的容器
+ */
+@Composable
+fun LayerContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val layerManager = remember { LayerManager() }
+    CompositionLocalProvider(LocalLayerManager provides layerManager) {
         Box(
-            modifier = modifier.onGloballyPositioned {
-                _contentLayoutCoordinates = it
-            }
+            modifier = modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    layerManager.updateContainerLayout(it)
+                },
+            contentAlignment = Alignment.Center,
         ) {
-            _content.invoke(_contentScopeImpl)
+            content()
+            layerManager.Layers()
         }
-    }
-
-    private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
-        forEachGesture {
-            detectTouchOutsideOnce(behavior)
-        }
-    }
-
-    private suspend fun PointerInputScope.detectTouchOutsideOnce(behavior: DialogBehavior) {
-        awaitPointerEventScope {
-            val down = layerAwaitFirstDown(PointerEventPass.Initial)
-            val downPosition = down.position
-
-            val layerLayout = _layerLayoutCoordinates
-            val contentLayout = _contentLayoutCoordinates
-            if (layerLayout != null && contentLayout != null) {
-                val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-                if (contentRect.contains(downPosition)) {
-                    // 触摸到内容区域
-                } else {
-                    if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                        detach()
-                    }
-                    if (behavior.consumeTouchOutside) {
-                        down.consume()
-                    } else {
-                        // TODO 事件穿透
-                    }
-                }
-            }
-        }
-    }
-
-    internal class LayerContentScopeImpl : LayerContentScope {
-        var _isVisible by mutableStateOf(false)
-
-        override val isVisible: Boolean
-            get() = _isVisible
     }
 }
 
+/**
+ * 创建并记住[Layer]
+ */
+@Composable
+fun rememberLayer(): Layer {
+    val layerManager = checkNotNull(LocalLayerManager.current) {
+        "CompositionLocal LocalLayerManager not present"
+    }
+    return layerManager.rememberLayer()
+}
+
+/**
+ * 创建并记住[TargetLayer]
+ */
+@Composable
+fun rememberTargetLayer(): TargetLayer {
+    val layerManager = checkNotNull(LocalLayerManager.current) {
+        "CompositionLocal LocalLayerManager not present"
+    }
+    return layerManager.rememberTargetLayer()
+}
+
+/**
+ * 设置Layer要对齐的目标，给目标设置唯一的[tag]
+ */
+fun Modifier.layerTarget(
+    tag: String,
+) = composed {
+    val layerManager = checkNotNull(LocalLayerManager.current) {
+        "CompositionLocal LocalLayerManager not present"
+    }
+
+    DisposableEffect(layerManager, tag) {
+        onDispose {
+            layerManager.removeTarget(tag)
+        }
+    }
+
+    this.onGloballyPositioned {
+        layerManager.addTarget(tag, it)
+    }
+}
+
+interface LayerContentScope {
+    /** 内容是否可见 */
+    val isVisible: Boolean
+}
+
+interface Layer {
+    /**
+     * 当前Layer是否可见
+     */
+    val isVisibleState: Boolean
+
+    /**
+     * 位置
+     */
+    val positionState: Position
+
+    /**
+     * 窗口行为
+     */
+    val dialogBehaviorState: DialogBehavior?
+
+    /**
+     * 设置内容
+     */
+    fun setContent(content: @Composable LayerContentScope.() -> Unit)
+
+    /**
+     * 设置对齐的位置
+     */
+    fun setPosition(position: Position)
+
+    /**
+     * 设置窗口行为
+     */
+    fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?)
+
+    /**
+     * 添加到容器
+     */
+    fun attach()
+
+    /**
+     * 从容器上移除
+     */
+    fun detach()
+
+    /**
+     * 更新当前Layer所在的容器
+     */
+    @Composable
+    fun UpdateContainer()
+
+    enum class Position {
+        /** 顶部开始对齐 */
+        TopStart,
+        /** 顶部中间对齐 */
+        TopCenter,
+        /** 顶部结束对齐 */
+        TopEnd,
+
+        /** 底部开始对齐 */
+        BottomStart,
+        /** 底部中间对齐 */
+        BottomCenter,
+        /** 底部结束对齐 */
+        BottomEnd,
+
+        /** 开始顶部对齐 */
+        StartTop,
+        /** 开始中间对齐 */
+        StartCenter,
+        /** 开始底部对齐 */
+        StartBottom,
+
+        /** 开始顶部对齐 */
+        EndTop,
+        /** 开始中间对齐 */
+        EndCenter,
+        /** 开始底部对齐 */
+        EndBottom,
+
+        /** 中间对齐 */
+        Center,
+    }
+
+    data class DialogBehavior(
+        /** 按返回键是否可以关闭 */
+        val cancelable: Boolean = true,
+
+        /** 触摸到非内容区域是否关闭 */
+        val canceledOnTouchOutside: Boolean = true,
+
+        /** 是否消费掉触摸到非内容区域的触摸事件 */
+        val consumeTouchOutside: Boolean = true,
+
+        /** 背景颜色 */
+        val backgroundColor: Color = Color.Black.copy(alpha = 0.25f)
+    )
+}
+
+interface OffsetTransformScope {
+    /** 当前计算的layer坐标 */
+    val offset: IntOffset
+
+    /** 内容大小 */
+    val contentSize: IntSize
+
+    /** 目标大小 */
+    val targetSize: IntSize
+}
+
+interface TargetLayer : Layer {
+    /**
+     * 设置目标
+     */
+    fun setTarget(target: String)
+
+    /**
+     * 设置坐标转换
+     */
+    fun setOffsetTransform(interceptor: (OffsetTransformScope.() -> IntOffset)?)
+
+    /**
+     * 设置修复溢出的方向[OverflowDirection]
+     */
+    fun setFixOverflowDirection(direction: Int)
+
+    class OverflowDirection {
+        companion object {
+            const val None = 0
+            const val Top = 1
+            const val Bottom = 2
+            const val Start = 4
+            const val End = 8
+
+            fun hasTop(value: Int) = Top and value != 0
+            fun hasBottom(value: Int) = Bottom and value != 0
+            fun hasStart(value: Int) = Start and value != 0
+            fun hasEnd(value: Int) = End and value != 0
+        }
+    }
+}
 
 internal inline fun logMsg(block: () -> String) {
     Log.i("FLayer", block())
-}
-
-private fun Position.toAlignment(): Alignment {
-    return when (this) {
-        Position.TopStart, Position.StartTop -> Alignment.TopStart
-        Position.TopCenter -> Alignment.TopCenter
-        Position.TopEnd, Position.EndTop -> Alignment.TopEnd
-
-        Position.StartCenter -> Alignment.CenterStart
-        Position.Center -> Alignment.Center
-        Position.EndCenter -> Alignment.CenterEnd
-
-        Position.BottomStart, Position.StartBottom -> Alignment.BottomStart
-        Position.BottomCenter -> Alignment.BottomCenter
-        Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
-    }
-}
-
-private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
-    pass: PointerEventPass
-): PointerInputChange {
-    var event: PointerEvent
-    do {
-        event = awaitPointerEvent(pass)
-    } while (
-        !event.changes.all { it.changedToDown() }
-    )
-    return event.changes[0]
 }

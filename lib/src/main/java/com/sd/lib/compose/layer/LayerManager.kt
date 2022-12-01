@@ -10,8 +10,8 @@ import androidx.compose.ui.zIndex
 internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
-    private val _layerHolder: MutableList<FLayer> = mutableStateListOf()
-    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
+    private val _layerHolder: MutableList<LayerImpl> = mutableStateListOf()
+    private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
 
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
@@ -20,9 +20,9 @@ internal class LayerManager {
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
 
     @Composable
-    fun layer(): FLayer {
+    fun rememberLayer(): Layer {
         val layer = remember {
-            FLayer().also { attachLayer(it) }
+            LayerImpl().also { attachLayer(it) }
         }
         DisposableEffect(layer) {
             onDispose {
@@ -33,7 +33,20 @@ internal class LayerManager {
     }
 
     @Composable
-    fun Content() {
+    fun rememberTargetLayer(): TargetLayer {
+        val layer = remember {
+            TargetLayerImpl().also { attachLayer(it) }
+        }
+        DisposableEffect(layer) {
+            onDispose {
+                detachLayer(layer)
+            }
+        }
+        return layer
+    }
+
+    @Composable
+    fun Layers() {
         _layerHolder.forEach { item ->
             val zIndex = _attachedLayerHolder.indexOf(item).coerceAtLeast(0)
             Box(modifier = Modifier.zIndex(zIndex.toFloat())) {
@@ -52,14 +65,14 @@ internal class LayerManager {
         }
     }
 
-    fun attachLayer(layer: FLayer) {
+    fun attachLayer(layer: LayerImpl) {
         if (!_layerHolder.contains(layer)) {
             _layerHolder.add(layer)
             layer.attachToManager(this)
         }
     }
 
-    fun detachLayer(layer: FLayer) {
+    fun detachLayer(layer: LayerImpl) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
             layer.detachFromManager(this)
@@ -124,7 +137,7 @@ internal class LayerManager {
         }
     }
 
-    fun notifyLayerAttachState(layer: FLayer, isAttached: Boolean) {
+    fun notifyLayerAttachState(layer: LayerImpl, isAttached: Boolean) {
         _attachedLayerHolder.remove(layer)
         if (isAttached && _layerHolder.contains(layer)) {
             _attachedLayerHolder.add(layer)

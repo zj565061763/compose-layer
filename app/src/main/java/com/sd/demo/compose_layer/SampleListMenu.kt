@@ -21,10 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.FLayerContainer
-import com.sd.lib.compose.layer.fLayerTarget
-import com.sd.lib.compose.layer.rememberFLayer
+import com.sd.lib.compose.layer.*
 import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleListMenu : ComponentActivity() {
@@ -40,7 +37,7 @@ class SampleListMenu : ComponentActivity() {
 
             AppTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    FLayerContainer(modifier = Modifier.fillMaxSize()) {
+                    LayerContainer(modifier = Modifier.fillMaxSize()) {
                         Content()
                     }
                 }
@@ -62,7 +59,7 @@ private fun Content() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .fLayerTarget("item_$index")
+                    .layerTarget("item_$index")
                     .height(50.dp)
                     .clickable {
                         layer.setTarget("item_$index")
@@ -82,14 +79,14 @@ private fun Content() {
 }
 
 @Composable
-private fun createLayer(): FLayer {
-    val layer = rememberFLayer()
+private fun createLayer(): TargetLayer {
+    val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
-        layer.setPosition(FLayer.Position.BottomStart)
+        layer.setPosition(Layer.Position.BottomStart)
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false)
         }
-        layer.setFixOverflowDirection(FLayer.OverflowDirection.Bottom)
+        layer.setFixOverflowDirection(TargetLayer.OverflowDirection.Bottom)
         layer.setContent {
             LayerContent(isVisible)
         }
