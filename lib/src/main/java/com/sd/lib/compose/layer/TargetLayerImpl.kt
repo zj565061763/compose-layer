@@ -26,8 +26,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
     private var _alignerResult: Aligner.Result? = null
 
-    private var _offsetInterceptor: (OffsetTransformScope.() -> IntOffset)? = null
-
+    private var _offsetTransform: (OffsetTransformScope.() -> IntOffset)? = null
     private var _fixOverflowDirection by mutableStateOf(OverflowDirection.None)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
@@ -66,8 +65,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _target = target
     }
 
-    override fun setOffsetTransform(interceptor: (OffsetTransformScope.() -> IntOffset)?) {
-        _offsetInterceptor = interceptor
+    override fun setOffsetTransform(transform: (OffsetTransformScope.() -> IntOffset)?) {
+        _offsetTransform = transform
     }
 
     override fun setFixOverflowDirection(direction: Int) {
@@ -85,9 +84,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         updateUiState()
     }
 
-    override fun onContentLayoutCoordinatesChanged() {
-        super.onContentLayoutCoordinatesChanged()
-        updateOffset()
+    override fun onContentLayoutCoordinatesChanged(layoutCoordinates: LayoutCoordinates) {
+        super.onContentLayoutCoordinatesChanged(layoutCoordinates)
+        _contentLayoutCoordinates = layoutCoordinates
     }
 
     override fun attachToManager(manager: LayerManager) {
@@ -108,21 +107,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             _alignerResult = it
         }
         updateUiState()
-    }
-
-    private fun updateUiState() {
-        val isVisible = if (_isAttached) {
-            if (_target.isEmpty()) {
-                true
-            } else {
-                _targetLayoutCoordinates.isReady()
-            }
-        } else false
-
-        _uiState.value = UiState(
-            isVisible = isVisible,
-            alignerResult = _alignerResult,
-        )
     }
 
     private fun alignTarget(): Aligner.Result? {
@@ -158,6 +142,21 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         return _aligner.align(input)
     }
 
+    private fun updateUiState() {
+        val isVisible = if (_isAttached) {
+            if (_target.isEmpty()) {
+                true
+            } else {
+                _targetLayoutCoordinates.isReady()
+            }
+        } else false
+
+        _uiState.value = UiState(
+            isVisible = isVisible,
+            alignerResult = _alignerResult,
+        )
+    }
+
     @Composable
     override fun Content() {
         val uiState by _uiState.collectAsState()
@@ -166,7 +165,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             setContentVisible(uiState.isVisible)
         }
 
-        LayerBox(_isAttached) {
+        LayerBox(uiState.isVisible) {
             if (_fixOverflowDirection == OverflowDirection.None) {
                 OffsetBox(uiState.alignerResult) {
                     ContentBox()

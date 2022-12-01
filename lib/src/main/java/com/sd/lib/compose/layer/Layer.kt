@@ -203,7 +203,7 @@ interface TargetLayer : Layer {
     /**
      * 设置坐标转换
      */
-    fun setOffsetTransform(interceptor: (OffsetTransformScope.() -> IntOffset)?)
+    fun setOffsetTransform(transform: (OffsetTransformScope.() -> IntOffset)?)
 
     /**
      * 设置修复溢出的方向[OverflowDirection]

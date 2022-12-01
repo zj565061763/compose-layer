@@ -17,7 +17,6 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.sd.lib.compose.layer.Layer.DialogBehavior
 import com.sd.lib.compose.layer.Layer.Position
-import kotlin.properties.Delegates
 
 internal open class LayerImpl : Layer {
     protected var _layerManager: LayerManager? = null
@@ -32,9 +31,7 @@ internal open class LayerImpl : Layer {
     private var _positionState: Position by mutableStateOf(Position.Center)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
-    private var _contentLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        onContentLayoutCoordinatesChanged()
-    }
+    private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
     private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
 
@@ -51,6 +48,7 @@ internal open class LayerImpl : Layer {
         _content = content
     }
 
+    @CallSuper
     override fun setPosition(position: Position) {
         _positionState = position
     }
@@ -113,7 +111,7 @@ internal open class LayerImpl : Layer {
     /**
      * 内容布局变化回调
      */
-    protected open fun onContentLayoutCoordinatesChanged() {}
+    protected open fun onContentLayoutCoordinatesChanged(layoutCoordinates: LayoutCoordinates) {}
 
     /**
      * 渲染Layer内容
@@ -180,6 +178,7 @@ internal open class LayerImpl : Layer {
         Box(
             modifier = modifier.onGloballyPositioned {
                 _contentLayoutCoordinates = it
+                onContentLayoutCoordinatesChanged(it)
             }
         ) {
             _content.invoke(_contentScopeImpl)
