@@ -195,7 +195,7 @@ interface TargetLayer : Layer {
     /**
      * 设置坐标转换
      */
-    fun setOffsetTransform(transform: (OffsetTransformScope.() -> IntOffset)?)
+    fun setOffsetTransform(transform: (OffsetTransformScope.(IntOffset) -> IntOffset)?)
 
     /**
      * 设置修复溢出的方向[OverflowDirection]
@@ -218,9 +218,6 @@ interface TargetLayer : Layer {
     }
 
     interface OffsetTransformScope {
-        /** 当前计算的layer坐标 */
-        val offset: IntOffset
-
         /** 内容大小 */
         val contentSize: IntSize
 

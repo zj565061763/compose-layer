@@ -37,6 +37,7 @@ private fun Content() {
     val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.BottomCenter)
+        layer.setOffsetTransform { it.copy(x = 0) }
         layer.setContent {
             LayerContent(isVisible)
         }

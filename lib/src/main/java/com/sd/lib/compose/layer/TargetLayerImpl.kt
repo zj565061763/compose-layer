@@ -24,7 +24,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
     private var _alignerResult: Aligner.Result? = null
 
-    private var _offsetTransform: (OffsetTransformScope.() -> IntOffset)? = null
+    private var _offsetTransform: (OffsetTransformScope.(IntOffset) -> IntOffset)? = null
     private var _fixOverflowDirectionState by mutableStateOf(OverflowDirection.None)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
@@ -65,7 +65,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _target = target
     }
 
-    override fun setOffsetTransform(transform: (OffsetTransformScope.() -> IntOffset)?) {
+    override fun setOffsetTransform(transform: (OffsetTransformScope.(IntOffset) -> IntOffset)?) {
         _offsetTransform = transform
     }
 
