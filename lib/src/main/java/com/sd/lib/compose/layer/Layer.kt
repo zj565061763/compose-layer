@@ -283,7 +283,6 @@ class FLayer internal constructor() {
         }
 
         LayerBox(uiState.isVisible) {
-            BackgroundBox(uiState.isVisible)
             if (uiState.hasTarget) {
                 if (uiState.fixOverflowDirection == OverflowDirection.None) {
                     OffsetBox(uiState.alignerResult) {
@@ -319,6 +318,7 @@ class FLayer internal constructor() {
         }
 
         Box(modifier = modifier) {
+            BackgroundBox(isVisible)
             content()
         }
     }
