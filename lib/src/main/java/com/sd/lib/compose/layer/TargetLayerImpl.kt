@@ -221,60 +221,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 )
             )
 
-            var csOverflow = cs
-
-            // 检查是否溢出
-            with(originalResult.sourceOverflow) {
-                // Vertical
-                kotlin.run {
-                    var overSize = 0
-                    if (OverflowDirection.hasTop(fixOverflowDirection)) {
-                        if (top > 0) {
-                            overSize += top
-                            logMsg { "top overflow $top" }
-                        }
-                    }
-                    if (OverflowDirection.hasBottom(fixOverflowDirection)) {
-                        if (bottom > 0) {
-                            overSize += bottom
-                            logMsg { "bottom overflow $bottom" }
-                        }
-                    }
-                    if (overSize > 0) {
-                        val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                        csOverflow = csOverflow.copy(maxHeight = maxSize).also {
-                            overflowConstraints = it
-                        }
-                    }
-                }
-
-                // Horizontal
-                kotlin.run {
-                    var overSize = 0
-                    if (OverflowDirection.hasStart(fixOverflowDirection)) {
-                        if (start > 0) {
-                            overSize += start
-                            logMsg { "start overflow $start" }
-                        }
-                    }
-                    if (OverflowDirection.hasEnd(fixOverflowDirection)) {
-                        if (end > 0) {
-                            overSize += end
-                            logMsg { "end overflow $end" }
-                        }
-                    }
-                    if (overSize > 0) {
-                        val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                        csOverflow = csOverflow.copy(maxWidth = maxSize).also {
-                            overflowConstraints = it
-                        }
-                    }
-                }
+            val checkConstraints = checkOverflow(originalResult, fixOverflowDirection, cs).also {
+                overflowConstraints = it
             }
 
-            val placeable = if (csOverflow != cs) {
+            val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
-                measureContent(Unit, csOverflow, content).also { placeable ->
+                measureContent(Unit, checkConstraints, content).also { placeable ->
                     _aligner.align(
                         result.input.copy(
                             sourceWidth = placeable.width,
@@ -294,6 +247,65 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 placeable.placeRelative(x, y)
             }
         }
+    }
+
+    private fun checkOverflow(
+        result: Aligner.Result,
+        fixOverflowDirection: Int,
+        cs: Constraints
+    ): Constraints? {
+        var resultConstraints: Constraints? = null
+        var csOverflow = cs
+
+        // 检查是否溢出
+        with(result.sourceOverflow) {
+            // Vertical
+            kotlin.run {
+                var overSize = 0
+                if (OverflowDirection.hasTop(fixOverflowDirection)) {
+                    if (top > 0) {
+                        overSize += top
+                        logMsg { "top overflow $top" }
+                    }
+                }
+                if (OverflowDirection.hasBottom(fixOverflowDirection)) {
+                    if (bottom > 0) {
+                        overSize += bottom
+                        logMsg { "bottom overflow $bottom" }
+                    }
+                }
+                if (overSize > 0) {
+                    val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
+                    csOverflow = csOverflow.copy(maxHeight = maxSize).also {
+                        resultConstraints = it
+                    }
+                }
+            }
+
+            // Horizontal
+            kotlin.run {
+                var overSize = 0
+                if (OverflowDirection.hasStart(fixOverflowDirection)) {
+                    if (start > 0) {
+                        overSize += start
+                        logMsg { "start overflow $start" }
+                    }
+                }
+                if (OverflowDirection.hasEnd(fixOverflowDirection)) {
+                    if (end > 0) {
+                        overSize += end
+                        logMsg { "end overflow $end" }
+                    }
+                }
+                if (overSize > 0) {
+                    val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
+                    csOverflow = csOverflow.copy(maxWidth = maxSize).also {
+                        resultConstraints = it
+                    }
+                }
+            }
+        }
+        return resultConstraints
     }
 
     private data class UiState(
