@@ -10,6 +10,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.SubcomposeMeasureScope
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import com.sd.lib.compose.layer.TargetLayer.*
@@ -104,9 +105,24 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
      */
     private fun updateOffset() {
         alignTarget()?.let {
-            _alignerResult = it
+            _alignerResult = transformResult(it)
         }
         updateUiState()
+    }
+
+    private fun transformResult(result: Aligner.Result): Aligner.Result {
+        val transform = _offsetTransform ?: return result
+
+        val transformScope = object : OffsetTransformScope {
+            override val contentSize: IntSize get() = IntSize(result.input.sourceWidth, result.input.sourceHeight)
+            override val targetSize: IntSize get() = IntSize(result.input.targetWidth, result.input.targetHeight)
+        }
+
+        val offset = transform.invoke(transformScope, IntOffset(result.x, result.y))
+        return result.copy(
+            x = offset.x,
+            y = offset.y
+        )
     }
 
     private fun alignTarget(): Aligner.Result? {
