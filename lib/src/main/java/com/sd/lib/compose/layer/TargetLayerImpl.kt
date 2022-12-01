@@ -1,8 +1,6 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -172,20 +170,14 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         LayerBox(uiState.isVisible) {
-            if (_fixOverflowDirectionState == OverflowDirection.None) {
-                OffsetBox(uiState.alignerResult) {
-                    ContentBox()
-                }
-            } else {
-                FixOverflowBox(uiState.alignerResult) {
-                    ContentBox()
-                }
+            OffsetBox(uiState.alignerResult) {
+                ContentBox()
             }
         }
     }
 
     @Composable
-    private fun FixOverflowBox(
+    private fun OffsetBox(
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
@@ -301,22 +293,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             layout(cs.maxWidth, cs.maxHeight) {
                 placeable.placeRelative(x, y)
             }
-        }
-    }
-
-    @Composable
-    private fun OffsetBox(
-        result: Aligner.Result?,
-        content: @Composable () -> Unit,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset {
-                    IntOffset(result?.x ?: 0, result?.y ?: 0)
-                }
-        ) {
-            content()
         }
     }
 
