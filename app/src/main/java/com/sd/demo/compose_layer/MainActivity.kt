@@ -55,6 +55,12 @@ private fun Content(
         }
 
         Button(onClick = {
+            activity.startActivity(Intent(activity, SampleDropDown::class.java))
+        }) {
+            Text("Drop down")
+        }
+
+        Button(onClick = {
             activity.startActivity(Intent(activity, SampleOverflow::class.java))
         }) {
             Text("Overflow")

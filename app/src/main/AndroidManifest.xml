@@ -27,6 +27,7 @@
 
         <activity android:name="com.sd.demo.compose_layer.SampleAlignContainer" />
         <activity android:name="com.sd.demo.compose_layer.SampleAlignTarget" />
+        <activity android:name="com.sd.demo.compose_layer.SampleDropDown" />
         <activity android:name="com.sd.demo.compose_layer.SampleOverflow" />
         <activity android:name="com.sd.demo.compose_layer.SampleListMenu" />
 
