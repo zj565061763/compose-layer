@@ -224,10 +224,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 // 约束条件变化后，重新计算坐标
                 measureContent(Unit, checkConstraints, content).also { placeable ->
                     _aligner.reAlign(result, placeable.width, placeable.height).let {
+                        logMsg { "size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${it.x}, ${it.y})" }
                         x = it.x
                         y = it.y
                     }
-                    logMsg { "size:(${placeable.width}, ${placeable.height}) offset:($x, $y)" }
                 }
             } else {
                 originalPlaceable
