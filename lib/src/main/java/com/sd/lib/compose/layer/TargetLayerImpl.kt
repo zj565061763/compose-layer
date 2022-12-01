@@ -123,6 +123,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         val containerCoordinates = container.coordinate()
         val sourceCoordinates = source.coordinate()
 
+        val targetSize = target.size
+        val containerSize = container.size
+        val sourceSize = source.size
+
         val input = Aligner.Input(
             targetX = targetCoordinates.x.toInt(),
             targetY = targetCoordinates.y.toInt(),
@@ -130,12 +134,12 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             containerY = containerCoordinates.y.toInt(),
             sourceX = sourceCoordinates.x.toInt(),
             sourceY = sourceCoordinates.y.toInt(),
-            targetWidth = target.width(),
-            targetHeight = target.height(),
-            containerWidth = container.width(),
-            containerHeight = container.height(),
-            sourceWidth = source.width(),
-            sourceHeight = source.height(),
+            targetWidth = targetSize.width,
+            targetHeight = targetSize.height,
+            containerWidth = containerSize.width,
+            containerHeight = containerSize.height,
+            sourceWidth = sourceSize.width,
+            sourceHeight = sourceSize.height,
         )
 
         _aligner.setPosition(positionState.toAlignerPosition())
@@ -342,14 +346,6 @@ private fun LayoutCoordinates?.isReady(): Boolean {
 
 private fun LayoutCoordinates.coordinate(): Offset {
     return this.localToWindow(Offset.Zero)
-}
-
-private fun LayoutCoordinates.width(): Int {
-    return this.size.width
-}
-
-private fun LayoutCoordinates.height(): Int {
-    return this.size.height
 }
 
 private fun SubcomposeMeasureScope.placeable(
