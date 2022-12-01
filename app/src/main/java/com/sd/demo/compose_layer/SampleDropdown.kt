@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
@@ -14,9 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
@@ -41,10 +37,12 @@ class SampleDropdown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer = rememberTargetLayer()
-    LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.BottomCenter)
-        layer.setContent { LayerContent(isVisible, count = 5) }
+    val layerOverflow = rememberTargetLayer()
+    LaunchedEffect(layerOverflow) {
+        layerOverflow.setPosition(Layer.Position.BottomCenter)
+        layerOverflow.setContent {
+            LayerContent(isVisible)
+        }
     }
 
     val layerFixOverflow = rememberTargetLayer()
@@ -55,7 +53,9 @@ private fun Content() {
                     or TargetLayer.OverflowDirection.Start
                     or TargetLayer.OverflowDirection.End
         )
-        layerFixOverflow.setContent { LayerContent(isVisible, count = 50) }
+        layerFixOverflow.setContent {
+            LayerContent(isVisible)
+        }
     }
 
     Column(
@@ -74,26 +74,27 @@ private fun Content() {
         ) {
             Button(
                 onClick = {
-                    layerFixOverflow.run {
+                    layerOverflow.run {
                         setTarget("button1")
-                        attach()
+                        layerOverflow.attach()
                     }
+
                 },
                 modifier = Modifier.layerTarget("button1")
             ) {
-                Text("Attach1")
+                Text("Overflow")
             }
 
             Button(
                 onClick = {
-                    layer.run {
+                    layerFixOverflow.run {
                         setTarget("button2")
-                        layer.attach()
+                        attach()
                     }
                 },
                 modifier = Modifier.layerTarget("button2")
             ) {
-                Text("Attach2")
+                Text("Fix overflow")
             }
         }
     }
@@ -103,7 +104,6 @@ private fun Content() {
 @Composable
 private fun LayerContent(
     isVisible: Boolean,
-    count: Int,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -112,40 +112,9 @@ private fun LayerContent(
         exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
         modifier = modifier,
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-        ) {
-            items(count) { index ->
-                ListItem(index)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ListItem(
-    index: Int,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .background(Color.Red),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "start",
-        )
-        Text(
-            text = index.toString(),
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = "end",
+        VerticalList(
+            count = 50,
+            modifier = Modifier.navigationBarsPadding(),
         )
     }
 }
