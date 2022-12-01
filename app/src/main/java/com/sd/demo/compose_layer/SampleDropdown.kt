@@ -12,10 +12,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
@@ -23,6 +25,7 @@ import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.FLayerContainer
 import com.sd.lib.compose.layer.fLayerTarget
 import com.sd.lib.compose.layer.rememberFLayer
+import java.util.*
 
 class SampleDropdown : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +48,12 @@ private fun Content() {
     val layer = rememberFLayer()
     LaunchedEffect(layer) {
         layer.setPosition(FLayer.Position.BottomCenter)
-        layer.setFixOverflowDirection(
+    }
+
+    val layerFixOverflow = rememberFLayer()
+    LaunchedEffect(layerFixOverflow) {
+        layerFixOverflow.setPosition(FLayer.Position.BottomCenter)
+        layerFixOverflow.setFixOverflowDirection(
             FLayer.OverflowDirection.Bottom
                     or FLayer.OverflowDirection.Start
                     or FLayer.OverflowDirection.End
@@ -64,7 +72,7 @@ private fun Content() {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Button(
                 onClick = {
@@ -77,7 +85,6 @@ private fun Content() {
                 Text("Attach1")
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
             Button(
                 onClick = {
                     layer.setTarget("button2")
@@ -89,8 +96,37 @@ private fun Content() {
                 Text("Attach2")
             }
         }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Button(
+                onClick = {
+                    layerFixOverflow.setTarget("button_overflow_1")
+                    layerFixOverflow.setContent { LayerContent(isVisible, count = 50) }
+                    layerFixOverflow.attach()
+                },
+                modifier = Modifier.fLayerTarget("button_overflow_1")
+            ) {
+                Text("Attach1")
+            }
+
+            Button(
+                onClick = {
+                    layerFixOverflow.setTarget("button_overflow_2")
+                    layerFixOverflow.setContent { LayerContent(isVisible, count = 5) }
+                    layerFixOverflow.attach()
+                },
+                modifier = Modifier.fLayerTarget("button_overflow_2")
+            ) {
+                Text("Attach2")
+            }
+        }
     }
 }
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -111,18 +147,34 @@ private fun LayerContent(
                 .navigationBarsPadding()
         ) {
             items(count) { index ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(Color.Red)
-                ) {
-                    Text(
-                        index.toString(),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                ListItem(index)
             }
         }
+    }
+}
+
+@Composable
+private fun ListItem(
+    index: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(Color.Red),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "start",
+        )
+        Text(
+            text = index.toString(),
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = "end",
+        )
     }
 }
