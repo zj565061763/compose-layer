@@ -197,6 +197,7 @@ internal open class LayerImpl : Layer {
 
             val layerLayout = _layerLayoutCoordinates
             val contentLayout = _contentLayoutCoordinates
+
             if (layerLayout != null && contentLayout != null) {
                 val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
                 if (contentRect.contains(downPosition)) {
