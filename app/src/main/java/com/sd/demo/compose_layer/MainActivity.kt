@@ -55,6 +55,12 @@ private fun Content(
         }
 
         Button(onClick = {
+            activity.startActivity(Intent(activity, SampleDropdown::class.java))
+        }) {
+            Text("Drop down")
+        }
+
+        Button(onClick = {
             activity.startActivity(Intent(activity, SampleAlignTargetList::class.java))
         }) {
             Text("Align list")
