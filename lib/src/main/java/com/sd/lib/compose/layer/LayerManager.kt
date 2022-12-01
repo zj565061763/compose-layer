@@ -17,10 +17,7 @@ internal class LayerManager {
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
     private var _containerLayout: LayoutCoordinates? = null
-    private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates) -> Unit> = hashSetOf()
-
-    val containerLayout: LayoutCoordinates?
-        get() = _containerLayout
+    private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
 
     @Composable
     fun layer(): FLayer {
@@ -65,7 +62,7 @@ internal class LayerManager {
     fun detachLayer(layer: FLayer) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
-            layer.detachFromManager()
+            layer.detachFromManager(this)
         }
     }
 
@@ -76,12 +73,14 @@ internal class LayerManager {
         }
     }
 
-    fun registerContainerLayoutCallback(callback: (LayoutCoordinates) -> Unit) {
+    fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
         _containerLayoutCallbackHolder.add(callback)
+        callback(_containerLayout)
     }
 
-    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates) -> Unit) {
+    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
         _containerLayoutCallbackHolder.remove(callback)
+        callback(null)
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
@@ -111,12 +110,14 @@ internal class LayerManager {
             _targetLayoutCallbackHolder[tag] = it
         }
         holder.add(callback)
+        callback(_targetLayoutHolder[tag])
     }
 
     fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
         if (tag.isEmpty()) return
         val holder = _targetLayoutCallbackHolder[tag] ?: return
         if (holder.remove(callback)) {
+            callback(null)
             if (holder.isEmpty()) {
                 _targetLayoutCallbackHolder.remove(tag)
             }
