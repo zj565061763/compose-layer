@@ -282,9 +282,9 @@ class FLayer internal constructor() {
             _contentScopeImpl._isVisible = uiState.isVisible
         }
 
-        if (uiState.hasTarget) {
-            LayerBox(uiState.isVisible) {
-                BackgroundBox(uiState.isVisible)
+        LayerBox(uiState.isVisible) {
+            BackgroundBox(uiState.isVisible)
+            if (uiState.hasTarget) {
                 if (uiState.fixOverflowDirection == OverflowDirection.None) {
                     OffsetBox(uiState.alignerResult) {
                         ContentBox()
@@ -294,10 +294,7 @@ class FLayer internal constructor() {
                         ContentBox()
                     }
                 }
-            }
-        } else {
-            LayerBox(uiState.isVisible) {
-                BackgroundBox(uiState.isVisible)
+            } else {
                 ContentBox(modifier = Modifier.align(uiState.position.toAlignment()))
             }
         }
