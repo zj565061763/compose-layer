@@ -27,7 +27,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private var _alignerResult: Aligner.Result? = null
 
     private var _offsetTransform: (OffsetTransformScope.() -> IntOffset)? = null
-    private var _fixOverflowDirection by mutableStateOf(OverflowDirection.None)
+    private var _fixOverflowDirectionState by mutableStateOf(OverflowDirection.None)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -72,7 +72,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     override fun setFixOverflowDirection(direction: Int) {
-        _fixOverflowDirection = direction
+        _fixOverflowDirectionState = direction
     }
 
     override fun attach() {
@@ -172,7 +172,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         LayerBox(uiState.isVisible) {
-            if (_fixOverflowDirection == OverflowDirection.None) {
+            if (_fixOverflowDirectionState == OverflowDirection.None) {
                 OffsetBox(uiState.alignerResult) {
                     ContentBox()
                 }
@@ -189,7 +189,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
-        val fixOverflowDirection = _fixOverflowDirection
+        val fixOverflowDirection = _fixOverflowDirectionState
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
