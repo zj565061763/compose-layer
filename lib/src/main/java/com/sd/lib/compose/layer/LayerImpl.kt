@@ -216,7 +216,7 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    internal class ContentScopeImpl : ContentScope {
+    private class ContentScopeImpl : ContentScope {
         var _isVisible by mutableStateOf(false)
 
         override val isVisible: Boolean
