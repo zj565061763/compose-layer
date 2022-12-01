@@ -214,26 +214,16 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             // 原始大小
             val originalPlaceable = measureContent(null, cs, content)
             // 根据原始大小测量的结果
-            val originalResult = _aligner.align(
-                result.input.copy(
-                    sourceWidth = originalPlaceable.width,
-                    sourceHeight = originalPlaceable.height,
-                )
-            )
+            val originalResult = _aligner.reAlign(result, originalPlaceable.width, originalPlaceable.height)
 
-            val checkConstraints = checkOverflow(originalResult, fixOverflowDirection, cs).also {
+            val checkConstraints = checkOverflow(originalResult, cs, fixOverflowDirection).also {
                 overflowConstraints = it
             }
 
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
                 measureContent(Unit, checkConstraints, content).also { placeable ->
-                    _aligner.align(
-                        result.input.copy(
-                            sourceWidth = placeable.width,
-                            sourceHeight = placeable.height,
-                        )
-                    ).let {
+                    _aligner.reAlign(result, placeable.width, placeable.height).let {
                         x = it.x
                         y = it.y
                     }
@@ -251,60 +241,75 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     private fun checkOverflow(
         result: Aligner.Result,
+        cs: Constraints,
         fixOverflowDirection: Int,
-        cs: Constraints
     ): Constraints? {
         var resultConstraints: Constraints? = null
-        var csOverflow = cs
 
-        // 检查是否溢出
-        with(result.sourceOverflow) {
-            // Vertical
-            kotlin.run {
-                var overSize = 0
-                if (OverflowDirection.hasTop(fixOverflowDirection)) {
-                    if (top > 0) {
-                        overSize += top
-                        logMsg { "top overflow $top" }
+        var cs = cs
+        var result = result
+
+        while (true) {
+            var hasOverflow = false
+
+            // 检查是否溢出
+            with(result.sourceOverflow) {
+                // Vertical
+                kotlin.run {
+                    var overSize = 0
+                    if (OverflowDirection.hasTop(fixOverflowDirection)) {
+                        if (top > 0) {
+                            overSize += top
+                            logMsg { "top overflow $top" }
+                        }
+                    }
+                    if (OverflowDirection.hasBottom(fixOverflowDirection)) {
+                        if (bottom > 0) {
+                            overSize += bottom
+                            logMsg { "bottom overflow $bottom" }
+                        }
+                    }
+                    if (overSize > 0) {
+                        hasOverflow = true
+                        val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
+                        cs = cs.copy(maxHeight = maxSize).also {
+                            resultConstraints = it
+                        }
                     }
                 }
-                if (OverflowDirection.hasBottom(fixOverflowDirection)) {
-                    if (bottom > 0) {
-                        overSize += bottom
-                        logMsg { "bottom overflow $bottom" }
+
+                // Horizontal
+                kotlin.run {
+                    var overSize = 0
+                    if (OverflowDirection.hasStart(fixOverflowDirection)) {
+                        if (start > 0) {
+                            overSize += start
+                            logMsg { "start overflow $start" }
+                        }
                     }
-                }
-                if (overSize > 0) {
-                    val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                    csOverflow = csOverflow.copy(maxHeight = maxSize).also {
-                        resultConstraints = it
+                    if (OverflowDirection.hasEnd(fixOverflowDirection)) {
+                        if (end > 0) {
+                            overSize += end
+                            logMsg { "end overflow $end" }
+                        }
+                    }
+                    if (overSize > 0) {
+                        hasOverflow = true
+                        val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
+                        cs = cs.copy(maxWidth = maxSize).also {
+                            resultConstraints = it
+                        }
                     }
                 }
             }
 
-            // Horizontal
-            kotlin.run {
-                var overSize = 0
-                if (OverflowDirection.hasStart(fixOverflowDirection)) {
-                    if (start > 0) {
-                        overSize += start
-                        logMsg { "start overflow $start" }
-                    }
-                }
-                if (OverflowDirection.hasEnd(fixOverflowDirection)) {
-                    if (end > 0) {
-                        overSize += end
-                        logMsg { "end overflow $end" }
-                    }
-                }
-                if (overSize > 0) {
-                    val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                    csOverflow = csOverflow.copy(maxWidth = maxSize).also {
-                        resultConstraints = it
-                    }
-                }
+            if (hasOverflow) {
+                result = _aligner.reAlign(result, cs.maxWidth, cs.maxHeight)
+            } else {
+                break
             }
         }
+
         return resultConstraints
     }
 
@@ -349,6 +354,15 @@ private fun LayoutCoordinates?.isReady(): Boolean {
 
 private fun LayoutCoordinates.coordinate(): Offset {
     return this.localToWindow(Offset.Zero)
+}
+
+private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeight: Int): Aligner.Result {
+    return align(
+        result.input.copy(
+            sourceWidth = sourceWidth,
+            sourceHeight = sourceHeight,
+        )
+    )
 }
 
 private fun SubcomposeMeasureScope.measureContent(
