@@ -5,12 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
@@ -37,65 +34,30 @@ class SampleDropDown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layerOverflow = rememberTargetLayer()
-    LaunchedEffect(layerOverflow) {
-        layerOverflow.setPosition(Layer.Position.BottomCenter)
-        layerOverflow.setContent {
-            LayerContent(isVisible)
-        }
-    }
-
-    val layerFixOverflow = rememberTargetLayer()
-    LaunchedEffect(layerFixOverflow) {
-        layerFixOverflow.setPosition(Layer.Position.BottomCenter)
-        layerFixOverflow.setFixOverflowDirection(
-            TargetLayer.OverflowDirection.Bottom
-                    or TargetLayer.OverflowDirection.Start
-                    or TargetLayer.OverflowDirection.End
-        )
-        layerFixOverflow.setContent {
+    val layer = rememberTargetLayer()
+    LaunchedEffect(layer) {
+        layer.setPosition(Layer.Position.BottomCenter)
+        layer.setContent {
             LayerContent(isVisible)
         }
     }
 
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 10.dp),
     ) {
         Spacer(modifier = Modifier.height(300.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
+        Button(
+            onClick = {
+                layer.run {
+                    setTarget("button")
+                    layer.attach()
+                }
+            },
+            modifier = Modifier.layerTarget("button")
         ) {
-            Button(
-                onClick = {
-                    layerOverflow.run {
-                        setTarget("button1")
-                        layerOverflow.attach()
-                    }
-
-                },
-                modifier = Modifier.layerTarget("button1")
-            ) {
-                Text("Overflow")
-            }
-
-            Button(
-                onClick = {
-                    layerFixOverflow.run {
-                        setTarget("button2")
-                        attach()
-                    }
-                },
-                modifier = Modifier.layerTarget("button2")
-            ) {
-                Text("Fix overflow")
-            }
+            Text("Click")
         }
     }
 }
