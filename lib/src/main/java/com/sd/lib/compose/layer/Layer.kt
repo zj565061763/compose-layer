@@ -362,23 +362,45 @@ class FLayer internal constructor() {
 
             // 检查是否溢出
             with(originalResult.sourceOverflow) {
+                // Vertical
                 kotlin.run {
-                    var overHeight = 0
+                    var overSize = 0
                     if (OverflowDirection.hasTop(fixOverflowDirection)) {
                         if (top > 0) {
-                            overHeight += top
+                            overSize += top
                             logMsg { "top overflow $top" }
                         }
                     }
                     if (OverflowDirection.hasBottom(fixOverflowDirection)) {
                         if (bottom > 0) {
-                            overHeight += bottom
+                            overSize += bottom
                             logMsg { "bottom overflow $bottom" }
                         }
                     }
-                    if (overHeight > 0) {
-                        val maxHeight = (cs.maxHeight - overHeight).coerceAtLeast(1)
-                        constraints = constraints.copy(maxHeight = maxHeight)
+                    if (overSize > 0) {
+                        val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
+                        constraints = constraints.copy(maxHeight = maxSize)
+                    }
+                }
+
+                // Horizontal
+                kotlin.run {
+                    var overSize = 0
+                    if (OverflowDirection.hasStart(fixOverflowDirection)) {
+                        if (start > 0) {
+                            overSize += start
+                            logMsg { "start overflow $start" }
+                        }
+                    }
+                    if (OverflowDirection.hasEnd(fixOverflowDirection)) {
+                        if (end > 0) {
+                            overSize += end
+                            logMsg { "end overflow $end" }
+                        }
+                    }
+                    if (overSize > 0) {
+                        val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
+                        constraints = constraints.copy(maxWidth = maxSize)
                     }
                 }
             }
