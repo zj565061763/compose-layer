@@ -220,6 +220,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             if (result == null) {
                 val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
+                logMsg { "layout null result" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(0, 0, -1f)
                     placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
@@ -246,6 +247,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
+                logMsg { "layout detached" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
@@ -271,6 +273,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
+                logMsg { "layout null overflow direction" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
@@ -312,6 +315,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 content = background,
             )
 
+            logMsg { "layout last" }
             layout(cs.maxWidth, cs.maxHeight) {
                 backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                 placeable.placeRelative(x, y)
