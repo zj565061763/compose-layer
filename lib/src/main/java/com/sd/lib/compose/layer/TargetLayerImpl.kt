@@ -25,7 +25,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
     private var _alignerResult: Aligner.Result? = null
 
-    private var _offsetTransform: (OffsetTransformScope.(IntOffset) -> IntOffset)? = null
+    private var _offsetTransform: OffsetTransform? = null
     private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
     private var _clipBackgroundDirectionState: PlusDirection? by mutableStateOf(null)
 
@@ -67,7 +67,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _target = target
     }
 
-    override fun setOffsetTransform(transform: (OffsetTransformScope.(IntOffset) -> IntOffset)?) {
+    override fun setOffsetTransform(transform: OffsetTransform?) {
         _offsetTransform = transform
     }
 
@@ -118,12 +118,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private fun transformResult(result: Aligner.Result): Aligner.Result {
         val transform = _offsetTransform ?: return result
 
-        val transformScope = object : OffsetTransformScope {
+        val params = object : OffsetTransform.Params {
+            override val offset: IntOffset get() = IntOffset(result.x, result.y)
             override val contentSize: IntSize get() = IntSize(result.input.sourceWidth, result.input.sourceHeight)
             override val targetSize: IntSize get() = IntSize(result.input.targetWidth, result.input.targetHeight)
         }
 
-        val offset = transform.invoke(transformScope, IntOffset(result.x, result.y))
+        val offset = transform.transform(params)
         return result.copy(
             x = offset.x,
             y = offset.y

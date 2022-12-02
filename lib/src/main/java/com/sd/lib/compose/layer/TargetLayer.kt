@@ -12,7 +12,7 @@ interface TargetLayer : Layer {
     /**
      * 设置坐标转换
      */
-    fun setOffsetTransform(transform: (OffsetTransformScope.(IntOffset) -> IntOffset)?)
+    fun setOffsetTransform(transform: OffsetTransform?)
 
     /**
      * 设置修复溢出的方向[PlusDirection]
@@ -23,8 +23,16 @@ interface TargetLayer : Layer {
      * 设置要裁切背景的方向[PlusDirection]
      */
     fun setClipBackgroundDirection(direction: PlusDirection?)
+}
 
-    interface OffsetTransformScope {
+fun interface OffsetTransform {
+
+    fun transform(params: Params): IntOffset
+
+    interface Params {
+        /** 坐标 */
+        val offset: IntOffset
+
         /** 内容大小 */
         val contentSize: IntSize
 
