@@ -315,20 +315,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
     }
 
-    private fun backgroundPlaceInfo(
-        cs: Constraints,
-        contentOffset: IntOffset,
-        contentPlaceable: Placeable,
-        direction: PlusDirection?,
-    ): BackgroundPlaceInfo {
-        return BackgroundPlaceInfo(
-            x = 0,
-            y = 0,
-            width = cs.maxWidth,
-            height = cs.maxHeight,
-        )
-    }
-
     private fun checkOverflow(
         result: Aligner.Result,
         cs: Constraints,
@@ -440,6 +426,46 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         return resultConstraints
+    }
+
+    private fun backgroundPlaceInfo(
+        cs: Constraints,
+        contentOffset: IntOffset,
+        contentPlaceable: Placeable,
+        direction: PlusDirection?,
+    ): BackgroundPlaceInfo {
+        if (direction == null) {
+            return BackgroundPlaceInfo(
+                x = 0,
+                y = 0,
+                width = cs.maxWidth,
+                height = cs.maxHeight,
+            )
+        }
+
+        val contentX = contentOffset.x.coerceAtLeast(0)
+        val contentY = contentOffset.y.coerceAtLeast(0)
+
+        var x = 0
+        var y = 0
+        var width = cs.maxWidth
+        var height = cs.maxHeight
+
+        if (direction.hasTop()) {
+            height -= contentY
+            y = contentY
+        }
+
+        if (direction.hasBottom()) {
+            height -= (cs.maxHeight - contentY - contentPlaceable.height)
+        }
+
+        return BackgroundPlaceInfo(
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+        )
     }
 
     private data class UiState(
