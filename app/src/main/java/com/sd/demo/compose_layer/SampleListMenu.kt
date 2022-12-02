@@ -51,7 +51,6 @@ private fun Content() {
         Modifier
             .fillMaxSize()
             .navigationBarsPadding(),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         items(50) { index ->
             Box(
@@ -80,7 +79,7 @@ private fun Content() {
 private fun createLayer(): TargetLayer {
     val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.BottomStart)
+        layer.setPosition(Layer.Position.Bottom)
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false)
         }
