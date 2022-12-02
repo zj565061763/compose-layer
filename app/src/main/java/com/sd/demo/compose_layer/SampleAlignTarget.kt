@@ -116,7 +116,9 @@ private fun TargetView(
                         .size(150.dp)
                         .background(Color.LightGray)
                         .layerTarget(target)
-                )
+                ) {
+                    Text(text = "Target", modifier = Modifier.align(Alignment.Center))
+                }
             }
 
             Button(
