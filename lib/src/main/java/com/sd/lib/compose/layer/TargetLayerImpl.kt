@@ -271,15 +271,14 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 }
             }
 
-            val checkConstraints = checkOverflow(originalResult, cs, fixOverflowDirection)
-            val placeable = if (checkConstraints != null) {
-                // 约束条件变化后，重新计算坐标
-                measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
-                    _aligner.reAlign(originalResult, placeable.width, placeable.height).let {
-                        logMsg { "size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${it.x}, ${it.y})" }
-                        x = it.x
-                        y = it.y
+            val (fixedConstraints, fixedResult) = checkOverflow(originalResult, cs, fixOverflowDirection)
+            val placeable = if (fixedConstraints != null) {
+                measureContent(OffsetBoxSlotId.Content, fixedConstraints, content).also { placeable ->
+                    logMsg {
+                        "fixed size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${fixedResult.x}, ${fixedResult.y})"
                     }
+                    x = fixedResult.x
+                    y = fixedResult.y
                 }
             } else {
                 originalPlaceable
@@ -301,7 +300,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             layout(cs.maxWidth, cs.maxHeight) {
                 visibleBackgroundInfo = backgroundInfo
                 visibleOffset = IntOffset(x, y)
-                visibleConstraints = checkConstraints
+                visibleConstraints = fixedConstraints
                 backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
                 placeable.placeRelative(x, y)
             }
@@ -312,7 +311,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         result: Aligner.Result,
         cs: Constraints,
         direction: PlusDirection,
-    ): Constraints? {
+    ): Pair<Constraints?, Aligner.Result> {
         var resultConstraints: Constraints? = null
 
         var cs = cs
@@ -418,7 +417,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             logMsg { "checkOverflow -----> ${++count}" }
         }
 
-        return resultConstraints
+        return Pair(resultConstraints, result)
     }
 
     private fun backgroundPlaceInfo(
