@@ -281,7 +281,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     y = fixedResult.y
                 }
             } else {
-                originalPlaceable
+                measureContent(OffsetBoxSlotId.Content, cs, content)
             }
 
             val backgroundInfo = backgroundPlaceInfo(
