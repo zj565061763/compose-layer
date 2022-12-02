@@ -102,7 +102,7 @@ interface Layer {
         val consumeTouchOutside: Boolean = true,
 
         /** 背景颜色 */
-        val backgroundColor: Color = Color.Black.copy(alpha = 0.25f)
+        val backgroundColor: Color = Color.Black.copy(alpha = 0.3f)
     )
 
     interface ContentScope {
