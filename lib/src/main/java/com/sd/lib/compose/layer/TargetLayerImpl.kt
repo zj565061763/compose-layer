@@ -354,7 +354,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                         /**
                          * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
                          */
-                        if (positionState.isCenterVertical) {
+                        if (positionState.isCenterVertical()) {
                             if (isTopOverflow && isBottomOverflow) {
                             } else {
                                 overSize *= 2
@@ -396,7 +396,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                         /**
                          * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
                          */
-                        if (positionState.isCenterHorizontal) {
+                        if (positionState.isCenterHorizontal()) {
                             if (isStartOverflow && isEndOverflow) {
                             } else {
                                 overSize *= 2
@@ -557,27 +557,21 @@ private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeig
     )
 }
 
-private val Layer.Position.isCenterVertical: Boolean
-    get() {
-        return when (this) {
-            Layer.Position.StartCenter,
-            Layer.Position.EndCenter,
-            Layer.Position.Center,
-            -> true
-            else -> false
-        }
-    }
+private fun Layer.Position.isCenterVertical(): Boolean = when (this) {
+    Layer.Position.StartCenter,
+    Layer.Position.EndCenter,
+    Layer.Position.Center,
+    -> true
+    else -> false
+}
 
-private val Layer.Position.isCenterHorizontal: Boolean
-    get() {
-        return when (this) {
-            Layer.Position.TopCenter,
-            Layer.Position.BottomCenter,
-            Layer.Position.Center,
-            -> true
-            else -> false
-        }
-    }
+private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
+    Layer.Position.TopCenter,
+    Layer.Position.BottomCenter,
+    Layer.Position.Center,
+    -> true
+    else -> false
+}
 
 private fun SubcomposeMeasureScope.measureContent(
     slotId: Any?,
