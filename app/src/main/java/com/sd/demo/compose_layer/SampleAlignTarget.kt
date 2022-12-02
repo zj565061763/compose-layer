@@ -110,6 +110,14 @@ private fun TargetView(
         Box(modifier = Modifier.height(400.dp))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Button(
+                onClick = {
+                    showTarget = !showTarget
+                },
+            ) {
+                Text(if (showTarget) "Hide Target" else "Show Target")
+            }
+
             if (showTarget) {
                 Box(
                     modifier = Modifier
@@ -119,14 +127,6 @@ private fun TargetView(
                 ) {
                     Text(text = "Target", modifier = Modifier.align(Alignment.Center))
                 }
-            }
-
-            Button(
-                onClick = {
-                    showTarget = !showTarget
-                },
-            ) {
-                Text(if (showTarget) "Hide target" else "Show target")
             }
         }
 
@@ -237,7 +237,8 @@ private fun ButtonRow(
                 onClick = {
                     onClick(it)
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(0.dp)
             ) {
                 Text(text = it)
             }
