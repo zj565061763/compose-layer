@@ -184,8 +184,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         content: @Composable () -> Unit,
     ) {
         var visibleBackgroundInfo: BackgroundPlaceInfo? by remember { mutableStateOf(null) }
-        var visibleConstraints: Constraints? by remember { mutableStateOf(null) }
         var visibleOffset by remember { mutableStateOf(IntOffset.Zero) }
+        var visibleConstraints: Constraints? by remember { mutableStateOf(null) }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
@@ -210,8 +210,19 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             }
 
 
+            val fixOverflowDirection = _fixOverflowDirectionState
+
+
             // 测量原始信息
-            val originalPlaceable = measureContent(null, cs, content)
+            val originalPlaceable = measureContent(
+                slotId = if (fixOverflowDirection == null) {
+                    // 如果不需要修复溢出的话，则用正式的slotId测量
+                    OffsetBoxSlotId.Content
+                } else null,
+                constraints = cs,
+                content = content
+            )
+
             val originalSize = IntSize(originalPlaceable.width, originalPlaceable.height)
             val originalResult = alignTarget(
                 position = positionState,
@@ -225,8 +236,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 logMsg { "layout null result size:$originalSize" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     visibleBackgroundInfo = null
-                    visibleConstraints = cs
                     visibleOffset = IntOffset.Zero
+                    visibleConstraints = cs
                     backgroundPlaceable?.place(0, 0, -1f)
                     originalPlaceable.place(Int.MIN_VALUE, Int.MIN_VALUE)
                 }
@@ -237,18 +248,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             var y = originalResult.y
 
 
-            val fixOverflowDirection = _fixOverflowDirectionState
             if (fixOverflowDirection == null) {
-                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content).also {
-                    visibleConstraints = null
-                }
-
                 val backgroundInfo = backgroundPlaceInfo(
                     cs = cs,
                     contentOffset = IntOffset(x, y),
-                    contentSize = IntSize(placeable.width, placeable.height),
+                    contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
                     direction = _clipBackgroundDirectionState,
-                ).also { visibleBackgroundInfo = it }
+                )
                 val backgroundPlaceable = measureBackground(
                     slotId = OffsetBoxSlotId.Background,
                     constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -257,16 +263,15 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
                 logMsg { "layout none overflow direction" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    visibleBackgroundInfo = backgroundInfo
                     visibleOffset = IntOffset(x, y)
+                    visibleConstraints = cs
                     backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
-                    placeable.placeRelative(x, y)
+                    originalPlaceable.placeRelative(x, y)
                 }
             }
 
-            val checkConstraints = checkOverflow(originalResult, cs, fixOverflowDirection).also {
-                visibleConstraints = it
-            }
-
+            val checkConstraints = checkOverflow(originalResult, cs, fixOverflowDirection)
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
                 measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
@@ -285,7 +290,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(placeable.width, placeable.height),
                 direction = _clipBackgroundDirectionState,
-            ).also { visibleBackgroundInfo = it }
+            )
             val backgroundPlaceable = measureBackground(
                 slotId = OffsetBoxSlotId.Background,
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -294,7 +299,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             logMsg { "layout last" }
             layout(cs.maxWidth, cs.maxHeight) {
+                visibleBackgroundInfo = backgroundInfo
                 visibleOffset = IntOffset(x, y)
+                visibleConstraints = checkConstraints
                 backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
                 placeable.placeRelative(x, y)
             }
