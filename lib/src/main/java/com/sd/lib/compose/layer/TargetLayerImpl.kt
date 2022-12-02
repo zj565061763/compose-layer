@@ -249,6 +249,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 val size = IntSize(placeable.width, placeable.height).also {
                     _contentSize = it
                 }
+                logMsg { "layout init result size:$size" }
                 alignTarget(size)
             }
 
