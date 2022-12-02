@@ -143,7 +143,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
         val targetCoordinates = target.coordinate()
         val containerCoordinates = container.coordinate()
-        val sourceCoordinates = source.coordinate()
 
         val targetSize = target.size
         val containerSize = container.size
@@ -155,8 +154,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             targetY = targetCoordinates.y.toInt(),
             containerX = containerCoordinates.x.toInt(),
             containerY = containerCoordinates.y.toInt(),
-            sourceX = sourceCoordinates.x.toInt(),
-            sourceY = sourceCoordinates.y.toInt(),
             targetWidth = targetSize.width,
             targetHeight = targetSize.height,
             containerWidth = containerSize.width,
