@@ -139,13 +139,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     private fun updateUiState() {
-        val isVisible = if (_isAttached) {
-            if (_target.isEmpty()) {
-                true
-            } else {
-                _targetLayoutCoordinates.isReady()
-            }
-        } else false
+        val isVisible = if (_isAttached) _targetLayoutCoordinates.isReady() else false
 
         _uiState.value = UiState(
             isVisible = isVisible,
