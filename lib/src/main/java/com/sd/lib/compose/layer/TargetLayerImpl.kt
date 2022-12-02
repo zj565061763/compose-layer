@@ -27,6 +27,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     private var _offsetTransform: (OffsetTransformScope.(IntOffset) -> IntOffset)? = null
     private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
+    private var _clipBackgroundDirectionState: PlusDirection? by mutableStateOf(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -72,6 +73,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     override fun setFixOverflowDirection(direction: PlusDirection?) {
         _fixOverflowDirectionState = direction
+    }
+
+    override fun setClipBackgroundDirection(direction: PlusDirection?) {
+        _clipBackgroundDirectionState = direction
     }
 
     override fun attach() {

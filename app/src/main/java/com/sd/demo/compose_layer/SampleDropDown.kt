@@ -17,10 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Layer
-import com.sd.lib.compose.layer.LayerContainer
-import com.sd.lib.compose.layer.layerTarget
-import com.sd.lib.compose.layer.rememberTargetLayer
+import com.sd.lib.compose.layer.*
 
 class SampleDropDown : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +42,7 @@ private fun Content() {
         layer.setPosition(Layer.Position.BottomCenter)
         layer.setOffsetTransform { it.copy(x = 0) }
         layer.setClipToBounds(true)
+        layer.setClipBackgroundDirection(PlusDirection.Top)
         layer.setContent {
             LayerContent(isVisible)
         }

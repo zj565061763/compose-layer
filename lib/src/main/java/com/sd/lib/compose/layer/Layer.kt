@@ -129,6 +129,11 @@ interface TargetLayer : Layer {
      */
     fun setFixOverflowDirection(direction: PlusDirection?)
 
+    /**
+     * 设置要裁切背景的方向[PlusDirection]
+     */
+    fun setClipBackgroundDirection(direction: PlusDirection?)
+
     interface OffsetTransformScope {
         /** 内容大小 */
         val contentSize: IntSize
