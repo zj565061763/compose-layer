@@ -224,7 +224,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 val backgroundPlaceInfo = lastBackgroundPlaceInfo ?: backgroundPlaceInfo(
                     cs = cs,
                     contentOffset = IntOffset(x, y),
-                    contentPlaceable = placeable,
+                    contentSize = IntSize(placeable.width, placeable.height),
                     direction = _clipBackgroundDirectionState,
                 )
                 val backgroundPlaceable = measureBackground(
@@ -275,7 +275,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 val backgroundPlaceInfo = backgroundPlaceInfo(
                     cs = cs,
                     contentOffset = IntOffset(x, y),
-                    contentPlaceable = placeable,
+                    contentSize = IntSize(placeable.width, placeable.height),
                     direction = _clipBackgroundDirectionState,
                 ).also { lastBackgroundPlaceInfo = it }
                 val backgroundPlaceable = measureBackground(
@@ -317,7 +317,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val backgroundPlaceInfo = backgroundPlaceInfo(
                 cs = cs,
                 contentOffset = IntOffset(x, y),
-                contentPlaceable = placeable,
+                contentSize = IntSize(placeable.width, placeable.height),
                 direction = _clipBackgroundDirectionState,
             ).also { lastBackgroundPlaceInfo = it }
             val backgroundPlaceable = measureBackground(
@@ -450,10 +450,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private fun backgroundPlaceInfo(
         cs: Constraints,
         contentOffset: IntOffset,
-        contentPlaceable: Placeable,
+        contentSize: IntSize,
         direction: PlusDirection?,
     ): BackgroundPlaceInfo {
-        if (direction == null) {
+        if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
             return BackgroundPlaceInfo(
                 x = 0,
                 y = 0,
@@ -475,7 +475,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             y = contentY
         }
         if (direction.hasBottom()) {
-            height -= (cs.maxHeight - contentY - contentPlaceable.height)
+            height -= (cs.maxHeight - contentY - contentSize.height)
         }
 
         if (direction.hasStart()) {
@@ -483,14 +483,14 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             x = contentX
         }
         if (direction.hasEnd()) {
-            width -= (cs.maxWidth - contentX - contentPlaceable.width)
+            width -= (cs.maxWidth - contentX - contentSize.width)
         }
 
         return BackgroundPlaceInfo(
             x = x,
             y = y,
-            width = width,
-            height = height,
+            width = width.coerceAtLeast(0),
+            height = height.coerceAtLeast(0),
         )
     }
 
