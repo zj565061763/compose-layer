@@ -43,7 +43,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
     private var _contentSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            updateOffset()
+            logMsg { "contentSize (${newValue.width}, ${newValue.height})" }
         }
     }
 
@@ -102,29 +102,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     /**
      * 计算位置
      */
-    private fun updateOffset(
-        contentSize: IntSize? = null
-    ) {
-        alignTarget(contentSize)?.let {
-            _alignerResult = transformResult(it)
-        }
+    private fun updateOffset() {
+        alignTarget()
         updateUiState()
-    }
-
-    private fun transformResult(result: Aligner.Result): Aligner.Result {
-        val transform = _offsetTransform ?: return result
-
-        val params = object : OffsetTransform.Params {
-            override val offset: IntOffset get() = IntOffset(result.x, result.y)
-            override val contentSize: IntSize get() = IntSize(result.input.sourceWidth, result.input.sourceHeight)
-            override val targetSize: IntSize get() = IntSize(result.input.targetWidth, result.input.targetHeight)
-        }
-
-        val offset = transform.transform(params)
-        return result.copy(
-            x = offset.x,
-            y = offset.y
-        )
     }
 
     private fun alignTarget(
@@ -159,7 +139,26 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             sourceHeight = sourceSize.height,
         )
 
-        return _aligner.align(input)
+        val result = _aligner.align(input)
+        return transformResult(result).also {
+            _alignerResult = it
+        }
+    }
+
+    private fun transformResult(result: Aligner.Result): Aligner.Result {
+        val transform = _offsetTransform ?: return result
+
+        val params = object : OffsetTransform.Params {
+            override val offset: IntOffset get() = IntOffset(result.x, result.y)
+            override val contentSize: IntSize get() = IntSize(result.input.sourceWidth, result.input.sourceHeight)
+            override val targetSize: IntSize get() = IntSize(result.input.targetWidth, result.input.targetHeight)
+        }
+
+        val offset = transform.transform(params)
+        return result.copy(
+            x = offset.x,
+            y = offset.y
+        )
     }
 
     private fun updateUiState() {
@@ -187,6 +186,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
         LayerBox(uiState.isVisible) {
             OffsetBox(
+                isVisible = uiState.isVisible,
                 result = uiState.alignerResult,
                 background = {
                     BackgroundBox(uiState.isVisible)
@@ -204,6 +204,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     @Composable
     private fun OffsetBox(
+        isVisible: Boolean,
         result: Aligner.Result?,
         background: @Composable () -> Unit,
         content: @Composable () -> Unit,
@@ -215,23 +216,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
 
-            if (result == null) {
-                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
-                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
-                logMsg { "layout null result" }
-                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    backgroundPlaceable?.place(0, 0, -1f)
-                    placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
-                }
-            }
-
-
-            var x = result.x
-            var y = result.y
-
-
-            if (!_isAttached) {
+            if (!isVisible) {
                 val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
+                val x = result?.x ?: 0
+                val y = result?.y ?: 0
 
                 val backgroundPlaceInfo = lastBackgroundPlaceInfo ?: backgroundPlaceInfo(
                     cs = cs,
@@ -245,12 +233,37 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
-                logMsg { "layout detached" }
+                logMsg { "layout invisible ($x, $y)" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
                 }
             }
+
+
+            var nullResultPlaceable: Placeable? = null
+            val result = result ?: kotlin.run {
+                val placeable = measureContent(null, cs, content).also {
+                    nullResultPlaceable = it
+                }
+                val size = IntSize(placeable.width, placeable.height).also {
+                    _contentSize = it
+                }
+                alignTarget(size)
+            }
+
+            if (result == null) {
+                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
+                logMsg { "layout null result size:$_contentSize" }
+                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    backgroundPlaceable?.place(0, 0, -1f)
+                    nullResultPlaceable?.place(Int.MIN_VALUE, Int.MIN_VALUE)
+                }
+            }
+
+
+            var x = result.x
+            var y = result.y
 
 
             val fixOverflowDirection = _fixOverflowDirectionState
@@ -271,7 +284,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
-                logMsg { "layout null overflow direction" }
+                logMsg { "layout none overflow direction" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
@@ -280,7 +293,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
 
             // 原始大小
-            val originalPlaceable = measureContent(null, cs, content)
+            val originalPlaceable = nullResultPlaceable ?: measureContent(null, cs, content)
             // 根据原始大小测量的结果
             val originalResult = _aligner.reAlign(result, originalPlaceable.width, originalPlaceable.height)
 
