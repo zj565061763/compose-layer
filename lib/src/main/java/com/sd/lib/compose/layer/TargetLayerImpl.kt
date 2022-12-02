@@ -96,7 +96,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     ): Aligner.Result? {
         if (!target.isReady) return null
         if (!container.isReady) return null
-        if (!contentSize.isReady) return null
+        if (!contentSize.isReady()) return null
 
         val targetOffset = target.offset
         val containerOffset = container.offset
@@ -546,8 +546,7 @@ private fun LayoutCoordinates?.offset(): IntOffset {
     return IntOffset(offset.x.toInt(), offset.y.toInt())
 }
 
-private val IntSize.isReady: Boolean
-    get() = this.width > 0 && this.height > 0
+private fun IntSize.isReady(): Boolean = this.width > 0 && this.height > 0
 
 private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeight: Int): Aligner.Result {
     return align(
