@@ -8,10 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +32,7 @@ class SampleAlignTarget : ComponentActivity() {
             }
 
             AppTheme {
-                Surface(color = MaterialTheme.colors.background) {
+                Surface {
                     LayerContainer(modifier = Modifier.fillMaxSize()) {
                         Content()
                     }
@@ -148,122 +146,97 @@ private fun ButtonsView(
     ) {
         // Top
         ButtonRow(
-            start = "TopStart",
-            center = "TopCenter",
-            end = "TopEnd",
-            onClickStart = {
-                onClick(Layer.Position.TopStart)
-            },
-            onClickCenter = {
-                onClick(Layer.Position.TopCenter)
-            },
-            onClickEnd = {
-                onClick(Layer.Position.TopEnd)
-            },
+            list = listOf(
+                Layer.Position.TopStart.name,
+                Layer.Position.TopCenter.name,
+                Layer.Position.TopEnd.name,
+            ),
+            onClick = {
+                onClick(Layer.Position.valueOf(it))
+            }
         )
 
         // Bottom
         ButtonRow(
-            start = "BottomStart",
-            center = "BottomCenter",
-            end = "BottomEnd",
-            onClickStart = {
-                onClick(Layer.Position.BottomStart)
-            },
-            onClickCenter = {
-                onClick(Layer.Position.BottomCenter)
-            },
-            onClickEnd = {
-                onClick(Layer.Position.BottomEnd)
-            },
+            list = listOf(
+                Layer.Position.BottomStart.name,
+                Layer.Position.BottomCenter.name,
+                Layer.Position.BottomEnd.name,
+            ),
+            onClick = {
+                onClick(Layer.Position.valueOf(it))
+            }
         )
 
         // Center
         ButtonRow(
-            start = "",
-            center = "Center",
-            end = "Detach",
-            onClickStart = {},
-            onClickCenter = {
-                onClick(Layer.Position.Center)
-            },
-            onClickEnd = {
-                onClickDetach()
-            },
+            list = listOf(
+                Layer.Position.Top.name,
+                Layer.Position.Bottom.name,
+                Layer.Position.Center.name,
+                Layer.Position.Start.name,
+                Layer.Position.End.name,
+            ),
+            onClick = {
+                onClick(Layer.Position.valueOf(it))
+            }
         )
 
         // Start
         ButtonRow(
-            start = "StartTop",
-            center = "StartCenter",
-            end = "StartBottom",
-            onClickStart = {
-                onClick(Layer.Position.StartTop)
-            },
-            onClickCenter = {
-                onClick(Layer.Position.StartCenter)
-            },
-            onClickEnd = {
-                onClick(Layer.Position.StartBottom)
-            },
+            list = listOf(
+                Layer.Position.StartTop.name,
+                Layer.Position.StartCenter.name,
+                Layer.Position.StartBottom.name,
+            ),
+            onClick = {
+                onClick(Layer.Position.valueOf(it))
+            }
         )
 
         // End
         ButtonRow(
-            start = "EndTop",
-            center = "EndCenter",
-            end = "EndBottom",
-            onClickStart = {
-                onClick(Layer.Position.EndTop)
-            },
-            onClickCenter = {
-                onClick(Layer.Position.EndCenter)
-            },
-            onClickEnd = {
-                onClick(Layer.Position.EndBottom)
-            },
+            list = listOf(
+                Layer.Position.EndTop.name,
+                Layer.Position.EndCenter.name,
+                Layer.Position.EndBottom.name,
+            ),
+            onClick = {
+                onClick(Layer.Position.valueOf(it))
+            }
         )
+
+        Button(
+            onClick = {
+                onClickDetach()
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Text(text = "Detach")
+        }
     }
 }
 
 @Composable
 private fun ButtonRow(
     modifier: Modifier = Modifier,
-    start: String,
-    center: String,
-    end: String,
-    onClickStart: () -> Unit,
-    onClickCenter: () -> Unit,
-    onClickEnd: () -> Unit,
+    list: List<String>,
+    onClick: (String) -> Unit,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        if (start.isNotEmpty()) {
+        list.forEach {
             Button(
-                onClick = onClickStart
+                onClick = {
+                    onClick(it)
+                }
             ) {
-                Text(text = start)
-            }
-        }
-
-        if (center.isNotEmpty()) {
-            Spacer(modifier = Modifier.width(5.dp))
-            Button(
-                onClick = onClickCenter,
-            ) {
-                Text(text = center)
-            }
-            Spacer(modifier = Modifier.width(5.dp))
-        }
-
-        if (end.isNotEmpty()) {
-            Button(
-                onClick = onClickEnd
-            ) {
-                Text(text = end)
+                Text(text = it)
             }
         }
     }
