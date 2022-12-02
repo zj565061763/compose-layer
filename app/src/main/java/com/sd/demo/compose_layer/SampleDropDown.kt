@@ -39,8 +39,7 @@ class SampleDropDown : ComponentActivity() {
 private fun Content() {
     val layer = rememberTargetLayer()
     LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.BottomCenter)
-        layer.setOffsetTransform { it.offset.copy(x = 0) }
+        layer.setPosition(Layer.Position.Bottom)
         layer.setClipToBounds(true)
         layer.setClipBackgroundDirection(PlusDirection.Top)
         layer.setContent {

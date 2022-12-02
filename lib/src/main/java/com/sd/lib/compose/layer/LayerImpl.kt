@@ -241,15 +241,15 @@ internal open class LayerImpl : Layer {
 private fun Position.toAlignment(): Alignment {
     return when (this) {
         Position.TopStart, Position.StartTop -> Alignment.TopStart
-        Position.TopCenter -> Alignment.TopCenter
+        Position.TopCenter, Position.Top -> Alignment.TopCenter
         Position.TopEnd, Position.EndTop -> Alignment.TopEnd
 
-        Position.StartCenter -> Alignment.CenterStart
+        Position.StartCenter, Position.Start -> Alignment.CenterStart
         Position.Center -> Alignment.Center
-        Position.EndCenter -> Alignment.CenterEnd
+        Position.EndCenter, Position.End -> Alignment.CenterEnd
 
         Position.BottomStart, Position.StartBottom -> Alignment.BottomStart
-        Position.BottomCenter -> Alignment.BottomCenter
+        Position.BottomCenter, Position.Bottom -> Alignment.BottomCenter
         Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
     }
 }

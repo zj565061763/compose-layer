@@ -502,18 +502,22 @@ private fun Layer.Position.toAlignerPosition(): Aligner.Position {
         Layer.Position.TopStart -> Aligner.Position.TopStart
         Layer.Position.TopCenter -> Aligner.Position.TopCenter
         Layer.Position.TopEnd -> Aligner.Position.TopEnd
+        Layer.Position.Top -> Aligner.Position.Top
 
         Layer.Position.BottomStart -> Aligner.Position.BottomStart
         Layer.Position.BottomCenter -> Aligner.Position.BottomCenter
         Layer.Position.BottomEnd -> Aligner.Position.BottomEnd
+        Layer.Position.Bottom -> Aligner.Position.Bottom
 
         Layer.Position.StartTop -> Aligner.Position.StartTop
         Layer.Position.StartCenter -> Aligner.Position.StartCenter
         Layer.Position.StartBottom -> Aligner.Position.StartBottom
+        Layer.Position.Start -> Aligner.Position.Start
 
         Layer.Position.EndTop -> Aligner.Position.EndTop
         Layer.Position.EndCenter -> Aligner.Position.EndCenter
         Layer.Position.EndBottom -> Aligner.Position.EndBottom
+        Layer.Position.End -> Aligner.Position.End
 
         Layer.Position.Center -> Aligner.Position.Center
     }
