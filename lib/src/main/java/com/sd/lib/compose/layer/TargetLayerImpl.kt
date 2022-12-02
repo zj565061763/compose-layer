@@ -214,6 +214,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
+
             if (result == null) {
                 val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
@@ -223,27 +224,55 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 }
             }
 
+
             var x = result.x
             var y = result.y
 
+
             if (!_isAttached) {
-                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
+
+                val backgroundPlaceInfo = backgroundPlaceInfo(
+                    cs = cs,
+                    contentOffset = IntOffset(x, y),
+                    contentPlaceable = placeable,
+                    direction = _clipBackgroundDirectionState,
+                )
+                val backgroundPlaceable = measureBackground(
+                    slotId = OffsetBoxSlotId.Background,
+                    constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
+                    content = background,
+                )
+
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    backgroundPlaceable?.place(0, 0, -1f)
+                    backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
                 }
             }
 
+
             val fixOverflowDirection = _fixOverflowDirectionState
             if (fixOverflowDirection == null) {
-                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
+
+                val backgroundPlaceInfo = backgroundPlaceInfo(
+                    cs = cs,
+                    contentOffset = IntOffset(x, y),
+                    contentPlaceable = placeable,
+                    direction = _clipBackgroundDirectionState,
+                )
+                val backgroundPlaceable = measureBackground(
+                    slotId = OffsetBoxSlotId.Background,
+                    constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
+                    content = background,
+                )
+
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    backgroundPlaceable?.place(0, 0, -1f)
+                    backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                     placeable.placeRelative(x, y)
                 }
             }
+
 
             // 原始大小
             val originalPlaceable = measureContent(null, cs, content)
@@ -254,7 +283,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 overflowConstraints = it
             }
 
-            val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
                 measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
@@ -268,11 +296,37 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 originalPlaceable
             }
 
+            val backgroundPlaceInfo = backgroundPlaceInfo(
+                cs = cs,
+                contentOffset = IntOffset(x, y),
+                contentPlaceable = placeable,
+                direction = _clipBackgroundDirectionState,
+            )
+            val backgroundPlaceable = measureBackground(
+                slotId = OffsetBoxSlotId.Background,
+                constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
+                content = background,
+            )
+
             layout(cs.maxWidth, cs.maxHeight) {
-                backgroundPlaceable?.place(0, 0, -1f)
+                backgroundPlaceable?.place(backgroundPlaceInfo.x, backgroundPlaceInfo.y, -1f)
                 placeable.placeRelative(x, y)
             }
         }
+    }
+
+    private fun backgroundPlaceInfo(
+        cs: Constraints,
+        contentOffset: IntOffset,
+        contentPlaceable: Placeable,
+        direction: PlusDirection?,
+    ): BackgroundPlaceInfo {
+        return BackgroundPlaceInfo(
+            x = 0,
+            y = 0,
+            width = cs.maxWidth,
+            height = cs.maxHeight,
+        )
     }
 
     private fun checkOverflow(
@@ -398,6 +452,13 @@ private enum class OffsetBoxSlotId {
     Content,
     Background,
 }
+
+private data class BackgroundPlaceInfo(
+    val x: Int,
+    val y: Int,
+    val width: Int,
+    val height: Int,
+)
 
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
     return when (this) {
