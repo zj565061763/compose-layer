@@ -3,9 +3,7 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -76,8 +74,8 @@ private fun LayerContent(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn(),
-        exit = fadeOut(),
+        enter = fadeIn() + slideInVertically { -it },
+        exit = fadeOut() + slideOutVertically { -it },
         modifier = modifier,
     ) {
         VerticalList(
