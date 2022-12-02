@@ -238,7 +238,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     contentOffset = IntOffset(x, y),
                     contentPlaceable = placeable,
                     direction = _clipBackgroundDirectionState,
-                ).also { lastBackgroundPlaceInfo = it }
+                )
                 val backgroundPlaceable = measureBackground(
                     slotId = OffsetBoxSlotId.Background,
                     constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
@@ -254,7 +254,9 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             val fixOverflowDirection = _fixOverflowDirectionState
             if (fixOverflowDirection == null) {
-                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
+                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content).also {
+                    overflowConstraints = null
+                }
 
                 val backgroundPlaceInfo = backgroundPlaceInfo(
                     cs = cs,
