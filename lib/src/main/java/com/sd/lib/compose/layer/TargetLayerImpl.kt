@@ -18,9 +18,7 @@ import kotlin.properties.Delegates
 
 internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private val _uiState = MutableStateFlow(UiState())
-
     private val _aligner = FAligner()
-    private var _alignerResult: Aligner.Result? = null
 
     private var _offsetTransform: OffsetTransform? = null
     private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
@@ -36,15 +34,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        updateOffset()
+        updateUiState()
     }
     private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        updateOffset()
-    }
-    private var _contentSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
-        if (oldValue != newValue) {
-            logMsg { "contentSize (${newValue.width}, ${newValue.height})" }
-        }
+        updateUiState()
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
@@ -55,11 +48,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     override fun setPosition(position: Layer.Position) {
-        val old = positionState
         super.setPosition(position)
-        if (old != positionState) {
-            updateOffset()
-        }
+        updateUiState()
     }
 
     override fun setTarget(target: String) {
@@ -80,7 +70,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     override fun attach() {
         super.attach()
-        updateOffset()
         updateUiState()
     }
 
@@ -99,50 +88,38 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         manager.unregisterContainerLayoutCallback(_containerLayoutCallback)
     }
 
-    /**
-     * 计算位置
-     */
-    private fun updateOffset() {
-        alignTarget()
-        updateUiState()
-    }
-
     private fun alignTarget(
-        contentSize: IntSize? = null
+        position: Layer.Position,
+        target: LayoutInfo,
+        container: LayoutInfo,
+        contentSize: IntSize,
     ): Aligner.Result? {
-        val target = _targetLayoutCoordinates
-        if (!target.isReady()) return null
+        if (!target.isReady) return null
+        if (!container.isReady) return null
+        if (!contentSize.isReady) return null
 
-        val container = _containerLayoutCoordinates
-        if (!container.isReady()) return null
-
-        val sourceSize = contentSize ?: _contentSize
-        if (sourceSize.width <= 0 || sourceSize.height <= 0) return null
-
-        val targetCoordinates = target.coordinate()
-        val containerCoordinates = container.coordinate()
+        val targetOffset = target.offset
+        val containerOffset = container.offset
 
         val targetSize = target.size
         val containerSize = container.size
 
         val input = Aligner.Input(
-            position = positionState.toAlignerPosition(),
-            targetX = targetCoordinates.x.toInt(),
-            targetY = targetCoordinates.y.toInt(),
-            containerX = containerCoordinates.x.toInt(),
-            containerY = containerCoordinates.y.toInt(),
+            position = position.toAlignerPosition(),
+            targetX = targetOffset.x,
+            targetY = targetOffset.y,
+            containerX = containerOffset.x,
+            containerY = containerOffset.y,
             targetWidth = targetSize.width,
             targetHeight = targetSize.height,
             containerWidth = containerSize.width,
             containerHeight = containerSize.height,
-            sourceWidth = sourceSize.width,
-            sourceHeight = sourceSize.height,
+            sourceWidth = contentSize.width,
+            sourceHeight = contentSize.height,
         )
 
         val result = _aligner.align(input)
-        return transformResult(result).also {
-            _alignerResult = it
-        }
+        return transformResult(result)
     }
 
     private fun transformResult(result: Aligner.Result): Aligner.Result {
@@ -172,7 +149,16 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
         _uiState.value = UiState(
             isVisible = isVisible,
-            alignerResult = _alignerResult,
+            targetLayoutInfo = LayoutInfo(
+                size = _targetLayoutCoordinates.size(),
+                offset = _targetLayoutCoordinates.offset(),
+                isAttached = _targetLayoutCoordinates?.isAttached ?: false,
+            ),
+            containerLayoutInfo = LayoutInfo(
+                size = _containerLayoutCoordinates.size(),
+                offset = _containerLayoutCoordinates.offset(),
+                isAttached = _containerLayoutCoordinates?.isAttached ?: false,
+            )
         )
     }
 
@@ -186,17 +172,12 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
         LayerBox(uiState.isVisible) {
             OffsetBox(
-                isVisible = uiState.isVisible,
-                result = uiState.alignerResult,
+                uiState = uiState,
                 background = {
                     BackgroundBox(uiState.isVisible)
                 },
                 content = {
-                    ContentBox(
-                        modifier = Modifier.onSizeChanged {
-                            _contentSize = it
-                        }
-                    )
+                    ContentBox()
                 }
             )
         }
@@ -204,8 +185,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     @Composable
     private fun OffsetBox(
-        isVisible: Boolean,
-        result: Aligner.Result?,
+        uiState: UiState,
         background: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
@@ -217,7 +197,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
 
-            if (!isVisible) {
+            if (!uiState.isVisible) {
                 val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
                 val offset = lastOffset
 
@@ -241,31 +221,29 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             }
 
 
-            var nullResultPlaceable: Placeable? = null
-            val result = result ?: kotlin.run {
-                val placeable = measureContent(null, cs, content).also {
-                    nullResultPlaceable = it
-                }
-                val size = IntSize(placeable.width, placeable.height).also {
-                    _contentSize = it
-                }
-                logMsg { "layout init result size:$size" }
-                alignTarget(size)
-            }
+            // 测量原始信息
+            val originalPlaceable = measureContent(null, cs, content)
+            val originalSize = IntSize(originalPlaceable.width, originalPlaceable.height)
+            val originalResult = alignTarget(
+                position = positionState,
+                target = uiState.targetLayoutInfo,
+                container = uiState.containerLayoutInfo,
+                contentSize = originalSize,
+            )
 
-            if (result == null) {
+            if (originalResult == null) {
                 val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
-                logMsg { "layout null result size:$_contentSize" }
+                logMsg { "layout null result size:$originalSize" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     lastOffset = IntOffset.Zero
                     backgroundPlaceable?.place(0, 0, -1f)
-                    nullResultPlaceable?.place(Int.MIN_VALUE, Int.MIN_VALUE)
+                    originalPlaceable.place(Int.MIN_VALUE, Int.MIN_VALUE)
                 }
             }
 
 
-            var x = result.x
-            var y = result.y
+            var x = originalResult.x
+            var y = originalResult.y
 
 
             val fixOverflowDirection = _fixOverflowDirectionState
@@ -294,12 +272,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 }
             }
 
-
-            // 原始大小
-            val originalPlaceable = nullResultPlaceable ?: measureContent(null, cs, content)
-            // 根据原始大小测量的结果
-            val originalResult = _aligner.reAlign(result, originalPlaceable.width, originalPlaceable.height)
-
             val checkConstraints = checkOverflow(originalResult, cs, fixOverflowDirection).also {
                 overflowConstraints = it
             }
@@ -307,7 +279,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
                 measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
-                    _aligner.reAlign(result, placeable.width, placeable.height).let {
+                    _aligner.reAlign(originalResult, placeable.width, placeable.height).let {
                         logMsg { "size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${it.x}, ${it.y})" }
                         x = it.x
                         y = it.y
@@ -500,8 +472,18 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     private data class UiState(
         val isVisible: Boolean = false,
-        val alignerResult: Aligner.Result? = null,
+        val targetLayoutInfo: LayoutInfo = LayoutInfo(),
+        val containerLayoutInfo: LayoutInfo = LayoutInfo(),
     )
+
+    private data class LayoutInfo(
+        val size: IntSize = IntSize.Zero,
+        val offset: IntOffset = IntOffset.Zero,
+        val isAttached: Boolean = false,
+    ) {
+        val isReady: Boolean
+            get() = isAttached && size.width > 0 && size.height > 0
+    }
 }
 
 private enum class OffsetBoxSlotId {
@@ -553,9 +535,19 @@ private fun LayoutCoordinates?.isReady(): Boolean {
     return true
 }
 
-private fun LayoutCoordinates.coordinate(): Offset {
-    return this.localToWindow(Offset.Zero)
+private fun LayoutCoordinates?.size(): IntSize {
+    if (this == null || !this.isAttached) return IntSize.Zero
+    return this.size
 }
+
+private fun LayoutCoordinates?.offset(): IntOffset {
+    if (this == null || !this.isAttached) return IntOffset.Zero
+    val offset = this.localToWindow(Offset.Zero)
+    return IntOffset(offset.x.toInt(), offset.y.toInt())
+}
+
+private val IntSize.isReady: Boolean
+    get() = this.width > 0 && this.height > 0
 
 private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeight: Int): Aligner.Result {
     return align(
