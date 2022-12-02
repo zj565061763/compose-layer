@@ -114,11 +114,6 @@ internal open class LayerImpl : Layer {
     }
 
     /**
-     * 内容布局变化回调
-     */
-    protected open fun onContentLayoutCoordinatesChanged(layoutCoordinates: LayoutCoordinates) {}
-
-    /**
      * 渲染Layer内容
      */
     @Composable
@@ -191,7 +186,6 @@ internal open class LayerImpl : Layer {
                 }
                 .onGloballyPositioned {
                     _contentLayoutCoordinates = it
-                    onContentLayoutCoordinatesChanged(it)
                 }
         ) {
             _content.invoke(_contentScopeImpl)

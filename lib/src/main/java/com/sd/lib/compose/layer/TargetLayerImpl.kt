@@ -4,10 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.layout.SubcomposeMeasureScope
+import androidx.compose.ui.layout.*
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -44,8 +41,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateOffset()
     }
-    private var _contentLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        updateOffset()
+    private var _contentSize by Delegates.observable(IntSize.Zero) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            updateOffset()
+        }
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
@@ -90,11 +89,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         updateUiState()
     }
 
-    override fun onContentLayoutCoordinatesChanged(layoutCoordinates: LayoutCoordinates) {
-        super.onContentLayoutCoordinatesChanged(layoutCoordinates)
-        _contentLayoutCoordinates = layoutCoordinates
-    }
-
     override fun attachToManager(manager: LayerManager) {
         super.attachToManager(manager)
         manager.registerContainerLayoutCallback(_containerLayoutCallback)
@@ -108,8 +102,10 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     /**
      * 计算位置
      */
-    private fun updateOffset() {
-        alignTarget()?.let {
+    private fun updateOffset(
+        contentSize: IntSize? = null
+    ) {
+        alignTarget(contentSize)?.let {
             _alignerResult = transformResult(it)
         }
         updateUiState()
@@ -131,22 +127,23 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         )
     }
 
-    private fun alignTarget(): Aligner.Result? {
+    private fun alignTarget(
+        contentSize: IntSize? = null
+    ): Aligner.Result? {
         val target = _targetLayoutCoordinates
         if (!target.isReady()) return null
 
         val container = _containerLayoutCoordinates
         if (!container.isReady()) return null
 
-        val source = _contentLayoutCoordinates
-        if (!source.isReady()) return null
+        val sourceSize = contentSize ?: _contentSize
+        if (sourceSize.width <= 0 || sourceSize.height <= 0) return null
 
         val targetCoordinates = target.coordinate()
         val containerCoordinates = container.coordinate()
 
         val targetSize = target.size
         val containerSize = container.size
-        val sourceSize = source.size
 
         val input = Aligner.Input(
             position = positionState.toAlignerPosition(),
@@ -195,7 +192,11 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     BackgroundBox(uiState.isVisible)
                 },
                 content = {
-                    ContentBox()
+                    ContentBox(
+                        modifier = Modifier.onSizeChanged {
+                            _contentSize = it
+                        }
+                    )
                 }
             )
         }
