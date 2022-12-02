@@ -144,6 +144,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         val sourceSize = source.size
 
         val input = Aligner.Input(
+            position = positionState.toAlignerPosition(),
             targetX = targetCoordinates.x.toInt(),
             targetY = targetCoordinates.y.toInt(),
             containerX = containerCoordinates.x.toInt(),
@@ -158,7 +159,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             sourceHeight = sourceSize.height,
         )
 
-        _aligner.setPosition(positionState.toAlignerPosition())
         return _aligner.align(input)
     }
 
