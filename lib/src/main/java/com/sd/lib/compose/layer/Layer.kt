@@ -116,6 +116,11 @@ interface Layer {
     fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?)
 
     /**
+     * 是否裁剪内容区域，默认false
+     */
+    fun setClipToBounds(clipToBounds: Boolean)
+
+    /**
      * 添加到容器
      */
     fun attach()

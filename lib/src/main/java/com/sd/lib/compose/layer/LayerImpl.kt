@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -32,6 +33,7 @@ internal open class LayerImpl : Layer {
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
+    private var _clipToBoundsState by mutableStateOf(false)
     private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     final override val isVisibleState: Boolean
@@ -54,6 +56,10 @@ internal open class LayerImpl : Layer {
 
     final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
         _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())
+    }
+
+    final override fun setClipToBounds(clipToBounds: Boolean) {
+        _clipToBoundsState = clipToBounds
     }
 
     @CallSuper
@@ -175,10 +181,18 @@ internal open class LayerImpl : Layer {
         modifier: Modifier = Modifier,
     ) {
         Box(
-            modifier = modifier.onGloballyPositioned {
-                _contentLayoutCoordinates = it
-                onContentLayoutCoordinatesChanged(it)
-            }
+            modifier = modifier
+                .let {
+                    if (_clipToBoundsState) {
+                        it.clipToBounds()
+                    } else {
+                        it
+                    }
+                }
+                .onGloballyPositioned {
+                    _contentLayoutCoordinates = it
+                    onContentLayoutCoordinatesChanged(it)
+                }
         ) {
             _content.invoke(_contentScopeImpl)
         }
