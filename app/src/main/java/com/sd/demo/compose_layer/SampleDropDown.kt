@@ -3,7 +3,9 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -42,6 +44,7 @@ private fun Content() {
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.BottomCenter)
         layer.setOffsetTransform { it.copy(x = 0) }
+        layer.setClipToBounds(true)
         layer.setContent {
             LayerContent(isVisible)
         }
@@ -74,12 +77,12 @@ private fun LayerContent(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn() + slideInVertically { -it },
-        exit = fadeOut() + slideOutVertically { -it },
+        enter = slideInVertically { -it },
+        exit = slideOutVertically { -it },
         modifier = modifier,
     ) {
         VerticalList(
-            count = 50,
+            count = 5,
             modifier = Modifier.navigationBarsPadding(),
         )
     }
