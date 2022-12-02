@@ -26,7 +26,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private var _alignerResult: Aligner.Result? = null
 
     private var _offsetTransform: (OffsetTransformScope.(IntOffset) -> IntOffset)? = null
-    private var _fixOverflowDirectionState: Direction? by mutableStateOf(null)
+    private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -70,7 +70,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _offsetTransform = transform
     }
 
-    override fun setFixOverflowDirection(direction: Direction?) {
+    override fun setFixOverflowDirection(direction: PlusDirection?) {
         _fixOverflowDirectionState = direction
     }
 
@@ -259,7 +259,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private fun checkOverflow(
         result: Aligner.Result,
         cs: Constraints,
-        direction: Direction,
+        direction: PlusDirection,
     ): Constraints? {
         var resultConstraints: Constraints? = null
 
