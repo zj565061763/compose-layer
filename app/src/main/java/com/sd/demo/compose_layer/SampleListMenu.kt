@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -89,6 +88,7 @@ private fun createLayer(): TargetLayer {
         layer.setContent {
             LayerContent(isVisible)
         }
+        layer.setTarget("item_0")
     }
     return layer
 }
@@ -105,20 +105,9 @@ private fun LayerContent(
         exit = scaleOut(),
         modifier = modifier,
     ) {
-        LazyColumn(modifier = Modifier.width(200.dp)) {
-            items(50) { index ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(Color.Red)
-                ) {
-                    Text(
-                        index.toString(),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
-        }
+        VerticalList(
+            count = 5,
+            modifier = Modifier.width(200.dp)
+        )
     }
 }
