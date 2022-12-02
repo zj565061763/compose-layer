@@ -128,6 +128,7 @@ internal open class LayerImpl : Layer {
         }
 
         LayerBox(_isAttached) {
+            BackgroundBox(_isAttached)
             ContentBox(modifier = Modifier.align(positionState.toAlignment()))
         }
     }
@@ -152,13 +153,12 @@ internal open class LayerImpl : Layer {
         }
 
         Box(modifier = modifier) {
-            BackgroundBox(isVisible)
             content()
         }
     }
 
     @Composable
-    private fun BackgroundBox(
+    protected fun BackgroundBox(
         isVisible: Boolean,
     ) {
         _dialogBehaviorState?.let { behavior ->

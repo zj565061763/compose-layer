@@ -186,6 +186,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         LayerBox(uiState.isVisible) {
+            BackgroundBox(uiState.isVisible)
             OffsetBox(uiState.alignerResult) {
                 ContentBox()
             }
