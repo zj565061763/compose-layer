@@ -458,9 +458,16 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             height -= contentY
             y = contentY
         }
-
         if (direction.hasBottom()) {
             height -= (cs.maxHeight - contentY - contentPlaceable.height)
+        }
+
+        if (direction.hasStart()) {
+            width -= contentX
+            x = contentX
+        }
+        if (direction.hasEnd()) {
+            width -= (cs.maxWidth - contentX - contentPlaceable.width)
         }
 
         return BackgroundPlaceInfo(
