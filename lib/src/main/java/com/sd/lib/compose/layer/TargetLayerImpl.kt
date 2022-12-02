@@ -224,6 +224,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 logMsg { "layout null result size:$originalSize" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    visibleBackgroundInfo = null
+                    visibleConstraints = cs
                     visibleOffset = IntOffset.Zero
                     backgroundPlaceable?.place(0, 0, -1f)
                     originalPlaceable.place(Int.MIN_VALUE, Int.MIN_VALUE)
