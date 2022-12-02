@@ -274,20 +274,38 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 // Vertical
                 kotlin.run {
                     var overSize = 0
+                    var isTopOverflow = false
+                    var isBottomOverflow = false
+
                     if (direction.hasTop()) {
                         if (top > 0) {
                             overSize += top
+                            isTopOverflow = true
                             logMsg { "top overflow $top" }
                         }
                     }
+
                     if (direction.hasBottom()) {
                         if (bottom > 0) {
                             overSize += bottom
+                            isBottomOverflow = true
                             logMsg { "bottom overflow $bottom" }
                         }
                     }
+
                     if (overSize > 0) {
                         hasOverflow = true
+
+                        /**
+                         * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                         */
+                        if (positionState.isCenterVertical) {
+                            if (isTopOverflow && isBottomOverflow) {
+                            } else {
+                                overSize *= 2
+                            }
+                        }
+
                         val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
                         cs = cs.copy(maxHeight = maxSize).also {
                             resultConstraints = it
@@ -401,6 +419,17 @@ private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeig
         )
     )
 }
+
+private val Layer.Position.isCenterVertical: Boolean
+    get() {
+        return when (this) {
+            Layer.Position.StartCenter,
+            Layer.Position.EndCenter,
+            Layer.Position.Center,
+            -> true
+            else -> false
+        }
+    }
 
 private val Layer.Position.isCenterHorizontal: Boolean
     get() {
