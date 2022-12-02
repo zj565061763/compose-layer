@@ -47,7 +47,7 @@ private fun Content() {
     LaunchedEffect(layerFixOverflow) {
         layerFixOverflow.setPosition(Layer.Position.BottomCenter)
         layerFixOverflow.setFixOverflowDirection(
-            OverflowDirection.Bottom + OverflowDirection.Start + OverflowDirection.End
+            Direction.Bottom + Direction.Start + Direction.End
         )
         layerFixOverflow.setContent {
             LayerContent(isVisible)
