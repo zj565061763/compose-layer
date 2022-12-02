@@ -191,16 +191,22 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         LayerBox(uiState.isVisible) {
-            OffsetBox(uiState.isVisible, uiState.alignerResult) {
-                ContentBox()
-            }
+            OffsetBox(
+                result = uiState.alignerResult,
+                background = {
+                    BackgroundBox(uiState.isVisible)
+                },
+                content = {
+                    ContentBox()
+                }
+            )
         }
     }
 
     @Composable
     private fun OffsetBox(
-        isVisible: Boolean,
         result: Aligner.Result?,
+        background: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
         var overflowConstraints: Constraints? by remember { mutableStateOf(null) }
@@ -208,9 +214,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
-            val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs) { BackgroundBox(isVisible) }
-
             if (result == null) {
+                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(0, 0, -1f)
@@ -222,6 +227,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             var y = result.y
 
             if (!_isAttached) {
+                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(0, 0, -1f)
@@ -231,6 +237,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             val fixOverflowDirection = _fixOverflowDirectionState
             if (fixOverflowDirection == null) {
+                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
                 val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(0, 0, -1f)
@@ -247,6 +254,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 overflowConstraints = it
             }
 
+            val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
                 measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
