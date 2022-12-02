@@ -234,7 +234,8 @@ private fun ButtonRow(
             Button(
                 onClick = {
                     onClick(it)
-                }
+                },
+                modifier = Modifier.weight(1f)
             ) {
                 Text(text = it)
             }
