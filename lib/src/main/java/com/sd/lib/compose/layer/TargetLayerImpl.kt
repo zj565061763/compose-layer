@@ -191,8 +191,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         }
 
         LayerBox(uiState.isVisible) {
-            BackgroundBox(uiState.isVisible)
-            OffsetBox(uiState.alignerResult) {
+            OffsetBox(uiState.isVisible, uiState.alignerResult) {
                 ContentBox()
             }
         }
@@ -200,6 +199,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
     @Composable
     private fun OffsetBox(
+        isVisible: Boolean,
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
@@ -208,9 +208,12 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
+            val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs) { BackgroundBox(isVisible) }
+
             if (result == null) {
-                val placeable = measureContent(Unit, cs, content)
+                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    backgroundPlaceable?.place(0, 0, -1f)
                     placeable.place(Int.MIN_VALUE, Int.MIN_VALUE)
                 }
             }
@@ -219,16 +222,18 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             var y = result.y
 
             if (!_isAttached) {
-                val placeable = measureContent(Unit, overflowConstraints ?: cs, content)
+                val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    backgroundPlaceable?.place(0, 0, -1f)
                     placeable.placeRelative(x, y)
                 }
             }
 
             val fixOverflowDirection = _fixOverflowDirectionState
             if (fixOverflowDirection == null) {
-                val placeable = measureContent(Unit, cs, content)
+                val placeable = measureContent(OffsetBoxSlotId.Content, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
+                    backgroundPlaceable?.place(0, 0, -1f)
                     placeable.placeRelative(x, y)
                 }
             }
@@ -244,7 +249,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
             val placeable = if (checkConstraints != null) {
                 // 约束条件变化后，重新计算坐标
-                measureContent(Unit, checkConstraints, content).also { placeable ->
+                measureContent(OffsetBoxSlotId.Content, checkConstraints, content).also { placeable ->
                     _aligner.reAlign(result, placeable.width, placeable.height).let {
                         logMsg { "size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${it.x}, ${it.y})" }
                         x = it.x
@@ -256,6 +261,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             }
 
             layout(cs.maxWidth, cs.maxHeight) {
+                backgroundPlaceable?.place(0, 0, -1f)
                 placeable.placeRelative(x, y)
             }
         }
@@ -380,6 +386,11 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     )
 }
 
+private enum class OffsetBoxSlotId {
+    Content,
+    Background,
+}
+
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
     return when (this) {
         Layer.Position.TopStart -> Aligner.Position.TopStart
@@ -458,4 +469,16 @@ private fun SubcomposeMeasureScope.measureContent(
         it.first()
     }
     return measurable.measure(constraints)
+}
+
+private fun SubcomposeMeasureScope.measureBackground(
+    slotId: Any?,
+    constraints: Constraints,
+    content: @Composable () -> Unit
+): Placeable? {
+    val measurable = subcompose(slotId, content).let {
+        if (it.isNotEmpty()) check(it.size == 1)
+        it.firstOrNull()
+    }
+    return measurable?.measure(constraints)
 }
