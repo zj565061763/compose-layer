@@ -81,7 +81,6 @@ private fun LayerContent(
     ) {
         VerticalList(
             count = 5,
-            modifier = Modifier.navigationBarsPadding(),
         )
     }
 }

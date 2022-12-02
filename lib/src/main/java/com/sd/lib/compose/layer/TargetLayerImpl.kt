@@ -210,6 +210,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         content: @Composable () -> Unit,
     ) {
         var overflowConstraints: Constraints? by remember { mutableStateOf(null) }
+        var lastBackgroundPlaceInfo: BackgroundPlaceInfo? by remember { mutableStateOf(null) }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
@@ -232,12 +233,12 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             if (!_isAttached) {
                 val placeable = measureContent(OffsetBoxSlotId.Content, overflowConstraints ?: cs, content)
 
-                val backgroundPlaceInfo = backgroundPlaceInfo(
+                val backgroundPlaceInfo = lastBackgroundPlaceInfo ?: backgroundPlaceInfo(
                     cs = cs,
                     contentOffset = IntOffset(x, y),
                     contentPlaceable = placeable,
                     direction = _clipBackgroundDirectionState,
-                )
+                ).also { lastBackgroundPlaceInfo = it }
                 val backgroundPlaceable = measureBackground(
                     slotId = OffsetBoxSlotId.Background,
                     constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
@@ -260,7 +261,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     contentOffset = IntOffset(x, y),
                     contentPlaceable = placeable,
                     direction = _clipBackgroundDirectionState,
-                )
+                ).also { lastBackgroundPlaceInfo = it }
                 val backgroundPlaceable = measureBackground(
                     slotId = OffsetBoxSlotId.Background,
                     constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
@@ -301,7 +302,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 contentOffset = IntOffset(x, y),
                 contentPlaceable = placeable,
                 direction = _clipBackgroundDirectionState,
-            )
+            ).also { lastBackgroundPlaceInfo = it }
             val backgroundPlaceable = measureBackground(
                 slotId = OffsetBoxSlotId.Background,
                 constraints = cs.copy(maxWidth = backgroundPlaceInfo.width, maxHeight = backgroundPlaceInfo.height),
