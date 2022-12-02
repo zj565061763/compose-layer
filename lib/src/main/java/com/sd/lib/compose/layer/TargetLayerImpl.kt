@@ -26,7 +26,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private var _alignerResult: Aligner.Result? = null
 
     private var _offsetTransform: (OffsetTransformScope.(IntOffset) -> IntOffset)? = null
-    private var _fixOverflowDirectionState by mutableStateOf(OverflowDirection.None)
+    private var _fixOverflowDirectionState: OverflowDirection? by mutableStateOf(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -70,7 +70,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _offsetTransform = transform
     }
 
-    override fun setFixOverflowDirection(direction: Int) {
+    override fun setFixOverflowDirection(direction: OverflowDirection?) {
         _fixOverflowDirectionState = direction
     }
 
@@ -197,7 +197,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         result: Aligner.Result?,
         content: @Composable () -> Unit,
     ) {
-        val fixOverflowDirection = _fixOverflowDirectionState
         var overflowConstraints: Constraints? by remember { mutableStateOf(null) }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
@@ -220,7 +219,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 }
             }
 
-            if (fixOverflowDirection == OverflowDirection.None) {
+            val fixOverflowDirection = _fixOverflowDirectionState
+            if (fixOverflowDirection == null) {
                 val placeable = measureContent(Unit, cs, content)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     placeable.placeRelative(x, y)
@@ -258,7 +258,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     private fun checkOverflow(
         result: Aligner.Result,
         cs: Constraints,
-        fixOverflowDirection: Int,
+        direction: OverflowDirection,
     ): Constraints? {
         var resultConstraints: Constraints? = null
 
@@ -274,13 +274,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                 // Vertical
                 kotlin.run {
                     var overSize = 0
-                    if (OverflowDirection.hasTop(fixOverflowDirection)) {
+                    if (direction.hasTop()) {
                         if (top > 0) {
                             overSize += top
                             logMsg { "top overflow $top" }
                         }
                     }
-                    if (OverflowDirection.hasBottom(fixOverflowDirection)) {
+                    if (direction.hasBottom()) {
                         if (bottom > 0) {
                             overSize += bottom
                             logMsg { "bottom overflow $bottom" }
@@ -301,7 +301,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                     var isStartOverflow = false
                     var isEndOverflow = false
 
-                    if (OverflowDirection.hasStart(fixOverflowDirection)) {
+                    if (direction.hasStart()) {
                         if (start > 0) {
                             overSize += start
                             isStartOverflow = true
@@ -309,7 +309,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
                         }
                     }
 
-                    if (OverflowDirection.hasEnd(fixOverflowDirection)) {
+                    if (direction.hasEnd()) {
                         if (end > 0) {
                             overSize += end
                             isEndOverflow = true

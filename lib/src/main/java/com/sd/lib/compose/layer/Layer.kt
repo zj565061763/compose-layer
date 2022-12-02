@@ -205,22 +205,7 @@ interface TargetLayer : Layer {
     /**
      * 设置修复溢出的方向[OverflowDirection]
      */
-    fun setFixOverflowDirection(direction: Int)
-
-    class OverflowDirection {
-        companion object {
-            const val None = 0
-            const val Top = 1
-            const val Bottom = 2
-            const val Start = 4
-            const val End = 8
-
-            fun hasTop(value: Int) = Top and value != 0
-            fun hasBottom(value: Int) = Bottom and value != 0
-            fun hasStart(value: Int) = Start and value != 0
-            fun hasEnd(value: Int) = End and value != 0
-        }
-    }
+    fun setFixOverflowDirection(direction: OverflowDirection?)
 
     interface OffsetTransformScope {
         /** 内容大小 */
@@ -228,6 +213,34 @@ interface TargetLayer : Layer {
 
         /** 目标大小 */
         val targetSize: IntSize
+    }
+}
+
+sealed class OverflowDirection(direction: Int) {
+    private val _direction = direction
+
+    fun hasTop() = FlagTop and _direction != 0
+    fun hasBottom() = FlagBottom and _direction != 0
+    fun hasStart() = FlagStart and _direction != 0
+    fun hasEnd() = FlagEnd and _direction != 0
+
+    operator fun plus(direction: OverflowDirection): OverflowDirection {
+        val plusDirection = this._direction or direction._direction
+        return Plus(plusDirection)
+    }
+
+    object Top : OverflowDirection(FlagTop)
+    object Bottom : OverflowDirection(FlagBottom)
+    object Start : OverflowDirection(FlagStart)
+    object End : OverflowDirection(FlagEnd)
+
+    private class Plus(direction: Int) : OverflowDirection(direction)
+
+    companion object {
+        private const val FlagTop = 1
+        private const val FlagBottom = FlagTop shl 1
+        private const val FlagStart = FlagTop shl 2
+        private const val FlagEnd = FlagTop shl 3
     }
 }
 
