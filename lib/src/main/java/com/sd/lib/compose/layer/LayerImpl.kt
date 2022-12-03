@@ -128,7 +128,7 @@ internal open class LayerImpl : Layer {
         }
 
         if (old != isVisibleState) {
-            logMsg(isDebug) { "${this@LayerImpl} setContentVisible $isVisibleState" }
+            logMsg(isDebug) { "${this@LayerImpl} setContentVisible:$isVisibleState" }
         }
     }
 
