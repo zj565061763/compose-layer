@@ -176,6 +176,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
+            logMsg(isDebug) { "layout start" }
 
             // 如果状态由可见变为不可见，则要维持可见时候的状态
             if (!isVisibleState) {
