@@ -248,8 +248,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     )
 
     private inner class OffsetBoxState(
-        private val content: @Composable () -> Unit,
         private val background: @Composable () -> Unit,
+        private val content: @Composable () -> Unit,
     ) {
         private var _measureScope: SubcomposeMeasureScope? = null
         private var _visibleBackgroundInfo: PlaceInfo? = null
