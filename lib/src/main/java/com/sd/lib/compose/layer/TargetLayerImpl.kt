@@ -391,12 +391,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         ): MeasureResult {
             return measureScope.layout(cs.maxWidth, cs.maxHeight) {
                 if (saveVisibleInfo) {
-                    _visibleBackgroundInfo = PlaceInfo(
-                        x = backgroundX,
-                        y = backgroundY,
-                        width = backgroundPlaceable?.width ?: cs.maxWidth,
-                        height = backgroundPlaceable?.height ?: cs.maxHeight
-                    )
+                    _visibleBackgroundInfo = backgroundPlaceable?.let {
+                        PlaceInfo(
+                            x = backgroundX,
+                            y = backgroundY,
+                            width = it.width,
+                            height = it.height,
+                        )
+                    }
                     _visibleContentInfo = PlaceInfo(
                         x = contentX,
                         y = contentY,
