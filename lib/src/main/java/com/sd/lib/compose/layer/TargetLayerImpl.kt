@@ -328,8 +328,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         val overflowSizeDefault = result.overflow(
             x = targetOffset.x,
             y = targetOffset.y,
-            width = 0,
-            height = 0,
+            width = result.input.sourceWidth,
+            height = result.input.sourceHeight,
         ).totalOverflow()
 
         if (overflowSizeDefault == 0) {
@@ -356,8 +356,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val newOverflow = newResult.overflow(
                 x = targetOffset.x,
                 y = targetOffset.y,
-                width = 0,
-                height = 0,
+                width = result.input.sourceWidth,
+                height = result.input.sourceHeight,
             ).totalOverflow()
 
             if (newOverflow < minOverflow) {
