@@ -625,7 +625,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
 
                 if (hasOverflow) {
-                    result = _aligner.reAlign(result, cs.maxWidth, cs.maxHeight)
+                    val newInput = result.input.copy(
+                        sourceWidth = cs.maxWidth,
+                        sourceHeight = cs.maxHeight,
+                    )
+                    result = _aligner.align(newInput)
                 } else {
                     break
                 }
@@ -709,15 +713,6 @@ private fun LayoutCoordinates?.offset(): IntOffset {
 private fun LayoutCoordinates?.isAttached(): Boolean {
     if (this == null) return false
     return this.isAttached
-}
-
-private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeight: Int): Aligner.Result {
-    return align(
-        result.input.copy(
-            sourceWidth = sourceWidth,
-            sourceHeight = sourceHeight,
-        )
-    )
 }
 
 private fun Aligner.Overflow.totalOverflow(): Int {
