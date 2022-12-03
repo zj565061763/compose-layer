@@ -257,6 +257,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             var y = originalResult.y
 
 
+            val targetOffset = _targetOffset
+            if (targetOffset != null) {
+                val bestResult = findBestResult(originalResult, targetOffset)
+                x = bestResult.x
+                y = bestResult.y
+            }
+
+
             if (fixOverflowDirection == null) {
                 val backgroundInfo = backgroundPlaceInfo(
                     cs = cs,
@@ -314,6 +322,51 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 placeable.placeRelative(x, y)
             }
         }
+    }
+
+    private fun findBestResult(result: Aligner.Result, targetOffset: IntOffset): Aligner.Result {
+        val overflowSizeDefault = result.overflow(
+            x = targetOffset.x,
+            y = targetOffset.y,
+            width = 0,
+            height = 0,
+        ).totalOverflow()
+
+        if (overflowSizeDefault == 0) {
+            return result
+        }
+
+        val preferPosition = mutableListOf(
+            Aligner.Position.StartTop,
+            Aligner.Position.StartBottom,
+            Aligner.Position.EndBottom,
+            Aligner.Position.EndTop
+        ).apply {
+            remove(result.input.position)
+        }
+
+        var bestResult = result
+        var minOverflow = overflowSizeDefault
+
+        preferPosition.forEach { position ->
+            val newResult = _aligner.align(
+                result.input.copy(position = position)
+            )
+
+            val newOverflow = newResult.overflow(
+                x = targetOffset.x,
+                y = targetOffset.y,
+                width = 0,
+                height = 0,
+            ).totalOverflow()
+
+            if (newOverflow < minOverflow) {
+                minOverflow = newOverflow
+                bestResult = newResult
+            }
+        }
+
+        return bestResult
     }
 
     private fun checkOverflow(
@@ -566,6 +619,15 @@ private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeig
             sourceHeight = sourceHeight,
         )
     )
+}
+
+private fun Aligner.Overflow.totalOverflow(): Int {
+    var size = 0
+    if (top > 0) size += top
+    if (bottom > 0) size += bottom
+    if (start > 0) size += start
+    if (end > 0) size += end
+    return size
 }
 
 private fun Layer.Position.isCenterVertical(): Boolean = when (this) {
