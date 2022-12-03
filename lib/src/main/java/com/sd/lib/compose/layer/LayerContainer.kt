@@ -140,14 +140,14 @@ internal class LayerContainer {
         }
     }
 
-    fun addLayer(layer: LayerImpl) {
+    private fun addLayer(layer: LayerImpl) {
         if (!_layerHolder.contains(layer)) {
             _layerHolder.add(layer)
             layer.attachToManager(this)
         }
     }
 
-    fun removeLayer(layer: LayerImpl) {
+    private fun removeLayer(layer: LayerImpl) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
             layer.detachFromManager(this)
