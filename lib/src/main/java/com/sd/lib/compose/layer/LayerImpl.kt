@@ -118,16 +118,18 @@ internal open class LayerImpl : Layer {
      * 设置内容可见状态
      */
     protected fun setContentVisible(visible: Boolean) {
+        val old = isVisibleState
+
         if (visible) {
             if (_isAttached) {
-                if (!_contentScopeImpl.isVisible) {
-                    logMsg(isDebug) { "$this setContentVisible true" }
-                }
                 _contentScopeImpl._isVisible = true
             }
         } else {
-            logMsg(isDebug) { "$this setContentVisible false" }
             _contentScopeImpl._isVisible = false
+        }
+
+        if (old != isVisibleState) {
+            logMsg(isDebug) { "$this setContentVisible $isVisibleState" }
         }
     }
 

@@ -23,8 +23,8 @@ internal class LayerManager {
     fun rememberLayer(debug: Boolean): Layer {
         val layer = remember {
             LayerImpl().also {
-                addLayer(it)
                 it.isDebug = debug
+                addLayer(it)
             }
         }
 
@@ -44,8 +44,8 @@ internal class LayerManager {
     fun rememberTargetLayer(debug: Boolean): TargetLayer {
         val layer = remember {
             TargetLayerImpl().also {
-                addLayer(it)
                 it.isDebug = debug
+                addLayer(it)
             }
         }
 
