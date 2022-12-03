@@ -199,8 +199,9 @@ internal class LayerContainer {
         val holder = _targetLayoutCallbackHolder[tag] ?: hashSetOf<(LayoutCoordinates?) -> Unit>().also {
             _targetLayoutCallbackHolder[tag] = it
         }
-        holder.add(callback)
-        callback(_targetLayoutHolder[tag])
+        if (holder.add(callback)) {
+            callback(_targetLayoutHolder[tag])
+        }
     }
 
     fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
