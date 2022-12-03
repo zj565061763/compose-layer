@@ -186,8 +186,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
                 val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
                 val offset = visibleOffset
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${offset.x}, ${offset.y})" }
-                setContentVisible(true)
+
+                logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${offset.x}, ${offset.y}) targetReady:${uiState.targetLayout.isReady} containerReady:${uiState.containerLayout.isReady}" }
+
+                if (uiState.isReady) {
+                    setContentVisible(true)
+                }
+
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
                     placeable.placeRelative(offset.x, offset.y)
@@ -455,7 +460,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private data class UiState(
         val targetLayout: LayoutInfo = LayoutInfo(),
         val containerLayout: LayoutInfo = LayoutInfo(),
-    )
+    ) {
+        val isReady: Boolean = targetLayout.isReady && containerLayout.isReady
+    }
 
     private data class LayoutInfo(
         val size: IntSize = IntSize.Zero,
