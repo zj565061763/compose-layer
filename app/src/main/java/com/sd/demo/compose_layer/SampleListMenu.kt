@@ -49,7 +49,6 @@ class SampleListMenu : ComponentActivity() {
 @Composable
 private fun Content() {
     val layer = createLayer()
-    val layoutCoordinatesHolder: MutableMap<Int, LayoutCoordinates> = remember { mutableMapOf() }
 
     LazyColumn(
         Modifier
@@ -57,31 +56,45 @@ private fun Content() {
             .navigationBarsPadding(),
     ) {
         items(50) { index ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .height(50.dp)
-                    .onGloballyPositioned {
-                        layoutCoordinatesHolder[index] = it
-                    }
-                    .clickable {
-                        val layout = layoutCoordinatesHolder[index]
-                        if (layout?.isAttached == true) {
-                            val offset = layout.localToWindow(Offset.Zero)
-                            layer.setTargetOffset(IntOffset(offset.x.toInt(), offset.y.toInt()))
-                            layer.attach()
-                        }
-                    }
+            ListItem(
+                text = index.toString()
             ) {
-                Text(
-                    index.toString(),
-                    modifier = Modifier.align(Alignment.Center),
-                )
-                Divider(
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
+                layer.setTargetOffset(it)
+                layer.attach()
             }
         }
+    }
+}
+
+@Composable
+private fun ListItem(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: (IntOffset) -> Unit,
+) {
+    var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .height(50.dp)
+            .onGloballyPositioned {
+                layoutCoordinates = it
+            }
+            .clickable {
+                val layout = layoutCoordinates
+                if (layout?.isAttached == true) {
+                    val offset = layout.localToWindow(Offset.Zero)
+                    onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                }
+            }
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.align(Alignment.Center),
+        )
+        Divider(
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
