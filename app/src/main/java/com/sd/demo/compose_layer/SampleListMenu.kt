@@ -107,7 +107,7 @@ private fun createLayer(): TargetLayer {
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.TopStart)
         layer.setDialogBehavior {
-            it.copy(consumeTouchOutside = false)
+            it.copy(consumeTouchOutside = false, backgroundColor = Color.Transparent)
         }
         layer.setFixOverflowDirection(PlusDirection.Bottom)
         layer.setContent {
