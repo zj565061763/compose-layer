@@ -190,6 +190,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
                 val offset = visibleOffset
                 logMsg { "layout invisible (${offset.x}, ${offset.y})" }
+                setContentVisible(true)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
                     placeable.placeRelative(offset.x, offset.y)
