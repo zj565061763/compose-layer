@@ -41,9 +41,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
+        logMsg(isDebug) { "target layout changed $it" }
         _targetLayoutCoordinates = it
     }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = {
+        logMsg(isDebug) { "container layout changed $it" }
         _containerLayoutCoordinates = it
     }
 
