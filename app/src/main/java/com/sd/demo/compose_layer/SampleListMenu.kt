@@ -105,7 +105,7 @@ private fun ListItem(
 private fun createLayer(): TargetLayer {
     val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.TopStart)
+        layer.setPosition(Layer.Position.TopEnd)
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false, backgroundColor = Color.Transparent)
         }
