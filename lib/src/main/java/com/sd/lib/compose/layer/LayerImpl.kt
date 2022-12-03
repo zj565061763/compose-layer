@@ -176,15 +176,15 @@ internal open class LayerImpl : Layer {
     ) {
         Box(
             modifier = modifier
+                .onGloballyPositioned {
+                    _contentLayoutCoordinates = it
+                }
                 .let {
                     if (_clipToBoundsState) {
                         it.clipToBounds()
                     } else {
                         it
                     }
-                }
-                .onGloballyPositioned {
-                    _contentLayoutCoordinates = it
                 }
         ) {
             _content.invoke(_contentScopeImpl)
