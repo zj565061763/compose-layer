@@ -112,13 +112,15 @@ internal class LayerManager {
     }
 
     fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
-        _containerLayoutCallbackHolder.add(callback)
-        callback(_containerLayout)
+        if (_containerLayoutCallbackHolder.add(callback)) {
+            callback(_containerLayout)
+        }
     }
 
     fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
-        _containerLayoutCallbackHolder.remove(callback)
-        callback(null)
+        if (_containerLayoutCallbackHolder.remove(callback)) {
+            callback(null)
+        }
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {

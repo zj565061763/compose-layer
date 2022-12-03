@@ -68,22 +68,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun attach() {
         super.attach()
+        _layerManager?.registerContainerLayoutCallback(_containerLayoutCallback)
         updateUiState()
     }
 
     override fun detach() {
         super.detach()
+        _layerManager?.unregisterContainerLayoutCallback(_containerLayoutCallback)
         updateUiState()
-    }
-
-    override fun attachToManager(manager: LayerManager) {
-        super.attachToManager(manager)
-        manager.registerContainerLayoutCallback(_containerLayoutCallback)
-    }
-
-    override fun detachFromManager(manager: LayerManager) {
-        super.detachFromManager(manager)
-        manager.unregisterContainerLayoutCallback(_containerLayoutCallback)
     }
 
     private fun alignTarget(

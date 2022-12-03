@@ -79,7 +79,7 @@ internal open class LayerImpl : Layer {
     }
 
     @Composable
-    override fun UpdateContainer() {
+    final override fun UpdateContainer() {
         val layerManager = checkNotNull(LocalLayerManager.current) {
             "CompositionLocal LocalLayerManager not present"
         }
@@ -96,8 +96,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer被添加到[manager]
      */
-    @CallSuper
-    internal open fun attachToManager(manager: LayerManager) {
+    internal fun attachToManager(manager: LayerManager) {
         logMsg(isDebug) { "${this@LayerImpl} attachToManager $manager" }
         _layerManager = manager
     }
@@ -105,8 +104,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer从[manager]上被移除
      */
-    @CallSuper
-    internal open fun detachFromManager(manager: LayerManager) {
+    internal fun detachFromManager(manager: LayerManager) {
         logMsg(isDebug) { "${this@LayerImpl} detachFromManager $manager" }
         check(_layerManager === manager)
         detach()
