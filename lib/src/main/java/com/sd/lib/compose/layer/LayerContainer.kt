@@ -143,14 +143,14 @@ internal class LayerContainer {
     private fun addLayer(layer: LayerImpl) {
         if (!_layerHolder.contains(layer)) {
             _layerHolder.add(layer)
-            layer.attachToManager(this)
+            layer.onCreate(this)
         }
     }
 
     private fun removeLayer(layer: LayerImpl) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
-            layer.detachFromManager(this)
+            layer.onDestroy(this)
         }
     }
 

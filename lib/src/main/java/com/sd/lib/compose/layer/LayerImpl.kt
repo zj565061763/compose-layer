@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.*
 
 internal open class LayerImpl : Layer {
-    protected var _layerManager: LayerContainer? = null
+    protected var _layerContainer: LayerContainer? = null
         private set
 
     protected var _isAttached = false
@@ -67,7 +67,7 @@ internal open class LayerImpl : Layer {
 
     @CallSuper
     override fun attach() {
-        val container = _layerManager ?: return
+        val container = _layerContainer ?: return
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
         container.notifyLayerAttached(this)
@@ -75,29 +75,29 @@ internal open class LayerImpl : Layer {
 
     @CallSuper
     override fun detach() {
-        if (_layerManager == null) return
+        if (_layerContainer == null) return
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
     }
 
     /**
-     * Layer被添加到[manager]
+     * Layer被添加到[container]
      */
-    internal fun attachToManager(manager: LayerContainer) {
-        logMsg(isDebug) { "${this@LayerImpl} attachToManager $manager" }
-        _layerManager = manager
+    internal fun onCreate(container: LayerContainer) {
+        logMsg(isDebug) { "${this@LayerImpl} onCreate $container" }
+        _layerContainer = container
     }
 
     /**
-     * Layer从[manager]上被移除
+     * Layer从[container]上被移除
      */
-    internal fun detachFromManager(manager: LayerContainer) {
-        logMsg(isDebug) { "${this@LayerImpl} detachFromManager $manager" }
-        check(_layerManager === manager)
+    internal fun onDestroy(container: LayerContainer) {
+        logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
+        check(_layerContainer === container)
         detach()
-        _layerManager?.notifyLayerDetached(this@LayerImpl)
-        _layerManager = null
+        _layerContainer?.notifyLayerDetached(this@LayerImpl)
+        _layerContainer = null
     }
 
     /**
@@ -183,7 +183,7 @@ internal open class LayerImpl : Layer {
                     if (!_isAttached) {
                         if (it.size == IntSize.Zero) {
                             logMsg(isDebug) { "${this@LayerImpl} notifyLayerDetached" }
-                            _layerManager?.notifyLayerDetached(this@LayerImpl)
+                            _layerContainer?.notifyLayerDetached(this@LayerImpl)
                         }
                     }
                 }
