@@ -194,27 +194,22 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             // 如果状态由可见变为不可见，则要维持可见时候的状态
             if (!isVisibleState) {
-                val backgroundInfo = visibleBackgroundInfo ?: BackgroundPlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-                val backgroundPlaceable = measureBackground(
-                    slotId = OffsetBoxSlotId.Background,
-                    constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-                    content = background,
-                )
-                val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
+                return@SubcomposeLayout layoutLastVisible(
+                    cs = cs,
+                    visibleBackgroundInfo = visibleBackgroundInfo,
+                    visibleOffset = visibleOffset,
+                    visibleConstraints = visibleConstraints,
+                    background = background,
+                    content = content,
+                ).also {
+                    val isTargetReady = uiState.targetLayout.isAttached
+                    val isContainerReady = uiState.containerLayout.isAttached
 
-                val offset = visibleOffset
-                val isTargetReady = uiState.targetLayout.isAttached
-                val isContainerReady = uiState.containerLayout.isAttached
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${visibleOffset.x}, ${visibleOffset.y}) isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${offset.x}, ${offset.y}) isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
-
-                if (isTargetReady && isContainerReady) {
-                    setContentVisible(true)
-                }
-
-                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
-                    placeable.placeRelative(offset.x, offset.y)
+                    if (isTargetReady && isContainerReady) {
+                        setContentVisible(true)
+                    }
                 }
             }
 
@@ -324,6 +319,27 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
                 placeable.placeRelative(x, y)
             }
+        }
+    }
+
+    private fun SubcomposeMeasureScope.layoutLastVisible(
+        cs: Constraints,
+        visibleBackgroundInfo: BackgroundPlaceInfo?,
+        visibleOffset: IntOffset,
+        visibleConstraints: Constraints?,
+        background: @Composable () -> Unit,
+        content: @Composable () -> Unit,
+    ): MeasureResult {
+        val backgroundInfo = visibleBackgroundInfo ?: BackgroundPlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
+        val backgroundPlaceable = measureBackground(
+            slotId = OffsetBoxSlotId.Background,
+            constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
+            content = background,
+        )
+        val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
+        return layout(cs.maxWidth, cs.maxHeight) {
+            backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
+            placeable.placeRelative(visibleOffset.x, visibleOffset.y)
         }
     }
 
