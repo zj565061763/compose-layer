@@ -16,7 +16,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.properties.Delegates
 
-internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
+internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _uiState = MutableStateFlow(UiState())
     private val _aligner = FAligner()
 
@@ -134,16 +134,13 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     private fun updateUiState() {
-        val isVisible = if (_isAttached) _targetLayoutCoordinates.isReady() else false
-
         _uiState.value = UiState(
-            isVisible = isVisible,
-            targetLayoutInfo = LayoutInfo(
+            targetLayout = LayoutInfo(
                 size = _targetLayoutCoordinates.size(),
                 offset = _targetLayoutCoordinates.offset(),
                 isAttached = _targetLayoutCoordinates?.isAttached ?: false,
             ),
-            containerLayoutInfo = LayoutInfo(
+            containerLayout = LayoutInfo(
                 size = _containerLayoutCoordinates.size(),
                 offset = _containerLayoutCoordinates.offset(),
                 isAttached = _containerLayoutCoordinates?.isAttached ?: false,
@@ -154,16 +151,11 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     @Composable
     override fun Content() {
         val uiState by _uiState.collectAsState()
-
-        SideEffect {
-            setContentVisible(uiState.isVisible)
-        }
-
-        LayerBox(uiState.isVisible) {
+        LayerBox {
             OffsetBox(
                 uiState = uiState,
                 background = {
-                    BackgroundBox(uiState.isVisible)
+                    BackgroundBox()
                 },
                 content = {
                     ContentBox()
@@ -187,7 +179,7 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
 
 
             // 如果状态由可见变为不可见，则要维持可见时候的状态
-            if (!uiState.isVisible) {
+            if (!isVisibleState) {
                 val backgroundInfo = visibleBackgroundInfo ?: BackgroundPlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
                 val backgroundPlaceable = measureBackground(
                     slotId = OffsetBoxSlotId.Background,
@@ -221,8 +213,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
             val originalSize = IntSize(originalPlaceable.width, originalPlaceable.height)
             val originalResult = alignTarget(
                 position = positionState,
-                target = uiState.targetLayoutInfo,
-                container = uiState.containerLayoutInfo,
+                target = uiState.targetLayout,
+                container = uiState.containerLayout,
                 contentSize = originalSize,
             )
 
@@ -463,9 +455,8 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
     }
 
     private data class UiState(
-        val isVisible: Boolean = false,
-        val targetLayoutInfo: LayoutInfo = LayoutInfo(),
-        val containerLayoutInfo: LayoutInfo = LayoutInfo(),
+        val targetLayout: LayoutInfo = LayoutInfo(),
+        val containerLayout: LayoutInfo = LayoutInfo(),
     )
 
     private data class LayoutInfo(

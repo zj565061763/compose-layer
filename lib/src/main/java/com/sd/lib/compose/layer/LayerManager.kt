@@ -10,7 +10,7 @@ import androidx.compose.ui.zIndex
 internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
-    private val _layerHolder: MutableList<LayerImpl> = mutableStateListOf()
+    private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
     private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
 
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
@@ -47,14 +47,11 @@ internal class LayerManager {
 
     @Composable
     fun Layers() {
-        _layerHolder.forEach { item ->
-            val zIndex = _attachedLayerHolder.indexOf(item).coerceAtLeast(0)
-            Box(modifier = Modifier.zIndex(zIndex.toFloat())) {
+        _attachedLayerHolder.forEachIndexed { index, item ->
+            Box(modifier = Modifier.zIndex(index.toFloat())) {
                 item.Content()
             }
-        }
 
-        _attachedLayerHolder.forEach { item ->
             item.dialogBehaviorState?.let { behavior ->
                 BackHandler(item.isVisibleState) {
                     if (behavior.cancelable) {

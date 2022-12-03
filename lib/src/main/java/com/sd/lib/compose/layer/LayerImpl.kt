@@ -16,13 +16,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.*
 
 internal open class LayerImpl : Layer {
     protected var _layerManager: LayerManager? = null
         private set
 
-    protected var _isAttached by mutableStateOf(false)
+    protected var _isAttached = false
         private set
 
     private val _contentScopeImpl = ContentScopeImpl()
@@ -70,7 +71,7 @@ internal open class LayerImpl : Layer {
     @CallSuper
     override fun detach() {
         _isAttached = false
-        _layerManager?.notifyLayerDetached(this)
+        setContentVisible(false)
     }
 
     @Composable
@@ -102,6 +103,7 @@ internal open class LayerImpl : Layer {
     internal open fun detachFromManager(manager: LayerManager) {
         check(_layerManager === manager)
         detach()
+        _layerManager?.notifyLayerDetached(this@LayerImpl)
         _layerManager = null
     }
 
@@ -109,7 +111,13 @@ internal open class LayerImpl : Layer {
      * 设置内容可见状态
      */
     protected fun setContentVisible(visible: Boolean) {
-        _contentScopeImpl._isVisible = visible
+        if (visible) {
+            if (_isAttached) {
+                _contentScopeImpl._isVisible = true
+            }
+        } else {
+            _contentScopeImpl._isVisible = false
+        }
     }
 
     /**
@@ -118,46 +126,41 @@ internal open class LayerImpl : Layer {
     @Composable
     internal open fun Content() {
         SideEffect {
-            setContentVisible(_isAttached)
+            setContentVisible(true)
         }
 
-        LayerBox(_isAttached) {
-            BackgroundBox(_isAttached)
+        LayerBox {
+            BackgroundBox()
             ContentBox(modifier = Modifier.align(positionState.toAlignment()))
         }
     }
 
     @Composable
     protected fun LayerBox(
-        isVisible: Boolean,
-        modifier: Modifier = Modifier,
         content: @Composable BoxScope.() -> Unit,
     ) {
-        var modifier = modifier.fillMaxSize()
-
-        if (isVisible) {
-            modifier = modifier.onGloballyPositioned {
-                _layerLayoutCoordinates = it
-            }
-            _dialogBehaviorState?.let { behavior ->
-                modifier = modifier.pointerInput(behavior) {
-                    detectTouchOutside(behavior)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    _layerLayoutCoordinates = it
+                }.let { modifier ->
+                    _dialogBehaviorState?.let { behavior ->
+                        modifier.pointerInput(behavior) {
+                            detectTouchOutside(behavior)
+                        }
+                    } ?: modifier
                 }
-            }
-        }
-
-        Box(modifier = modifier) {
+        ) {
             content()
         }
     }
 
     @Composable
-    protected fun BackgroundBox(
-        isVisible: Boolean,
-    ) {
+    protected fun BackgroundBox() {
         _dialogBehaviorState?.let { behavior ->
             AnimatedVisibility(
-                visible = isVisible,
+                visible = isVisibleState,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -178,6 +181,11 @@ internal open class LayerImpl : Layer {
             modifier = modifier
                 .onGloballyPositioned {
                     _contentLayoutCoordinates = it
+                    if (!_isAttached) {
+                        if (it.size == IntSize.Zero) {
+                            _layerManager?.notifyLayerDetached(this@LayerImpl)
+                        }
+                    }
                 }
                 .let {
                     if (_clipToBoundsState) {
