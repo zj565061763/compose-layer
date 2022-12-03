@@ -21,6 +21,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
     private var _clipBackgroundDirectionState: PlusDirection? by mutableStateOf(null)
 
+    private var _targetOffset: IntOffset? by mutableStateOf(null)
+
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
             logMsg(isDebug) { "${this@TargetLayerImpl} target changed $oldValue -> $newValue" }
@@ -47,6 +49,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun setTarget(target: String) {
         _target = target
+    }
+
+    override fun setTargetOffset(offset: IntOffset?) {
+        _targetOffset = offset
     }
 
     override fun setOffsetTransform(transform: OffsetTransform?) {
@@ -85,26 +91,24 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         container: LayoutInfo,
         contentSize: IntSize,
     ): Aligner.Result? {
-        if (!target.isReady) return null
-        if (!container.isReady) return null
+        if (!target.isAttached) return null
+        if (!container.isAttached) return null
         if (!contentSize.isReady()) return null
-
-        val targetOffset = target.offset
-        val containerOffset = container.offset
-
-        val targetSize = target.size
-        val containerSize = container.size
 
         val input = Aligner.Input(
             position = position.toAlignerPosition(),
-            targetX = targetOffset.x,
-            targetY = targetOffset.y,
-            containerX = containerOffset.x,
-            containerY = containerOffset.y,
-            targetWidth = targetSize.width,
-            targetHeight = targetSize.height,
-            containerWidth = containerSize.width,
-            containerHeight = containerSize.height,
+            targetX = target.offset.x,
+            targetY = target.offset.y,
+
+            containerX = container.offset.x,
+            containerY = container.offset.y,
+
+            targetWidth = target.size.width,
+            targetHeight = target.size.height,
+
+            containerWidth = container.size.width,
+            containerHeight = container.size.height,
+
             sourceWidth = contentSize.width,
             sourceHeight = contentSize.height,
         )
@@ -183,13 +187,15 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                     constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
                     content = background,
                 )
-
                 val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
+
                 val offset = visibleOffset
+                val isTargetReady = uiState.targetLayout.isAttached
+                val isContainerReady = uiState.containerLayout.isAttached
 
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${offset.x}, ${offset.y}) targetReady:${uiState.targetLayout.isReady} containerReady:${uiState.containerLayout.isReady}" }
+                logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${offset.x}, ${offset.y}) isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
-                if (uiState.isReady) {
+                if (isTargetReady && isContainerReady) {
                     setContentVisible(true)
                 }
 
@@ -468,18 +474,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private data class UiState(
         val targetLayout: LayoutInfo = LayoutInfo(),
         val containerLayout: LayoutInfo = LayoutInfo(),
-    ) {
-        val isReady: Boolean = targetLayout.isReady && containerLayout.isReady
-    }
+    )
 
     private data class LayoutInfo(
         val size: IntSize = IntSize.Zero,
         val offset: IntOffset = IntOffset.Zero,
         val isAttached: Boolean = false,
-    ) {
-        val isReady: Boolean
-            get() = isAttached && size.width > 0 && size.height > 0
-    }
+    )
 }
 
 private enum class OffsetBoxSlotId {

@@ -10,6 +10,11 @@ interface TargetLayer : Layer {
     fun setTarget(target: String)
 
     /**
+     * 设置一个目标坐标，如果不为null，则会显示在该坐标附近，此时[setPosition]设置的位置无效。
+     */
+    fun setTargetOffset(offset: IntOffset?)
+
+    /**
      * 设置坐标转换
      */
     fun setOffsetTransform(transform: OffsetTransform?)
