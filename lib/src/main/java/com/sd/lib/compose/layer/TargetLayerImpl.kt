@@ -434,19 +434,27 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         var height = cs.maxHeight
 
         if (direction.hasTop()) {
-            height -= contentY
+            height -= contentY.also {
+                logMsg(isDebug) { "${this@TargetLayerImpl} clip background top:$it" }
+            }
             y = contentY
         }
         if (direction.hasBottom()) {
-            height -= (cs.maxHeight - contentY - contentSize.height)
+            height -= (cs.maxHeight - contentY - contentSize.height).also {
+                logMsg(isDebug) { "${this@TargetLayerImpl} clip background bottom:$it" }
+            }
         }
 
         if (direction.hasStart()) {
-            width -= contentX
+            width -= contentX.also {
+                logMsg(isDebug) { "${this@TargetLayerImpl} clip background start:$it" }
+            }
             x = contentX
         }
         if (direction.hasEnd()) {
-            width -= (cs.maxWidth - contentX - contentSize.width)
+            width -= (cs.maxWidth - contentX - contentSize.width).also {
+                logMsg(isDebug) { "${this@TargetLayerImpl} clip background end:$it" }
+            }
         }
 
         return BackgroundPlaceInfo(
