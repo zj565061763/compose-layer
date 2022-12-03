@@ -20,10 +20,18 @@ internal class LayerManager {
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
 
     @Composable
-    fun rememberLayer(): Layer {
+    fun rememberLayer(debug: Boolean): Layer {
         val layer = remember {
-            LayerImpl().also { addLayer(it) }
+            LayerImpl().also {
+                addLayer(it)
+                it.isDebug = debug
+            }
         }
+
+        LaunchedEffect(debug) {
+            layer.isDebug = debug
+        }
+
         DisposableEffect(layer) {
             onDispose {
                 removeLayer(layer)
@@ -33,10 +41,18 @@ internal class LayerManager {
     }
 
     @Composable
-    fun rememberTargetLayer(): TargetLayer {
+    fun rememberTargetLayer(debug: Boolean): TargetLayer {
         val layer = remember {
-            TargetLayerImpl().also { addLayer(it) }
+            TargetLayerImpl().also {
+                addLayer(it)
+                it.isDebug = debug
+            }
         }
+
+        LaunchedEffect(debug) {
+            layer.isDebug = debug
+        }
+
         DisposableEffect(layer) {
             onDispose {
                 removeLayer(layer)

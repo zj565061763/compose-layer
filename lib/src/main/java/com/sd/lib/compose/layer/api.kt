@@ -41,22 +41,22 @@ fun LayerContainer(
  * 创建并记住[Layer]
  */
 @Composable
-fun rememberLayer(): Layer {
+fun rememberLayer(debug: Boolean = false): Layer {
     val layerManager = checkNotNull(LocalLayerManager.current) {
         "CompositionLocal LocalLayerManager not present"
     }
-    return layerManager.rememberLayer()
+    return layerManager.rememberLayer(debug)
 }
 
 /**
  * 创建并记住[TargetLayer]
  */
 @Composable
-fun rememberTargetLayer(): TargetLayer {
+fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
     val layerManager = checkNotNull(LocalLayerManager.current) {
         "CompositionLocal LocalLayerManager not present"
     }
-    return layerManager.rememberTargetLayer()
+    return layerManager.rememberTargetLayer(debug)
 }
 
 /**
@@ -80,6 +80,8 @@ fun Modifier.layerTarget(
     }
 }
 
-internal inline fun logMsg(block: () -> String) {
-    Log.i("FLayer", block())
+internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
+    if (isDebug) {
+        Log.i("FLayer", block())
+    }
 }

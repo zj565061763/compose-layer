@@ -189,7 +189,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
                 val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
                 val offset = visibleOffset
-                logMsg { "layout invisible (${offset.x}, ${offset.y})" }
+                logMsg(isDebug) { "layout invisible (${offset.x}, ${offset.y})" }
                 setContentVisible(true)
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
@@ -221,7 +221,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             if (originalResult == null) {
                 val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
-                logMsg { "layout null result size:$originalSize" }
+                logMsg(isDebug) { "layout null result size:$originalSize" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     visibleBackgroundInfo = null
                     visibleOffset = IntOffset.Zero
@@ -249,7 +249,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
-                logMsg { "layout none overflow direction" }
+                logMsg(isDebug) { "layout none overflow direction" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     visibleBackgroundInfo = backgroundInfo
                     visibleOffset = IntOffset(x, y)
@@ -262,8 +262,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val (fixedConstraints, fixedResult) = checkOverflow(originalResult, cs, fixOverflowDirection)
             val placeable = if (fixedConstraints != null) {
                 measureContent(OffsetBoxSlotId.Content, fixedConstraints, content).also { placeable ->
-                    logMsg {
-                        "fixed size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${fixedResult.x}, ${fixedResult.y})"
+                    logMsg(isDebug) {
+                        "fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height}) -> (${placeable.width}, ${placeable.height}) offset:($x, $y) -> (${fixedResult.x}, ${fixedResult.y})"
                     }
                     x = fixedResult.x
                     y = fixedResult.y
@@ -284,7 +284,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 content = background,
             )
 
-            logMsg { "layout last" }
+            logMsg(isDebug) { "layout" }
             layout(cs.maxWidth, cs.maxHeight) {
                 visibleBackgroundInfo = backgroundInfo
                 visibleOffset = IntOffset(x, y)
@@ -321,7 +321,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         if (top > 0) {
                             overSize += top
                             isTopOverflow = true
-                            logMsg { "top overflow $top" }
+                            logMsg(isDebug) { "top overflow $top" }
                         }
                     }
 
@@ -329,7 +329,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         if (bottom > 0) {
                             overSize += bottom
                             isBottomOverflow = true
-                            logMsg { "bottom overflow $bottom" }
+                            logMsg(isDebug) { "bottom overflow $bottom" }
                         }
                     }
 
@@ -363,7 +363,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         if (start > 0) {
                             overSize += start
                             isStartOverflow = true
-                            logMsg { "start overflow $start" }
+                            logMsg(isDebug) { "start overflow $start" }
                         }
                     }
 
@@ -371,7 +371,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         if (end > 0) {
                             overSize += end
                             isEndOverflow = true
-                            logMsg { "end overflow $end" }
+                            logMsg(isDebug) { "end overflow $end" }
                         }
                     }
 
@@ -402,7 +402,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 break
             }
 
-            logMsg { "checkOverflow -----> ${++count}" }
+            logMsg(isDebug) { "checkOverflow -----> ${++count}" }
         }
 
         return Pair(resultConstraints, result)
