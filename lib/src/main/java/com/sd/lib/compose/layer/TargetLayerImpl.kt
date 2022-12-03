@@ -357,8 +357,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         contentPlaceable: Placeable,
         contentX: Int,
         contentY: Int,
+        beforeLayout: (() -> Unit)? = null,
     ): MeasureResult {
         return layout(width, height) {
+            beforeLayout?.invoke()
             backgroundPlaceable?.place(backgroundX, backgroundY, -1f)
             contentPlaceable.placeRelative(contentX, contentY)
         }
