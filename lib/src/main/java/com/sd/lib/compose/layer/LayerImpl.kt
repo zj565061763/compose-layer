@@ -52,6 +52,7 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun setPosition(position: Position) {
+        logMsg(isDebug) { "${this@LayerImpl} setPosition:$position" }
         _positionState = position
     }
 
