@@ -182,12 +182,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         background: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
-        var visibleBackgroundInfo: BackgroundPlaceInfo? by remember { mutableStateOf(null) }
-        var visibleOffset by remember { mutableStateOf(IntOffset.Zero) }
-        var visibleConstraints: Constraints? by remember { mutableStateOf(null) }
+        val state = remember {
+            OffsetBoxState(
+                background = background,
+                content = content,
+            )
+        }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
+            state.bindMeasureScope(this)
 
             val isTargetReady = uiState.targetLayout.isAttached
             val isContainerReady = uiState.containerLayout.isAttached
@@ -195,17 +199,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             logMsg(isDebug) { "${this@TargetLayerImpl} layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
-            // 如果状态由可见变为不可见，则要维持可见时候的状态
             if (!isVisibleState) {
-                return@SubcomposeLayout layoutLastVisible(
-                    cs = cs,
-                    visibleBackgroundInfo = visibleBackgroundInfo,
-                    visibleOffset = visibleOffset,
-                    visibleConstraints = visibleConstraints,
-                    background = background,
-                    content = content,
-                ).also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${visibleOffset.x}, ${visibleOffset.y})" }
+                return@SubcomposeLayout state.layoutLastVisible(cs).also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible" }
                     if (isReady) {
                         setContentVisible(true)
                     }
@@ -213,371 +209,24 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             }
 
             if (!isReady) {
-                return@SubcomposeLayout layoutLastVisible(
-                    cs = cs,
-                    visibleBackgroundInfo = visibleBackgroundInfo,
-                    visibleOffset = visibleOffset,
-                    visibleConstraints = visibleConstraints,
-                    background = background,
-                    content = content,
-                ).also {
+                return@SubcomposeLayout state.layoutLastVisible(cs).also {
                     logMsg(isDebug) { "${this@TargetLayerImpl} layout not ready" }
                     setContentVisible(false)
                 }
             }
 
-
             val fixOverflowDirection = _fixOverflowDirectionState
-
-            // 测量原始信息
-            val originalPlaceable = measureContent(
-                slotId = if (fixOverflowDirection == null) {
-                    // 如果不需要修复溢出的话，则用正式的slotId测量
-                    OffsetBoxSlotId.Content
-                } else null,
-                constraints = cs,
-                content = content
-            )
-            val originalResult = alignTarget(
-                position = positionState,
-                target = uiState.targetLayout,
-                container = uiState.containerLayout,
-                contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
-            )
-
-
-            var x = originalResult.x
-            var y = originalResult.y
-            var result: Aligner.Result = originalResult
-
-
-            // 检查目标坐标
-            val targetOffset = _targetOffset
-            if (targetOffset != null) {
-                val bestResult = findBestResult(originalResult, targetOffset).also {
-                    result = it
-                }
-                x = bestResult.x
-                y = bestResult.y
-            }
-
-
-            if (fixOverflowDirection == null) {
-                val backgroundInfo = backgroundPlaceInfo(
+                ?: return@SubcomposeLayout state.layoutNoneOverflow(
                     cs = cs,
-                    contentOffset = IntOffset(x, y),
-                    contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
-                    direction = _clipBackgroundDirectionState,
-                )
-                val backgroundPlaceable = measureBackground(
-                    slotId = OffsetBoxSlotId.Background,
-                    constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-                    content = background,
+                    uiState = uiState,
                 )
 
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow direction ($x, $y)" }
-                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    visibleBackgroundInfo = backgroundInfo
-                    visibleOffset = IntOffset(x, y)
-                    visibleConstraints = cs
-                    backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
-                    originalPlaceable.placeRelative(x, y)
-                }
-            }
-
-            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, fixOverflowDirection)
-            val placeable = if (fixedConstraints != null) {
-                measureContent(OffsetBoxSlotId.Content, fixedConstraints, content).also { placeable ->
-                    logMsg(isDebug) {
-                        "${this@TargetLayerImpl} fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${placeable.width}, ${placeable.height}) offset:($x, $y)->(${fixedResult.x}, ${fixedResult.y})"
-                    }
-                    x = fixedResult.x
-                    y = fixedResult.y
-                }
-            } else {
-                measureContent(OffsetBoxSlotId.Content, cs, content)
-            }
-
-            val backgroundInfo = backgroundPlaceInfo(
+            state.layoutFixOverflow(
                 cs = cs,
-                contentOffset = IntOffset(x, y),
-                contentSize = IntSize(placeable.width, placeable.height),
-                direction = _clipBackgroundDirectionState,
-            )
-            val backgroundPlaceable = measureBackground(
-                slotId = OffsetBoxSlotId.Background,
-                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-                content = background,
-            )
-
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout ($x, $y)" }
-            layout(cs.maxWidth, cs.maxHeight) {
-                visibleBackgroundInfo = backgroundInfo
-                visibleOffset = IntOffset(x, y)
-                visibleConstraints = fixedConstraints
-                backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
-                placeable.placeRelative(x, y)
-            }
-        }
-    }
-
-    private fun SubcomposeMeasureScope.layoutLastVisible(
-        cs: Constraints,
-        visibleBackgroundInfo: BackgroundPlaceInfo?,
-        visibleOffset: IntOffset,
-        visibleConstraints: Constraints?,
-        background: @Composable () -> Unit,
-        content: @Composable () -> Unit,
-    ): MeasureResult {
-        val backgroundInfo = visibleBackgroundInfo ?: BackgroundPlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-        val backgroundPlaceable = measureBackground(
-            slotId = OffsetBoxSlotId.Background,
-            constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-            content = background,
-        )
-        val contentPlaceable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
-        return layoutFinally(
-            width = cs.maxWidth,
-            height = cs.maxHeight,
-            backgroundPlaceable = backgroundPlaceable,
-            backgroundX = backgroundInfo.x,
-            backgroundY = backgroundInfo.y,
-            contentPlaceable = contentPlaceable,
-            contentX = visibleOffset.x,
-            contentY = visibleOffset.y,
-        )
-    }
-
-    private fun SubcomposeMeasureScope.layoutFinally(
-        width: Int,
-        height: Int,
-        backgroundPlaceable: Placeable?,
-        backgroundX: Int,
-        backgroundY: Int,
-        contentPlaceable: Placeable,
-        contentX: Int,
-        contentY: Int,
-        beforeLayout: (() -> Unit)? = null,
-    ): MeasureResult {
-        return layout(width, height) {
-            beforeLayout?.invoke()
-            backgroundPlaceable?.place(backgroundX, backgroundY, -1f)
-            contentPlaceable.placeRelative(contentX, contentY)
-        }
-    }
-
-    private fun findBestResult(result: Aligner.Result, targetOffset: IntOffset): Aligner.Result {
-        val overflowSizeDefault = result.sourceOverflow.totalOverflow()
-        if (overflowSizeDefault == 0) {
-            return result
-        }
-
-        val preferPosition = mutableListOf(
-            Aligner.Position.TopEnd,
-            Aligner.Position.BottomEnd,
-            Aligner.Position.TopStart,
-            Aligner.Position.BottomStart,
-        ).apply {
-            remove(result.input.position)
-        }
-
-        var bestResult = result
-        var minOverflow = overflowSizeDefault
-        var bestPosition = result.input.position
-
-        for (position in preferPosition) {
-            val newResult = _aligner.align(
-                result.input.copy(
-                    position = position,
-                    targetX = targetOffset.x,
-                    targetY = targetOffset.y,
-                    targetWidth = 0,
-                    targetHeight = 0,
-                )
-            )
-
-            val newOverflow = newResult.sourceOverflow.totalOverflow()
-            if (newOverflow < minOverflow) {
-                minOverflow = newOverflow
-                bestResult = newResult
-                bestPosition = position
-                if (newOverflow == 0) break
-            }
-        }
-
-        logMsg(isDebug) {
-            "${this@TargetLayerImpl} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
-        }
-
-        return bestResult
-    }
-
-    private fun checkOverflow(
-        result: Aligner.Result,
-        cs: Constraints,
-        direction: PlusDirection,
-    ): Pair<Constraints?, Aligner.Result> {
-        var resultConstraints: Constraints? = null
-
-        var cs = cs
-        var result = result
-
-        var count = 0
-        while (true) {
-            var hasOverflow = false
-
-            // 检查是否溢出
-            with(result.sourceOverflow) {
-                // Vertical
-                kotlin.run {
-                    var overSize = 0
-                    var isTopOverflow = false
-                    var isBottomOverflow = false
-
-                    if (direction.hasTop()) {
-                        if (top > 0) {
-                            overSize += top
-                            isTopOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
-                        }
-                    }
-
-                    if (direction.hasBottom()) {
-                        if (bottom > 0) {
-                            overSize += bottom
-                            isBottomOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
-                        }
-                    }
-
-                    if (overSize > 0) {
-                        hasOverflow = true
-
-                        /**
-                         * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-                         */
-                        if (positionState.isCenterVertical()) {
-                            if (isTopOverflow && isBottomOverflow) {
-                            } else {
-                                overSize *= 2
-                            }
-                        }
-
-                        val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                        cs = cs.copy(maxHeight = maxSize).also {
-                            resultConstraints = it
-                        }
-                    }
-                }
-
-                // Horizontal
-                kotlin.run {
-                    var overSize = 0
-                    var isStartOverflow = false
-                    var isEndOverflow = false
-
-                    if (direction.hasStart()) {
-                        if (start > 0) {
-                            overSize += start
-                            isStartOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
-                        }
-                    }
-
-                    if (direction.hasEnd()) {
-                        if (end > 0) {
-                            overSize += end
-                            isEndOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
-                        }
-                    }
-
-                    if (overSize > 0) {
-                        hasOverflow = true
-
-                        /**
-                         * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-                         */
-                        if (positionState.isCenterHorizontal()) {
-                            if (isStartOverflow && isEndOverflow) {
-                            } else {
-                                overSize *= 2
-                            }
-                        }
-
-                        val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                        cs = cs.copy(maxWidth = maxSize).also {
-                            resultConstraints = it
-                        }
-                    }
-                }
-            }
-
-            if (hasOverflow) {
-                result = _aligner.reAlign(result, cs.maxWidth, cs.maxHeight)
-            } else {
-                break
-            }
-
-            logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
-        }
-
-        return Pair(resultConstraints, result)
-    }
-
-    private fun backgroundPlaceInfo(
-        cs: Constraints,
-        contentOffset: IntOffset,
-        contentSize: IntSize,
-        direction: PlusDirection?,
-    ): BackgroundPlaceInfo {
-        if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
-            return BackgroundPlaceInfo(
-                x = 0,
-                y = 0,
-                width = cs.maxWidth,
-                height = cs.maxHeight,
+                uiState = uiState,
+                fixOverflowDirection = fixOverflowDirection,
             )
         }
-
-        val contentX = contentOffset.x.coerceAtLeast(0)
-        val contentY = contentOffset.y.coerceAtLeast(0)
-
-        var x = 0
-        var y = 0
-        var width = cs.maxWidth
-        var height = cs.maxHeight
-
-        if (direction.hasTop()) {
-            height -= contentY.also {
-                logMsg(isDebug) { "${this@TargetLayerImpl} clip background top:$it" }
-            }
-            y = contentY
-        }
-        if (direction.hasBottom()) {
-            height -= (cs.maxHeight - contentY - contentSize.height).also {
-                logMsg(isDebug) { "${this@TargetLayerImpl} clip background bottom:$it" }
-            }
-        }
-
-        if (direction.hasStart()) {
-            width -= contentX.also {
-                logMsg(isDebug) { "${this@TargetLayerImpl} clip background start:$it" }
-            }
-            x = contentX
-        }
-        if (direction.hasEnd()) {
-            width -= (cs.maxWidth - contentX - contentSize.width).also {
-                logMsg(isDebug) { "${this@TargetLayerImpl} clip background end:$it" }
-            }
-        }
-
-        return BackgroundPlaceInfo(
-            x = x,
-            y = y,
-            width = width.coerceAtLeast(0),
-            height = height.coerceAtLeast(0),
-        )
     }
 
     private data class UiState(
@@ -597,19 +246,428 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         val offset: IntOffset,
         val isAttached: Boolean,
     )
-}
 
-private enum class OffsetBoxSlotId {
-    Content,
-    Background,
-}
+    private inner class OffsetBoxState(
+        private val content: @Composable () -> Unit,
+        private val background: @Composable () -> Unit,
+    ) {
+        private var _measureScope: SubcomposeMeasureScope? = null
+        private var _visibleBackgroundInfo: PlaceInfo? = null
+        private var _visibleContentInfo: PlaceInfo? = null
 
-private data class BackgroundPlaceInfo(
-    val x: Int,
-    val y: Int,
-    val width: Int,
-    val height: Int,
-)
+        val measureScope: SubcomposeMeasureScope
+            get() = checkNotNull(_measureScope) { "bindMeasureScope() before this." }
+
+        fun bindMeasureScope(scope: SubcomposeMeasureScope) {
+            _measureScope = scope
+        }
+
+
+        fun layoutLastVisible(
+            cs: Constraints,
+        ): MeasureResult {
+            val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
+            val backgroundPlaceable = measureBackground(
+                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
+            )
+
+            val contentInfo = _visibleContentInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
+            val contentPlaceable = measureContent(
+                constraints = cs.copy(maxWidth = contentInfo.width, maxHeight = contentInfo.height),
+            )
+
+            return layoutFinally(
+                width = cs.maxWidth,
+                height = cs.maxHeight,
+                backgroundPlaceable = backgroundPlaceable,
+                backgroundX = backgroundInfo.x,
+                backgroundY = backgroundInfo.y,
+                contentPlaceable = contentPlaceable,
+                contentX = contentInfo.x,
+                contentY = contentInfo.y,
+                saveVisibleInfo = false,
+            )
+        }
+
+
+        fun layoutNoneOverflow(
+            cs: Constraints,
+            uiState: UiState,
+        ): MeasureResult {
+            val contentPlaceable = measureContent(cs)
+            val result = alignTarget(
+                position = positionState,
+                target = uiState.targetLayout,
+                container = uiState.containerLayout,
+                contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
+            ).let {
+                findBestResult(it)
+            }
+
+            val x = result.x
+            val y = result.y
+
+            val backgroundInfo = backgroundPlaceInfo(
+                cs = cs,
+                contentOffset = IntOffset(x, y),
+                contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
+                direction = _clipBackgroundDirectionState,
+            )
+            val backgroundPlaceable = measureBackground(
+                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
+            )
+
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x, $y)" }
+            return layoutFinally(
+                width = cs.maxWidth,
+                height = cs.maxHeight,
+                backgroundPlaceable = backgroundPlaceable,
+                backgroundX = backgroundInfo.x,
+                backgroundY = backgroundInfo.y,
+                contentPlaceable = contentPlaceable,
+                contentX = x,
+                contentY = y,
+            )
+        }
+
+
+        fun layoutFixOverflow(
+            cs: Constraints,
+            uiState: UiState,
+            fixOverflowDirection: PlusDirection,
+        ): MeasureResult {
+            val originalPlaceable = measureContent(cs, slotId = null)
+            val result = alignTarget(
+                position = positionState,
+                target = uiState.targetLayout,
+                container = uiState.containerLayout,
+                contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
+            ).let {
+                findBestResult(it)
+            }
+
+            var x = result.x
+            var y = result.y
+
+            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, fixOverflowDirection)
+            val contentPlaceable = if (fixedConstraints != null) {
+                measureContent(fixedConstraints).also { placeable ->
+                    logMsg(isDebug) {
+                        "${this@TargetLayerImpl} fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${placeable.width}, ${placeable.height}) offset:($x, $y)->(${fixedResult.x}, ${fixedResult.y})"
+                    }
+                    x = fixedResult.x
+                    y = fixedResult.y
+                }
+            } else {
+                measureContent(cs)
+            }
+
+            val backgroundInfo = backgroundPlaceInfo(
+                cs = cs,
+                contentOffset = IntOffset(x, y),
+                contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
+                direction = _clipBackgroundDirectionState,
+            )
+            val backgroundPlaceable = measureBackground(
+                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
+            )
+
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow ($x, $y)" }
+            return layoutFinally(
+                width = cs.maxWidth,
+                height = cs.maxHeight,
+                backgroundPlaceable = backgroundPlaceable,
+                backgroundX = backgroundInfo.x,
+                backgroundY = backgroundInfo.y,
+                contentPlaceable = contentPlaceable,
+                contentX = x,
+                contentY = y,
+            )
+        }
+
+
+        private fun layoutFinally(
+            width: Int,
+            height: Int,
+            backgroundPlaceable: Placeable?,
+            backgroundX: Int,
+            backgroundY: Int,
+            contentPlaceable: Placeable,
+            contentX: Int,
+            contentY: Int,
+            saveVisibleInfo: Boolean = true,
+        ): MeasureResult {
+            return measureScope.layout(width, height) {
+                if (saveVisibleInfo) {
+                    _visibleBackgroundInfo = PlaceInfo(
+                        x = backgroundX,
+                        y = backgroundY,
+                        width = backgroundPlaceable?.width ?: width,
+                        height = backgroundPlaceable?.height ?: height
+                    )
+                    _visibleContentInfo = PlaceInfo(
+                        x = contentX,
+                        y = contentY,
+                        width = contentPlaceable.width,
+                        height = contentPlaceable.height,
+                    )
+                }
+                backgroundPlaceable?.place(backgroundX, backgroundY, -1f)
+                contentPlaceable.placeRelative(contentX, contentY)
+            }
+        }
+
+
+        private fun backgroundPlaceInfo(
+            cs: Constraints,
+            contentOffset: IntOffset,
+            contentSize: IntSize,
+            direction: PlusDirection?,
+        ): PlaceInfo {
+            if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
+                return PlaceInfo(
+                    x = 0,
+                    y = 0,
+                    width = cs.maxWidth,
+                    height = cs.maxHeight,
+                )
+            }
+
+            val contentX = contentOffset.x.coerceAtLeast(0)
+            val contentY = contentOffset.y.coerceAtLeast(0)
+
+            var x = 0
+            var y = 0
+            var width = cs.maxWidth
+            var height = cs.maxHeight
+
+            if (direction.hasTop()) {
+                height -= contentY.also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background top:$it" }
+                }
+                y = contentY
+            }
+            if (direction.hasBottom()) {
+                height -= (cs.maxHeight - contentY - contentSize.height).also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background bottom:$it" }
+                }
+            }
+
+            if (direction.hasStart()) {
+                width -= contentX.also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background start:$it" }
+                }
+                x = contentX
+            }
+            if (direction.hasEnd()) {
+                width -= (cs.maxWidth - contentX - contentSize.width).also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background end:$it" }
+                }
+            }
+
+            return PlaceInfo(
+                x = x,
+                y = y,
+                width = width.coerceAtLeast(0),
+                height = height.coerceAtLeast(0),
+            )
+        }
+
+
+        private fun findBestResult(result: Aligner.Result): Aligner.Result {
+            val targetOffset = _targetOffset ?: return result
+
+            val overflowSizeDefault = result.sourceOverflow.totalOverflow()
+            if (overflowSizeDefault == 0) {
+                return result
+            }
+
+            val preferPosition = mutableListOf(
+                Aligner.Position.TopEnd,
+                Aligner.Position.BottomEnd,
+                Aligner.Position.TopStart,
+                Aligner.Position.BottomStart,
+            ).apply {
+                remove(result.input.position)
+            }
+
+            var bestResult = result
+            var minOverflow = overflowSizeDefault
+            var bestPosition = result.input.position
+
+            for (position in preferPosition) {
+                val newResult = _aligner.align(
+                    result.input.copy(
+                        position = position,
+                        targetX = targetOffset.x,
+                        targetY = targetOffset.y,
+                        targetWidth = 0,
+                        targetHeight = 0,
+                    )
+                )
+
+                val newOverflow = newResult.sourceOverflow.totalOverflow()
+                if (newOverflow < minOverflow) {
+                    minOverflow = newOverflow
+                    bestResult = newResult
+                    bestPosition = position
+                    if (newOverflow == 0) break
+                }
+            }
+
+            logMsg(isDebug) {
+                "${this@TargetLayerImpl} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
+            }
+
+            return bestResult
+        }
+
+
+        private fun checkOverflow(
+            result: Aligner.Result,
+            cs: Constraints,
+            direction: PlusDirection,
+        ): Pair<Constraints?, Aligner.Result> {
+            var resultConstraints: Constraints? = null
+
+            var cs = cs
+            var result = result
+
+            var count = 0
+            while (true) {
+                var hasOverflow = false
+
+                // 检查是否溢出
+                with(result.sourceOverflow) {
+                    // Vertical
+                    kotlin.run {
+                        var overSize = 0
+                        var isTopOverflow = false
+                        var isBottomOverflow = false
+
+                        if (direction.hasTop()) {
+                            if (top > 0) {
+                                overSize += top
+                                isTopOverflow = true
+                                logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
+                            }
+                        }
+
+                        if (direction.hasBottom()) {
+                            if (bottom > 0) {
+                                overSize += bottom
+                                isBottomOverflow = true
+                                logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
+                            }
+                        }
+
+                        if (overSize > 0) {
+                            hasOverflow = true
+
+                            /**
+                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                             */
+                            if (positionState.isCenterVertical()) {
+                                if (isTopOverflow && isBottomOverflow) {
+                                } else {
+                                    overSize *= 2
+                                }
+                            }
+
+                            val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
+                            cs = cs.copy(maxHeight = maxSize).also {
+                                resultConstraints = it
+                            }
+                        }
+                    }
+
+                    // Horizontal
+                    kotlin.run {
+                        var overSize = 0
+                        var isStartOverflow = false
+                        var isEndOverflow = false
+
+                        if (direction.hasStart()) {
+                            if (start > 0) {
+                                overSize += start
+                                isStartOverflow = true
+                                logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
+                            }
+                        }
+
+                        if (direction.hasEnd()) {
+                            if (end > 0) {
+                                overSize += end
+                                isEndOverflow = true
+                                logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
+                            }
+                        }
+
+                        if (overSize > 0) {
+                            hasOverflow = true
+
+                            /**
+                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                             */
+                            if (positionState.isCenterHorizontal()) {
+                                if (isStartOverflow && isEndOverflow) {
+                                } else {
+                                    overSize *= 2
+                                }
+                            }
+
+                            val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
+                            cs = cs.copy(maxWidth = maxSize).also {
+                                resultConstraints = it
+                            }
+                        }
+                    }
+                }
+
+                if (hasOverflow) {
+                    result = _aligner.reAlign(result, cs.maxWidth, cs.maxHeight)
+                } else {
+                    break
+                }
+
+                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
+            }
+
+            return Pair(resultConstraints, result)
+        }
+
+        private fun measureContent(
+            constraints: Constraints,
+            slotId: SlotId? = SlotId.Content,
+        ): Placeable {
+            val measurable = measureScope.subcompose(slotId, content).let {
+                check(it.size == 1)
+                it.first()
+            }
+            return measurable.measure(constraints)
+        }
+
+        private fun measureBackground(constraints: Constraints): Placeable? {
+            val measurable = measureScope.subcompose(SlotId.Background, background).let {
+                if (it.isNotEmpty()) check(it.size == 1)
+                it.firstOrNull()
+            }
+            return measurable?.measure(constraints)
+        }
+    }
+
+    private data class PlaceInfo(
+        val x: Int,
+        val y: Int,
+        val width: Int,
+        val height: Int,
+    )
+
+    private enum class SlotId {
+        Content,
+        Background,
+    }
+}
 
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
     return when (this) {
@@ -653,8 +711,6 @@ private fun LayoutCoordinates?.isAttached(): Boolean {
     return this.isAttached
 }
 
-private fun IntSize.isReady(): Boolean = this.width > 0 && this.height > 0
-
 private fun Aligner.reAlign(result: Aligner.Result, sourceWidth: Int, sourceHeight: Int): Aligner.Result {
     return align(
         result.input.copy(
@@ -687,28 +743,4 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
     Layer.Position.Center,
     -> true
     else -> false
-}
-
-private fun SubcomposeMeasureScope.measureContent(
-    slotId: Any?,
-    constraints: Constraints,
-    content: @Composable () -> Unit
-): Placeable {
-    val measurable = subcompose(slotId, content).let {
-        check(it.size == 1)
-        it.first()
-    }
-    return measurable.measure(constraints)
-}
-
-private fun SubcomposeMeasureScope.measureBackground(
-    slotId: Any?,
-    constraints: Constraints,
-    content: @Composable () -> Unit
-): Placeable? {
-    val measurable = subcompose(slotId, content).let {
-        if (it.isNotEmpty()) check(it.size == 1)
-        it.firstOrNull()
-    }
-    return measurable?.measure(constraints)
 }
