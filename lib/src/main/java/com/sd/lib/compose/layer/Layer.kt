@@ -49,12 +49,6 @@ interface Layer {
      */
     fun detach()
 
-    /**
-     * 更新当前Layer所在的容器
-     */
-    @Composable
-    fun UpdateContainer()
-
     enum class Position {
         /** 顶部开始方向对齐 */
         TopStart,

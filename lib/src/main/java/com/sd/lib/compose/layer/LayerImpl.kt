@@ -79,21 +79,6 @@ internal open class LayerImpl : Layer {
         setContentVisible(false)
     }
 
-    @Composable
-    final override fun UpdateContainer() {
-        val layerManager = checkNotNull(LocalLayerManager.current) {
-            "CompositionLocal LocalLayerManager not present"
-        }
-        LaunchedEffect(layerManager) {
-            val currentManager = _layerManager
-            if (currentManager !== layerManager) {
-                logMsg(isDebug) { "${this@LayerImpl} UpdateContainer $currentManager -> $layerManager" }
-                currentManager?.removeLayer(this@LayerImpl)
-                layerManager.addLayer(this@LayerImpl)
-            }
-        }
-    }
-
     /**
      * Layer被添加到[manager]
      */

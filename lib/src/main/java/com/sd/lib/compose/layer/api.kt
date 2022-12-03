@@ -22,7 +22,7 @@ fun LayerContainer(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val layerManager = remember { LayerManager() }
-    CompositionLocalProvider(LocalLayerManager provides layerManager) {
+    CompositionLocalProvider(LocalLayerContainer provides layerManager) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -42,7 +42,7 @@ fun LayerContainer(
  */
 @Composable
 fun rememberLayer(debug: Boolean = false): Layer {
-    val layerManager = checkNotNull(LocalLayerManager.current) {
+    val layerManager = checkNotNull(LocalLayerContainer.current) {
         "CompositionLocal LocalLayerManager not present"
     }
     return layerManager.rememberLayer(debug)
@@ -53,7 +53,7 @@ fun rememberLayer(debug: Boolean = false): Layer {
  */
 @Composable
 fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
-    val layerManager = checkNotNull(LocalLayerManager.current) {
+    val layerManager = checkNotNull(LocalLayerContainer.current) {
         "CompositionLocal LocalLayerManager not present"
     }
     return layerManager.rememberTargetLayer(debug)
@@ -65,7 +65,7 @@ fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
 fun Modifier.layerTarget(
     tag: String,
 ) = composed {
-    val layerManager = checkNotNull(LocalLayerManager.current) {
+    val layerManager = checkNotNull(LocalLayerContainer.current) {
         "CompositionLocal LocalLayerManager not present"
     }
 

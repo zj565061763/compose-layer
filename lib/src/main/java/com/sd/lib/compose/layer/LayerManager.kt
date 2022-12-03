@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.zIndex
 
-internal val LocalLayerManager = compositionLocalOf<LayerManager?> { null }
+internal val LocalLayerContainer = compositionLocalOf<LayerManager?> { null }
 
 internal class LayerManager {
     private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
