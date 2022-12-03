@@ -47,11 +47,6 @@ internal class TargetLayerImpl() : LayerImpl(), TargetLayer {
         _containerLayoutCoordinates = it
     }
 
-    override fun setPosition(position: Layer.Position) {
-        super.setPosition(position)
-        updateUiState()
-    }
-
     override fun setTarget(target: String) {
         _target = target
     }

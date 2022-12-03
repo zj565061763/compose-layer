@@ -48,8 +48,7 @@ internal open class LayerImpl : Layer {
         _content = content
     }
 
-    @CallSuper
-    override fun setPosition(position: Position) {
+    final override fun setPosition(position: Position) {
         _positionState = position
     }
 
