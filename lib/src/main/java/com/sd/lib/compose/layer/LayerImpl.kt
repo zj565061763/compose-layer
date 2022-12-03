@@ -25,14 +25,13 @@ internal open class LayerImpl : Layer {
     protected var _isAttached by mutableStateOf(false)
         private set
 
-    private var _content: @Composable ContentScope.() -> Unit by mutableStateOf({ })
     private val _contentScopeImpl = ContentScopeImpl()
-
-    private var _positionState: Position by mutableStateOf(Position.Center)
+    private var _content: @Composable ContentScope.() -> Unit by mutableStateOf({ })
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
+    private var _positionState: Position by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(false)
     private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
 
