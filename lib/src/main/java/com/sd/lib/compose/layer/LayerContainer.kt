@@ -3,10 +3,8 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -19,7 +17,7 @@ import androidx.compose.ui.zIndex
 @Composable
 fun LayerContainer(
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val layerContainer = remember { LayerContainer() }
     CompositionLocalProvider(LocalLayerContainer provides layerContainer) {
@@ -29,7 +27,6 @@ fun LayerContainer(
                 .onGloballyPositioned {
                     layerContainer.updateContainerLayout(it)
                 },
-            contentAlignment = Alignment.Center,
         ) {
             content()
             layerContainer.Layers()
