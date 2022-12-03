@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -77,11 +76,5 @@ fun Modifier.layerTarget(
 
     this.onGloballyPositioned {
         layerManager.addTarget(tag, it)
-    }
-}
-
-internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
-    if (isDebug) {
-        Log.i("FLayer", block())
     }
 }
