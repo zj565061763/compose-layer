@@ -255,11 +255,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             var x = originalResult.x
             var y = originalResult.y
+            var result: Aligner.Result = originalResult
 
 
             val targetOffset = _targetOffset
             if (targetOffset != null) {
-                val bestResult = findBestResult(originalResult, targetOffset)
+                val bestResult = findBestResult(originalResult, targetOffset).also {
+                    result = it
+                }
                 x = bestResult.x
                 y = bestResult.y
             }
@@ -288,7 +291,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
             }
 
-            val (fixedConstraints, fixedResult) = checkOverflow(originalResult, cs, fixOverflowDirection)
+            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, fixOverflowDirection)
             val placeable = if (fixedConstraints != null) {
                 measureContent(OffsetBoxSlotId.Content, fixedConstraints, content).also { placeable ->
                     logMsg(isDebug) {
