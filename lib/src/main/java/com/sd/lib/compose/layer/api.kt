@@ -20,18 +20,18 @@ fun LayerContainer(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val layerManager = remember { LayerManager() }
-    CompositionLocalProvider(LocalLayerContainer provides layerManager) {
+    val layerContainer = remember { LayerContainer() }
+    CompositionLocalProvider(LocalLayerContainer provides layerContainer) {
         Box(
             modifier = modifier
                 .fillMaxSize()
                 .onGloballyPositioned {
-                    layerManager.updateContainerLayout(it)
+                    layerContainer.updateContainerLayout(it)
                 },
             contentAlignment = Alignment.Center,
         ) {
             content()
-            layerManager.Layers()
+            layerContainer.Layers()
         }
     }
 }
@@ -41,10 +41,10 @@ fun LayerContainer(
  */
 @Composable
 fun rememberLayer(debug: Boolean = false): Layer {
-    val layerManager = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerManager not present"
+    val layerContainer = checkNotNull(LocalLayerContainer.current) {
+        "CompositionLocal LocalLayerContainer not present"
     }
-    return layerManager.rememberLayer(debug)
+    return layerContainer.rememberLayer(debug)
 }
 
 /**
@@ -52,10 +52,10 @@ fun rememberLayer(debug: Boolean = false): Layer {
  */
 @Composable
 fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
-    val layerManager = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerManager not present"
+    val layerContainer = checkNotNull(LocalLayerContainer.current) {
+        "CompositionLocal LocalLayerContainer not present"
     }
-    return layerManager.rememberTargetLayer(debug)
+    return layerContainer.rememberTargetLayer(debug)
 }
 
 /**
@@ -64,17 +64,17 @@ fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
 fun Modifier.layerTarget(
     tag: String,
 ) = composed {
-    val layerManager = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerManager not present"
+    val layerContainer = checkNotNull(LocalLayerContainer.current) {
+        "CompositionLocal LocalLayerContainer not present"
     }
 
-    DisposableEffect(layerManager, tag) {
+    DisposableEffect(layerContainer, tag) {
         onDispose {
-            layerManager.removeTarget(tag)
+            layerContainer.removeTarget(tag)
         }
     }
 
     this.onGloballyPositioned {
-        layerManager.addTarget(tag, it)
+        layerContainer.addTarget(tag, it)
     }
 }

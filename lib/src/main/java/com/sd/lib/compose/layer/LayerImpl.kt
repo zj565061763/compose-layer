@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.*
 
 internal open class LayerImpl : Layer {
-    protected var _layerManager: LayerManager? = null
+    protected var _layerManager: LayerContainer? = null
         private set
 
     protected var _isAttached = false
@@ -84,7 +84,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer被添加到[manager]
      */
-    internal fun attachToManager(manager: LayerManager) {
+    internal fun attachToManager(manager: LayerContainer) {
         logMsg(isDebug) { "${this@LayerImpl} attachToManager $manager" }
         _layerManager = manager
     }
@@ -92,7 +92,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer从[manager]上被移除
      */
-    internal fun detachFromManager(manager: LayerManager) {
+    internal fun detachFromManager(manager: LayerContainer) {
         logMsg(isDebug) { "${this@LayerImpl} detachFromManager $manager" }
         check(_layerManager === manager)
         detach()
