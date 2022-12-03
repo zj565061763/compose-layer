@@ -82,7 +82,6 @@ fun Modifier.layerTarget(
 private val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { null }
 
 internal class LayerContainer {
-    private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
     private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
 
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
@@ -94,14 +93,14 @@ internal class LayerContainer {
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
         val layer = remember {
-            LayerImpl().also { addLayer(it) }
+            LayerImpl().also { initLayer(it) }
         }.apply {
             this.isDebug = debug
         }
 
         DisposableEffect(layer) {
             onDispose {
-                removeLayer(layer)
+                destroyLayer(layer)
             }
         }
         return layer
@@ -110,14 +109,14 @@ internal class LayerContainer {
     @Composable
     fun rememberTargetLayer(debug: Boolean): TargetLayer {
         val layer = remember {
-            TargetLayerImpl().also { addLayer(it) }
+            TargetLayerImpl().also { initLayer(it) }
         }.apply {
             this.isDebug = debug
         }
 
         DisposableEffect(layer) {
             onDispose {
-                removeLayer(layer)
+                destroyLayer(layer)
             }
         }
         return layer
@@ -140,25 +139,18 @@ internal class LayerContainer {
         }
     }
 
-    private fun addLayer(layer: LayerImpl) {
-        if (!_layerHolder.contains(layer)) {
-            _layerHolder.add(layer)
-            layer.onCreate(this)
-        }
+    private fun initLayer(layer: LayerImpl) {
+        layer.onCreate(this)
     }
 
-    private fun removeLayer(layer: LayerImpl) {
-        if (_layerHolder.remove(layer)) {
-            _attachedLayerHolder.remove(layer)
-            layer.onDestroy(this)
-        }
+    private fun destroyLayer(layer: LayerImpl) {
+        _attachedLayerHolder.remove(layer)
+        layer.onDestroy(this)
     }
 
     fun notifyLayerAttached(layer: LayerImpl) {
-        if (_layerHolder.contains(layer)) {
-            if (!_attachedLayerHolder.contains(layer)) {
-                _attachedLayerHolder.add(layer)
-            }
+        if (!_attachedLayerHolder.contains(layer)) {
+            _attachedLayerHolder.add(layer)
         }
     }
 
