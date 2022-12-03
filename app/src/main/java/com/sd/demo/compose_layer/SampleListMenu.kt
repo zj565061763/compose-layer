@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -85,7 +84,7 @@ private fun ListItem(
                 detectTapGestures {
                     val layout = layoutCoordinates
                     if (layout?.isAttached == true) {
-                        val offset = layout.localToWindow(Offset.Zero) + it
+                        val offset = layout.localToWindow(it)
                         onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
                     }
                 }
