@@ -341,8 +341,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         var bestResult = result
         var minOverflow = overflowSizeDefault
+        var bestPosition = result.input.position
 
-        preferPosition.forEach { position ->
+        for (position in preferPosition) {
             val newResult = _aligner.align(
                 result.input.copy(
                     position = position,
@@ -357,7 +358,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             if (newOverflow < minOverflow) {
                 minOverflow = newOverflow
                 bestResult = newResult
+                bestPosition = position
+                if (newOverflow == 0) break
             }
+        }
+
+        logMsg(isDebug) {
+            "${this@TargetLayerImpl} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
         }
 
         return bestResult
