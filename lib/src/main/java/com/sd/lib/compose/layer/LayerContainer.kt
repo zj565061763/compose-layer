@@ -93,7 +93,7 @@ internal class LayerContainer {
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
         val layer = remember {
-            LayerImpl().also { initLayer(it) }
+            LayerImpl().also { initLayer(it, debug) }
         }.apply {
             this.isDebug = debug
         }
@@ -109,7 +109,7 @@ internal class LayerContainer {
     @Composable
     fun rememberTargetLayer(debug: Boolean): TargetLayer {
         val layer = remember {
-            TargetLayerImpl().also { initLayer(it) }
+            TargetLayerImpl().also { initLayer(it, debug) }
         }.apply {
             this.isDebug = debug
         }
@@ -139,7 +139,8 @@ internal class LayerContainer {
         }
     }
 
-    private fun initLayer(layer: LayerImpl) {
+    private fun initLayer(layer: LayerImpl, debug: Boolean) {
+        layer.isDebug = debug
         layer.onCreate(this)
     }
 
