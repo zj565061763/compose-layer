@@ -128,6 +128,7 @@ interface Layer {
     }
 }
 
+//---------- Impl ----------
 
 internal open class LayerImpl : Layer {
     protected var _layerContainer: LayerContainer? = null
