@@ -35,11 +35,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $newValue" }
         updateUiState()
     }
     private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
         updateUiState()
     }
 
@@ -68,13 +66,19 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun attach() {
         super.attach()
-        _layerManager?.registerContainerLayoutCallback(_containerLayoutCallback)
+        _layerManager?.run {
+            registerContainerLayoutCallback(_containerLayoutCallback)
+            registerTargetLayoutCallback(_target, _targetLayoutCallback)
+        }
         updateUiState()
     }
 
     override fun detach() {
         super.detach()
-        _layerManager?.unregisterContainerLayoutCallback(_containerLayoutCallback)
+        _layerManager?.run {
+            unregisterContainerLayoutCallback(_containerLayoutCallback)
+            unregisterTargetLayoutCallback(_target, _targetLayoutCallback)
+        }
         updateUiState()
     }
 
