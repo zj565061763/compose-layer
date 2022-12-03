@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import androidx.annotation.CallSuper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -65,21 +64,24 @@ internal open class LayerImpl : Layer {
         _clipToBoundsState = clipToBounds
     }
 
-    @CallSuper
-    override fun attach() {
+    final override fun attach() {
         val container = _layerContainer ?: return
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
         container.notifyLayerAttached(this)
+        onAttach()
     }
 
-    @CallSuper
-    override fun detach() {
+    final override fun detach() {
         if (_layerContainer == null) return
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
+        onDetach()
     }
+
+    protected open fun onAttach() {}
+    protected open fun onDetach() {}
 
     /**
      * Layer被添加到[container]
