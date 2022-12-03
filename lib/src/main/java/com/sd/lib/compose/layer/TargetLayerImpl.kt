@@ -10,10 +10,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
-import com.sd.lib.compose.layer.TargetLayer.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 import kotlin.properties.Delegates
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
@@ -137,12 +134,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             targetLayout = LayoutInfo(
                 size = _targetLayoutCoordinates.size(),
                 offset = _targetLayoutCoordinates.offset(),
-                isAttached = _targetLayoutCoordinates?.isAttached ?: false,
+                isAttached = _targetLayoutCoordinates.isAttached(),
             ),
             containerLayout = LayoutInfo(
                 size = _containerLayoutCoordinates.size(),
                 offset = _containerLayoutCoordinates.offset(),
-                isAttached = _containerLayoutCoordinates?.isAttached ?: false,
+                isAttached = _containerLayoutCoordinates.isAttached(),
             )
         )
     }
@@ -508,17 +505,6 @@ private fun Layer.Position.toAlignerPosition(): Aligner.Position {
     }
 }
 
-@OptIn(ExperimentalContracts::class)
-private fun LayoutCoordinates?.isReady(): Boolean {
-    contract {
-        returns(true) implies (this@isReady != null)
-    }
-    if (this == null) return false
-    if (!this.isAttached) return false
-    if (this.size.width <= 0 || this.size.height <= 0) return false
-    return true
-}
-
 private fun LayoutCoordinates?.size(): IntSize {
     if (this == null || !this.isAttached) return IntSize.Zero
     return this.size
@@ -528,6 +514,11 @@ private fun LayoutCoordinates?.offset(): IntOffset {
     if (this == null || !this.isAttached) return IntOffset.Zero
     val offset = this.localToWindow(Offset.Zero)
     return IntOffset(offset.x.toInt(), offset.y.toInt())
+}
+
+private fun LayoutCoordinates?.isAttached(): Boolean {
+    if (this == null) return false
+    return this.isAttached
 }
 
 private fun IntSize.isReady(): Boolean = this.width > 0 && this.height > 0
