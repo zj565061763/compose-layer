@@ -80,7 +80,7 @@ internal open class LayerImpl : Layer {
         }
         LaunchedEffect(layerManager) {
             val currentManager = _layerManager
-            if (currentManager != layerManager) {
+            if (currentManager !== layerManager) {
                 currentManager?.removeLayer(this@LayerImpl)
                 layerManager.addLayer(this@LayerImpl)
             }
