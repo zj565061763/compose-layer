@@ -109,7 +109,7 @@ private fun createLayer(): TargetLayer {
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false, backgroundColor = Color.Transparent)
         }
-        layer.setFixOverflowDirection(PlusDirection.Bottom)
+        layer.setFixOverflowDirection(PlusDirection.All)
         layer.setContent {
             LayerContent(isVisible)
         }

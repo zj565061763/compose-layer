@@ -63,6 +63,7 @@ sealed class PlusDirection(direction: Int) {
     object Bottom : PlusDirection(FlagBottom)
     object Start : PlusDirection(FlagStart)
     object End : PlusDirection(FlagEnd)
+    object All : PlusDirection(FlagAll)
 
     private class Plus(direction: Int) : PlusDirection(direction)
 
@@ -71,5 +72,6 @@ sealed class PlusDirection(direction: Int) {
         private const val FlagBottom = FlagTop shl 1
         private const val FlagStart = FlagTop shl 2
         private const val FlagEnd = FlagTop shl 3
+        private const val FlagAll = FlagTop or FlagBottom or FlagStart or FlagEnd
     }
 }
