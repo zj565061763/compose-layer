@@ -53,7 +53,8 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
-        _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())
+        val currentBehavior = _dialogBehaviorState ?: DialogBehavior()
+        _dialogBehaviorState = block(currentBehavior)
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
