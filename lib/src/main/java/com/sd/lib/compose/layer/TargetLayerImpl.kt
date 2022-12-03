@@ -277,8 +277,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
 
             return layoutFinally(
-                width = cs.maxWidth,
-                height = cs.maxHeight,
+                cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
                 backgroundX = backgroundInfo.x,
                 backgroundY = backgroundInfo.y,
@@ -319,8 +318,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x, $y)" }
             return layoutFinally(
-                width = cs.maxWidth,
-                height = cs.maxHeight,
+                cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
                 backgroundX = backgroundInfo.x,
                 backgroundY = backgroundInfo.y,
@@ -374,8 +372,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow ($x, $y)" }
             return layoutFinally(
-                width = cs.maxWidth,
-                height = cs.maxHeight,
+                cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
                 backgroundX = backgroundInfo.x,
                 backgroundY = backgroundInfo.y,
@@ -387,8 +384,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
 
         private fun layoutFinally(
-            width: Int,
-            height: Int,
+            cs: Constraints,
             backgroundPlaceable: Placeable?,
             backgroundX: Int,
             backgroundY: Int,
@@ -397,13 +393,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             contentY: Int,
             saveVisibleInfo: Boolean = true,
         ): MeasureResult {
-            return measureScope.layout(width, height) {
+            return measureScope.layout(cs.maxWidth, cs.maxHeight) {
                 if (saveVisibleInfo) {
                     _visibleBackgroundInfo = PlaceInfo(
                         x = backgroundX,
                         y = backgroundY,
-                        width = backgroundPlaceable?.width ?: width,
-                        height = backgroundPlaceable?.height ?: height
+                        width = backgroundPlaceable?.width ?: cs.maxWidth,
+                        height = backgroundPlaceable?.height ?: cs.maxHeight
                     )
                     _visibleContentInfo = PlaceInfo(
                         x = contentX,
