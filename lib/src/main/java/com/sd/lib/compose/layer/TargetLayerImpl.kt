@@ -251,7 +251,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                     content = background,
                 )
 
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow direction" }
+                logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow direction ($x, $y)" }
                 return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
                     visibleBackgroundInfo = backgroundInfo
                     visibleOffset = IntOffset(x, y)
@@ -286,7 +286,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 content = background,
             )
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout ($x, $y)" }
             layout(cs.maxWidth, cs.maxHeight) {
                 visibleBackgroundInfo = backgroundInfo
                 visibleOffset = IntOffset(x, y)
