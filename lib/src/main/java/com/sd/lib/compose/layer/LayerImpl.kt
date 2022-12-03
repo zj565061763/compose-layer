@@ -120,7 +120,9 @@ internal open class LayerImpl : Layer {
     protected fun setContentVisible(visible: Boolean) {
         if (visible) {
             if (_isAttached) {
-                logMsg(isDebug) { "$this setContentVisible true" }
+                if (!_contentScopeImpl.isVisible) {
+                    logMsg(isDebug) { "$this setContentVisible true" }
+                }
                 _contentScopeImpl._isVisible = true
             }
         } else {
