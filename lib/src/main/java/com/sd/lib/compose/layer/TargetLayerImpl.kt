@@ -336,10 +336,32 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             content = background,
         )
-        val placeable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
-        return layout(cs.maxWidth, cs.maxHeight) {
-            backgroundPlaceable?.place(backgroundInfo.x, backgroundInfo.y, -1f)
-            placeable.placeRelative(visibleOffset.x, visibleOffset.y)
+        val contentPlaceable = measureContent(OffsetBoxSlotId.Content, visibleConstraints ?: cs, content)
+        return layoutFinally(
+            width = cs.maxWidth,
+            height = cs.maxHeight,
+            backgroundPlaceable = backgroundPlaceable,
+            backgroundX = backgroundInfo.x,
+            backgroundY = backgroundInfo.y,
+            contentPlaceable = contentPlaceable,
+            contentX = visibleOffset.x,
+            contentY = visibleOffset.y,
+        )
+    }
+
+    private fun SubcomposeMeasureScope.layoutFinally(
+        width: Int,
+        height: Int,
+        backgroundPlaceable: Placeable?,
+        backgroundX: Int,
+        backgroundY: Int,
+        contentPlaceable: Placeable,
+        contentX: Int,
+        contentY: Int,
+    ): MeasureResult {
+        return layout(width, height) {
+            backgroundPlaceable?.place(backgroundX, backgroundY, -1f)
+            contentPlaceable.placeRelative(contentX, contentY)
         }
     }
 
