@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
@@ -47,6 +49,8 @@ class SampleListMenu : ComponentActivity() {
 @Composable
 private fun Content() {
     val layer = createLayer()
+    val layoutCoordinatesHolder: MutableMap<Int, LayoutCoordinates> = remember { mutableMapOf() }
+
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -56,11 +60,17 @@ private fun Content() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .layerTarget("item_$index")
                     .height(50.dp)
+                    .onGloballyPositioned {
+                        layoutCoordinatesHolder[index] = it
+                    }
                     .clickable {
-                        layer.setTarget("item_$index")
-                        layer.attach()
+                        val layout = layoutCoordinatesHolder[index]
+                        if (layout?.isAttached == true) {
+                            val offset = layout.localToWindow(Offset.Zero)
+                            layer.setTargetOffset(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                            layer.attach()
+                        }
                     }
             ) {
                 Text(
@@ -79,7 +89,7 @@ private fun Content() {
 private fun createLayer(): TargetLayer {
     val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.Bottom)
+        layer.setPosition(Layer.Position.TopStart)
         layer.setDialogBehavior {
             it.copy(consumeTouchOutside = false)
         }
