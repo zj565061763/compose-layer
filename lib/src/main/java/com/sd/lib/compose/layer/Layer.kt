@@ -113,8 +113,3 @@ interface Layer {
     }
 }
 
-internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
-    if (isDebug) {
-        Log.i("FLayer", block())
-    }
-}

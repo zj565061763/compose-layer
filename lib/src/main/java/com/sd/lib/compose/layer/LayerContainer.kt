@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -219,5 +220,11 @@ internal class LayerContainer {
         _targetLayoutCallbackHolder[tag]?.toTypedArray()?.forEach {
             it.invoke(layoutCoordinates)
         }
+    }
+}
+
+internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
+    if (isDebug) {
+        Log.i("FLayer", block())
     }
 }
