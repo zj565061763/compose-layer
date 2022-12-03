@@ -67,13 +67,15 @@ internal open class LayerImpl : Layer {
 
     @CallSuper
     override fun attach() {
+        val container = _layerManager ?: return
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
-        _layerManager?.notifyLayerAttached(this)
+        container.notifyLayerAttached(this)
     }
 
     @CallSuper
     override fun detach() {
+        if (_layerManager == null) return
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
