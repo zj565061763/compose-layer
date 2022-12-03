@@ -66,14 +66,14 @@ internal open class LayerImpl : Layer {
 
     @CallSuper
     override fun attach() {
-        logMsg(isDebug) { "$this attach" }
+        logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
         _layerManager?.notifyLayerAttached(this)
     }
 
     @CallSuper
     override fun detach() {
-        logMsg(isDebug) { "$this detach" }
+        logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
     }
@@ -86,7 +86,7 @@ internal open class LayerImpl : Layer {
         LaunchedEffect(layerManager) {
             val currentManager = _layerManager
             if (currentManager !== layerManager) {
-                logMsg(isDebug) { "$this UpdateContainer $currentManager -> $layerManager" }
+                logMsg(isDebug) { "${this@LayerImpl} UpdateContainer $currentManager -> $layerManager" }
                 currentManager?.removeLayer(this@LayerImpl)
                 layerManager.addLayer(this@LayerImpl)
             }
@@ -98,7 +98,7 @@ internal open class LayerImpl : Layer {
      */
     @CallSuper
     internal open fun attachToManager(manager: LayerManager) {
-        logMsg(isDebug) { "$this attachToManager $manager" }
+        logMsg(isDebug) { "${this@LayerImpl} attachToManager $manager" }
         _layerManager = manager
     }
 
@@ -107,7 +107,7 @@ internal open class LayerImpl : Layer {
      */
     @CallSuper
     internal open fun detachFromManager(manager: LayerManager) {
-        logMsg(isDebug) { "$this detachFromManager $manager" }
+        logMsg(isDebug) { "${this@LayerImpl} detachFromManager $manager" }
         check(_layerManager === manager)
         detach()
         _layerManager?.notifyLayerDetached(this@LayerImpl)
@@ -129,7 +129,7 @@ internal open class LayerImpl : Layer {
         }
 
         if (old != isVisibleState) {
-            logMsg(isDebug) { "$this setContentVisible $isVisibleState" }
+            logMsg(isDebug) { "${this@LayerImpl} setContentVisible $isVisibleState" }
         }
     }
 
@@ -196,7 +196,7 @@ internal open class LayerImpl : Layer {
                     _contentLayoutCoordinates = it
                     if (!_isAttached) {
                         if (it.size == IntSize.Zero) {
-                            logMsg(isDebug) { "$this notifyLayerDetached" }
+                            logMsg(isDebug) { "${this@LayerImpl} notifyLayerDetached" }
                             _layerManager?.notifyLayerDetached(this@LayerImpl)
                         }
                     }
