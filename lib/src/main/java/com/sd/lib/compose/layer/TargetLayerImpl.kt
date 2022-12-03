@@ -262,7 +262,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             _measureScope = scope
         }
 
-
         fun layoutLastVisible(
             cs: Constraints,
         ): MeasureResult {
@@ -287,7 +286,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 saveVisibleInfo = false,
             )
         }
-
 
         fun layoutNoneOverflow(
             cs: Constraints,
@@ -327,7 +325,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentY = y,
             )
         }
-
 
         fun layoutFixOverflow(
             cs: Constraints,
@@ -382,7 +379,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-
         private fun layoutFinally(
             cs: Constraints,
             backgroundPlaceable: Placeable?,
@@ -412,7 +408,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentPlaceable.placeRelative(contentX, contentY)
             }
         }
-
 
         private fun backgroundPlaceInfo(
             cs: Constraints,
@@ -469,7 +464,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-
         private fun findBestResult(result: Aligner.Result): Aligner.Result {
             val targetOffset = _targetOffset ?: return result
 
@@ -517,7 +511,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             return bestResult
         }
-
 
         private fun checkOverflow(
             result: Aligner.Result,
