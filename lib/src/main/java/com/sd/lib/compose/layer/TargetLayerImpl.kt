@@ -406,7 +406,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         height = contentPlaceable.height,
                     )
                 }
-                backgroundPlaceable?.place(backgroundX, backgroundY, -1f)
+                backgroundPlaceable?.placeRelative(backgroundX, backgroundY, -1f)
                 contentPlaceable.placeRelative(contentX, contentY)
             }
         }
