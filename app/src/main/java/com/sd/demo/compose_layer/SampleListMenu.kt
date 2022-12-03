@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Divider
@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
@@ -80,11 +81,13 @@ private fun ListItem(
             .onGloballyPositioned {
                 layoutCoordinates = it
             }
-            .clickable {
-                val layout = layoutCoordinates
-                if (layout?.isAttached == true) {
-                    val offset = layout.localToWindow(Offset.Zero)
-                    onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    val layout = layoutCoordinates
+                    if (layout?.isAttached == true) {
+                        val offset = layout.localToWindow(Offset.Zero) + it
+                        onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                    }
                 }
             }
     ) {
