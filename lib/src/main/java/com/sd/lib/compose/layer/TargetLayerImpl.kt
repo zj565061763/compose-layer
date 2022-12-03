@@ -238,7 +238,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 constraints = cs,
                 content = content
             )
-
             val originalResult = alignTarget(
                 position = positionState,
                 target = uiState.targetLayout,
@@ -246,11 +245,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
             )
 
+
             var x = originalResult.x
             var y = originalResult.y
             var result: Aligner.Result = originalResult
 
 
+            // 检查目标坐标
             val targetOffset = _targetOffset
             if (targetOffset != null) {
                 val bestResult = findBestResult(originalResult, targetOffset).also {
