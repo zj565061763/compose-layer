@@ -224,7 +224,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             state.layoutFixOverflow(
                 cs = cs,
                 uiState = uiState,
-                fixOverflowDirection = fixOverflowDirection,
+                direction = fixOverflowDirection,
             )
         }
     }
@@ -334,7 +334,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         fun layoutFixOverflow(
             cs: Constraints,
             uiState: UiState,
-            fixOverflowDirection: PlusDirection,
+            direction: PlusDirection,
         ): MeasureResult {
             val originalPlaceable = measureContent(cs, slotId = null)
             val result = alignTarget(
@@ -349,7 +349,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             var x = result.x
             var y = result.y
 
-            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, fixOverflowDirection)
+            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, direction)
             val contentPlaceable = if (fixedConstraints != null) {
                 measureContent(fixedConstraints).also { placeable ->
                     logMsg(isDebug) {
