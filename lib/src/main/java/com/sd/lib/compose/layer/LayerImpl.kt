@@ -68,7 +68,7 @@ internal open class LayerImpl : Layer {
         val container = _layerContainer ?: return
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
-        container.notifyLayerAttached(this)
+        container.attachLayer(this)
         onAttach()
     }
 
@@ -183,8 +183,8 @@ internal open class LayerImpl : Layer {
                     _contentLayoutCoordinates = it
                     if (!_isAttached) {
                         if (it.size == IntSize.Zero) {
-                            logMsg(isDebug) { "${this@LayerImpl} notifyLayerDetached" }
-                            _layerContainer?.notifyLayerDetached(this@LayerImpl)
+                            logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
+                            _layerContainer?.detachLayer(this@LayerImpl)
                         }
                     }
                 }

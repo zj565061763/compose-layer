@@ -149,13 +149,13 @@ internal class LayerContainer {
         layer.onDestroy(this)
     }
 
-    fun notifyLayerAttached(layer: LayerImpl) {
+    fun attachLayer(layer: LayerImpl) {
         if (!_attachedLayerHolder.contains(layer)) {
             _attachedLayerHolder.add(layer)
         }
     }
 
-    fun notifyLayerDetached(layer: LayerImpl) {
+    fun detachLayer(layer: LayerImpl) {
         _attachedLayerHolder.remove(layer)
     }
 
