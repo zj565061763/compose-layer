@@ -94,14 +94,9 @@ internal class LayerContainer {
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
         val layer = remember {
-            LayerImpl().also {
-                it.isDebug = debug
-                addLayer(it)
-            }
-        }
-
-        LaunchedEffect(debug) {
-            layer.isDebug = debug
+            LayerImpl().also { addLayer(it) }
+        }.apply {
+            this.isDebug = debug
         }
 
         DisposableEffect(layer) {
@@ -115,14 +110,9 @@ internal class LayerContainer {
     @Composable
     fun rememberTargetLayer(debug: Boolean): TargetLayer {
         val layer = remember {
-            TargetLayerImpl().also {
-                it.isDebug = debug
-                addLayer(it)
-            }
-        }
-
-        LaunchedEffect(debug) {
-            layer.isDebug = debug
+            TargetLayerImpl().also { addLayer(it) }
+        }.apply {
+            this.isDebug = debug
         }
 
         DisposableEffect(layer) {
