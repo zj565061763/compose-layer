@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.properties.Delegates
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
-    private val _uiState = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(UiState.Empty)
     private val _aligner = FAligner()
 
     private var _offsetTransform: OffsetTransform? = null
@@ -134,17 +134,30 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private fun updateUiState() {
-        _uiState.value = UiState(
-            targetLayout = LayoutInfo(
+        val targetOffset = _targetOffset
+        val targetLayout = if (targetOffset != null) {
+            LayoutInfo(
+                size = IntSize.Zero,
+                offset = targetOffset,
+                isAttached = true,
+            )
+        } else {
+            LayoutInfo(
                 size = _targetLayoutCoordinates.size(),
                 offset = _targetLayoutCoordinates.offset(),
                 isAttached = _targetLayoutCoordinates.isAttached(),
-            ),
-            containerLayout = LayoutInfo(
-                size = _containerLayoutCoordinates.size(),
-                offset = _containerLayoutCoordinates.offset(),
-                isAttached = _containerLayoutCoordinates.isAttached(),
             )
+        }
+
+        val containerLayout = LayoutInfo(
+            size = _containerLayoutCoordinates.size(),
+            offset = _containerLayoutCoordinates.offset(),
+            isAttached = _containerLayoutCoordinates.isAttached(),
+        )
+
+        _uiState.value = UiState(
+            targetLayout = targetLayout,
+            containerLayout = containerLayout,
         )
     }
 
@@ -472,14 +485,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private data class UiState(
-        val targetLayout: LayoutInfo = LayoutInfo(),
-        val containerLayout: LayoutInfo = LayoutInfo(),
-    )
+        val targetLayout: LayoutInfo,
+        val containerLayout: LayoutInfo,
+    ) {
+        companion object {
+            val Empty = UiState(
+                targetLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
+                containerLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
+            )
+        }
+    }
 
     private data class LayoutInfo(
-        val size: IntSize = IntSize.Zero,
-        val offset: IntOffset = IntOffset.Zero,
-        val isAttached: Boolean = false,
+        val size: IntSize,
+        val offset: IntOffset,
+        val isAttached: Boolean,
     )
 }
 
