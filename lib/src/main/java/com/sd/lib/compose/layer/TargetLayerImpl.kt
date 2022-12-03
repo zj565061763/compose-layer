@@ -90,10 +90,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         target: LayoutInfo,
         container: LayoutInfo,
         contentSize: IntSize,
-    ): Aligner.Result? {
-        if (!target.isAttached) return null
-        if (!container.isAttached) return null
-        if (!contentSize.isReady()) return null
+    ): Aligner.Result {
+        if (!target.isAttached) error("target is not ready")
+        if (!container.isAttached) error("container is not ready")
 
         val input = Aligner.Input(
             position = position.toAlignerPosition(),
@@ -190,7 +189,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout start" }
+            val isTargetReady = uiState.targetLayout.isAttached
+            val isContainerReady = uiState.containerLayout.isAttached
+            val isReady = isTargetReady && isContainerReady
+
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
             // 如果状态由可见变为不可见，则要维持可见时候的状态
             if (!isVisibleState) {
@@ -202,20 +205,29 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                     background = background,
                     content = content,
                 ).also {
-                    val isTargetReady = uiState.targetLayout.isAttached
-                    val isContainerReady = uiState.containerLayout.isAttached
-
-                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${visibleOffset.x}, ${visibleOffset.y}) isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
-
-                    if (isTargetReady && isContainerReady) {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible (${visibleOffset.x}, ${visibleOffset.y})" }
+                    if (isReady) {
                         setContentVisible(true)
                     }
                 }
             }
 
+            if (!isReady) {
+                return@SubcomposeLayout layoutLastVisible(
+                    cs = cs,
+                    visibleBackgroundInfo = visibleBackgroundInfo,
+                    visibleOffset = visibleOffset,
+                    visibleConstraints = visibleConstraints,
+                    background = background,
+                    content = content,
+                ).also {
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout not ready" }
+                    setContentVisible(false)
+                }
+            }
+
 
             val fixOverflowDirection = _fixOverflowDirectionState
-
 
             // 测量原始信息
             val originalPlaceable = measureContent(
@@ -227,26 +239,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 content = content
             )
 
-            val originalSize = IntSize(originalPlaceable.width, originalPlaceable.height)
             val originalResult = alignTarget(
                 position = positionState,
                 target = uiState.targetLayout,
                 container = uiState.containerLayout,
-                contentSize = originalSize,
+                contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
             )
-
-            if (originalResult == null) {
-                val backgroundPlaceable = measureBackground(OffsetBoxSlotId.Background, cs, background)
-                logMsg(isDebug) { "${this@TargetLayerImpl} layout null result size:$originalSize" }
-                return@SubcomposeLayout layout(cs.maxWidth, cs.maxHeight) {
-                    visibleBackgroundInfo = null
-                    visibleOffset = IntOffset.Zero
-                    visibleConstraints = cs
-                    backgroundPlaceable?.place(0, 0, -1f)
-                    originalPlaceable.place(Int.MIN_VALUE, Int.MIN_VALUE)
-                }
-            }
-
 
             var x = originalResult.x
             var y = originalResult.y
