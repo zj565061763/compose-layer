@@ -79,7 +79,7 @@ fun Modifier.layerTarget(
     }
 }
 
-private val LocalLayerContainer = compositionLocalOf<LayerContainer?> { null }
+private val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { null }
 
 internal class LayerContainer {
     private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
