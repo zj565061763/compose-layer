@@ -331,10 +331,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
 
         val preferPosition = mutableListOf(
+            Aligner.Position.TopEnd,
+            Aligner.Position.BottomEnd,
             Aligner.Position.TopStart,
             Aligner.Position.BottomStart,
-            Aligner.Position.TopEnd,
-            Aligner.Position.BottomEnd
         ).apply {
             remove(result.input.position)
         }
