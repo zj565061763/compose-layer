@@ -325,13 +325,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private fun findBestResult(result: Aligner.Result, targetOffset: IntOffset): Aligner.Result {
-        val overflowSizeDefault = result.overflow(
-            x = targetOffset.x,
-            y = targetOffset.y,
-            width = result.input.sourceWidth,
-            height = result.input.sourceHeight,
-        ).totalOverflow()
-
+        val overflowSizeDefault = result.sourceOverflow.totalOverflow()
         if (overflowSizeDefault == 0) {
             return result
         }
@@ -350,16 +344,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         preferPosition.forEach { position ->
             val newResult = _aligner.align(
-                result.input.copy(position = position)
+                result.input.copy(
+                    position = position,
+                    targetX = targetOffset.x,
+                    targetY = targetOffset.y,
+                    targetWidth = 0,
+                    targetHeight = 0,
+                )
             )
 
-            val newOverflow = newResult.overflow(
-                x = targetOffset.x,
-                y = targetOffset.y,
-                width = result.input.sourceWidth,
-                height = result.input.sourceHeight,
-            ).totalOverflow()
-
+            val newOverflow = newResult.sourceOverflow.totalOverflow()
             if (newOverflow < minOverflow) {
                 minOverflow = newOverflow
                 bestResult = newResult
