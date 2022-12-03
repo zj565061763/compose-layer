@@ -120,11 +120,11 @@ internal open class LayerImpl : Layer {
     protected fun setContentVisible(visible: Boolean) {
         if (visible) {
             if (_isAttached) {
-                logMsg(isDebug) { "setContentVisible true" }
+                logMsg(isDebug) { "$this setContentVisible true" }
                 _contentScopeImpl._isVisible = true
             }
         } else {
-            logMsg(isDebug) { "setContentVisible false" }
+            logMsg(isDebug) { "$this setContentVisible false" }
             _contentScopeImpl._isVisible = false
         }
     }
@@ -192,7 +192,7 @@ internal open class LayerImpl : Layer {
                     _contentLayoutCoordinates = it
                     if (!_isAttached) {
                         if (it.size == IntSize.Zero) {
-                            logMsg(isDebug) { "notifyLayerDetached" }
+                            logMsg(isDebug) { "$this notifyLayerDetached" }
                             _layerManager?.notifyLayerDetached(this@LayerImpl)
                         }
                     }
