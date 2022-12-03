@@ -96,7 +96,6 @@ internal open class LayerImpl : Layer {
         logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
         check(_layerContainer === container)
         detach()
-        _layerContainer?.notifyLayerDetached(this@LayerImpl)
         _layerContainer = null
     }
 
