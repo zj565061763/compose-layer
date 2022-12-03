@@ -36,7 +36,7 @@ class SampleDropDown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layer = rememberTargetLayer()
+    val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.Bottom)
         layer.setClipToBounds(true)

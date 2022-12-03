@@ -38,7 +38,7 @@ class SampleOverflow : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layerOverflow = rememberTargetLayer()
+    val layerOverflow = rememberTargetLayer(true)
     LaunchedEffect(layerOverflow) {
         layerOverflow.setPosition(Layer.Position.BottomCenter)
         layerOverflow.setContent {
@@ -46,7 +46,7 @@ private fun Content() {
         }
     }
 
-    val layerFixOverflow = rememberTargetLayer()
+    val layerFixOverflow = rememberTargetLayer(true)
     LaunchedEffect(layerFixOverflow) {
         layerFixOverflow.setPosition(Layer.Position.BottomCenter)
         layerFixOverflow.setFixOverflowDirection(

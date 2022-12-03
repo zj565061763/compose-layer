@@ -60,7 +60,7 @@ private fun createLayer(
     text: String,
     position: Layer.Position,
 ): Layer {
-    val layer = rememberLayer()
+    val layer = rememberLayer(true)
     LaunchedEffect(layer, position) {
         layer.setPosition(position)
         layer.setContent {

@@ -77,7 +77,7 @@ private fun Content() {
 
 @Composable
 private fun createLayer(): TargetLayer {
-    val layer = rememberTargetLayer()
+    val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.Bottom)
         layer.setDialogBehavior {

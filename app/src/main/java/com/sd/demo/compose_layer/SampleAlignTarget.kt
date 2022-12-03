@@ -62,7 +62,7 @@ private fun Content() {
 
 @Composable
 private fun createLayer(): TargetLayer {
-    val layer = rememberTargetLayer()
+    val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
         layer.setTarget("hello")
         // 关闭窗口行为
