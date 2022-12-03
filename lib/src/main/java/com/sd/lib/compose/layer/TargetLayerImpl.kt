@@ -33,19 +33,19 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $newValue" }
         updateUiState()
     }
-    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
         updateUiState()
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $it" }
         _targetLayoutCoordinates = it
     }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $it" }
         _containerLayoutCoordinates = it
     }
 
