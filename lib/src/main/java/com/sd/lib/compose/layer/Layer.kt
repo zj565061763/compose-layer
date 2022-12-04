@@ -112,7 +112,7 @@ interface Layer {
         /** 触摸到非内容区域是否关闭 */
         val canceledOnTouchOutside: Boolean = true,
 
-        /** 是否消费掉非内容区域的触摸事件 */
+        /** 是否消费掉非内容区域的触摸事件，默认true，消费掉之后触摸事件不会透过Layer */
         val consumeTouchOutside: Boolean = true,
 
         /** 背景颜色 */
