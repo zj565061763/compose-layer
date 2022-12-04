@@ -2,11 +2,13 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.zIndex
@@ -26,6 +28,20 @@ fun LayerContainer(
                 .fillMaxSize()
                 .onGloballyPositioned {
                     layerContainer.updateContainerLayout(it)
+                }
+                .let {
+                    if (layerContainer.hasAttachedLayer) {
+                        it.pointerInput(Unit) {
+                            forEachGesture {
+                                awaitPointerEventScope {
+                                    val down = layerAwaitFirstDown(PointerEventPass.Initial)
+                                    layerContainer.processDownEvent(down)
+                                }
+                            }
+                        }
+                    } else {
+                        it
+                    }
                 },
         ) {
             content()
@@ -87,6 +103,9 @@ internal class LayerContainer {
 
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
+
+    val hasAttachedLayer: Boolean
+        get() = _attachedLayerHolder.isNotEmpty()
 
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
@@ -157,6 +176,15 @@ internal class LayerContainer {
         _attachedLayerHolder.remove(layer)
     }
 
+    fun processDownEvent(event: PointerInputChange) {
+        val copyHolder = _attachedLayerHolder.toTypedArray()
+        for (index in copyHolder.lastIndex downTo 0) {
+            val layer = copyHolder[index]
+            layer.processDownEvent(event)
+            if (event.isConsumed) break
+        }
+    }
+
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         _containerLayout = layoutCoordinates
         _containerLayoutCallbackHolder.toTypedArray().forEach {
@@ -224,4 +252,16 @@ internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
     if (isDebug) {
         Log.i("FLayer", block())
     }
+}
+
+private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
+    pass: PointerEventPass
+): PointerInputChange {
+    var event: PointerEvent
+    do {
+        event = awaitPointerEvent(pass)
+    } while (
+        !event.changes.all { it.changedToDown() }
+    )
+    return event.changes[0]
 }

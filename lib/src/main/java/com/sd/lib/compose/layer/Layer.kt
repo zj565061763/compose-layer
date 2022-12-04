@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -256,12 +255,6 @@ internal open class LayerImpl : Layer {
                 .fillMaxSize()
                 .onGloballyPositioned {
                     _layerLayoutCoordinates = it
-                }.let { modifier ->
-                    _dialogBehaviorState?.let { behavior ->
-                        modifier.pointerInput(behavior) {
-                            detectTouchOutside(behavior)
-                        }
-                    } ?: modifier
                 }
         ) {
             content()
@@ -312,34 +305,22 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    private suspend fun PointerInputScope.detectTouchOutside(behavior: DialogBehavior) {
-        forEachGesture {
-            detectTouchOutsideOnce(behavior)
-        }
-    }
+    internal fun processDownEvent(event: PointerInputChange) {
+        val behavior = _dialogBehaviorState ?: return
+        val layerLayout = _layerLayoutCoordinates ?: return
+        val contentLayout = _contentLayoutCoordinates ?: return
 
-    private suspend fun PointerInputScope.detectTouchOutsideOnce(behavior: DialogBehavior) {
-        awaitPointerEventScope {
-            val down = layerAwaitFirstDown(PointerEventPass.Initial)
-            val downPosition = down.position
-
-            val layerLayout = _layerLayoutCoordinates
-            val contentLayout = _contentLayoutCoordinates
-
-            if (layerLayout != null && contentLayout != null) {
-                val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-                if (contentRect.contains(downPosition)) {
-                    // 触摸到内容区域
-                } else {
-                    if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                        detach()
-                    }
-                    if (behavior.consumeTouchOutside) {
-                        down.consume()
-                    } else {
-                        // TODO 事件穿透
-                    }
-                }
+        val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
+        if (contentRect.contains(event.position)) {
+            // 触摸到内容区域
+        } else {
+            if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                detach()
+            }
+            if (behavior.consumeTouchOutside) {
+                event.consume()
+            } else {
+                // TODO 事件穿透
             }
         }
     }
