@@ -29,18 +29,12 @@ fun LayerContainer(
                 .onGloballyPositioned {
                     layerContainer.updateContainerLayout(it)
                 }
-                .let {
-                    if (layerContainer.hasAttachedLayer) {
-                        it.pointerInput(Unit) {
-                            forEachGesture {
-                                awaitPointerEventScope {
-                                    val down = layerAwaitFirstDown(PointerEventPass.Initial)
-                                    layerContainer.processDownEvent(down)
-                                }
-                            }
+                .pointerInput(Unit) {
+                    forEachGesture {
+                        awaitPointerEventScope {
+                            val down = layerAwaitFirstDown(PointerEventPass.Initial)
+                            layerContainer.processDownEvent(down)
                         }
-                    } else {
-                        it
                     }
                 },
         ) {
@@ -103,8 +97,6 @@ internal class LayerContainer {
 
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
-
-    val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
 
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
