@@ -22,6 +22,12 @@ fun LayerContainer(
     content: @Composable () -> Unit,
 ) {
     val layerContainer = remember { LayerContainer() }
+
+    var pointerInputStarted by remember { mutableStateOf(false) }
+    val shouldPointerInput by remember {
+        derivedStateOf { layerContainer.hasAttachedLayer || pointerInputStarted }
+    }
+
     CompositionLocalProvider(LocalLayerContainer provides layerContainer) {
         Box(
             modifier = modifier
@@ -29,12 +35,22 @@ fun LayerContainer(
                 .onGloballyPositioned {
                     layerContainer.updateContainerLayout(it)
                 }
-                .pointerInput(Unit) {
-                    forEachGesture {
-                        awaitPointerEventScope {
-                            val down = layerAwaitFirstDown(PointerEventPass.Initial)
-                            layerContainer.processDownEvent(down)
+                .let {
+                    if (shouldPointerInput) {
+                        it.pointerInput(Unit) {
+                            pointerInputStarted = true
+                            forEachGesture {
+                                if (!layerContainer.hasAttachedLayer) {
+                                    pointerInputStarted = false
+                                }
+                                awaitPointerEventScope {
+                                    val down = layerAwaitFirstDown(PointerEventPass.Initial)
+                                    layerContainer.processDownEvent(down)
+                                }
+                            }
                         }
+                    } else {
+                        it
                     }
                 },
         ) {
@@ -97,6 +113,8 @@ internal class LayerContainer {
 
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
+
+    val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
 
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
