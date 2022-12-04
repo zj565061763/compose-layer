@@ -48,6 +48,7 @@ fun VerticalList(
     count: Int,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -57,7 +58,12 @@ fun VerticalList(
                 modifier = modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .background(Color.Red),
+                    .background(Color.Red)
+                    .clickable {
+                        Toast
+                            .makeText(context, index.toString(), Toast.LENGTH_SHORT)
+                            .show()
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(

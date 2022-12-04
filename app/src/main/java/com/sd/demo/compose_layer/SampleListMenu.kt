@@ -55,7 +55,7 @@ private fun Content() {
             .fillMaxSize()
             .navigationBarsPadding(),
     ) {
-        items(50) { index ->
+        items(100) { index ->
             ListItem(
                 text = index.toString()
             ) {
@@ -106,7 +106,10 @@ private fun createLayer(): TargetLayer {
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.TopEnd)
         layer.setDialogBehavior {
-            it.copy(consumeTouchOutside = false, backgroundColor = Color.Transparent)
+            it.copy(
+                consumeTouchOutside = false,
+                backgroundColor = Color.Transparent,
+            )
         }
         layer.setFixOverflowDirection(PlusDirection.All)
         layer.setContent {
