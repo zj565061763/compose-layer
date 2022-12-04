@@ -106,13 +106,13 @@ interface Layer {
     }
 
     data class DialogBehavior(
-        /** 按返回键是否可以关闭 */
+        /** 是否可以取消（按返回键或者[canceledOnTouchOutside]为true的时候） */
         val cancelable: Boolean = true,
 
         /** 触摸到非内容区域是否关闭 */
         val canceledOnTouchOutside: Boolean = true,
 
-        /** 是否消费掉触摸到非内容区域的触摸事件 */
+        /** 是否消费掉非内容区域的触摸事件 */
         val consumeTouchOutside: Boolean = true,
 
         /** 背景颜色 */
@@ -168,7 +168,10 @@ internal open class LayerImpl : Layer {
 
     final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
         val currentBehavior = _dialogBehaviorState ?: DialogBehavior()
-        _dialogBehaviorState = block(currentBehavior)
+        val newBehavior = block(currentBehavior)
+        if (currentBehavior != newBehavior) {
+            _dialogBehaviorState = newBehavior
+        }
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
