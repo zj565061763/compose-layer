@@ -1,6 +1,7 @@
 package com.sd.demo.compose_layer
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -72,6 +74,7 @@ private fun ListItem(
     modifier: Modifier = Modifier,
     onClick: (IntOffset) -> Unit,
 ) {
+    val context = LocalContext.current
     var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
     Box(
         modifier = modifier
@@ -81,13 +84,20 @@ private fun ListItem(
                 layoutCoordinates = it
             }
             .pointerInput(Unit) {
-                detectTapGestures {
-                    val layout = layoutCoordinates
-                    if (layout?.isAttached == true) {
-                        val offset = layout.localToWindow(it)
-                        onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                detectTapGestures(
+                    onTap = {
+                        Toast
+                            .makeText(context, "try long click", Toast.LENGTH_SHORT)
+                            .show()
+                    },
+                    onLongPress = {
+                        val layout = layoutCoordinates
+                        if (layout?.isAttached == true) {
+                            val offset = layout.localToWindow(it)
+                            onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                        }
                     }
-                }
+                )
             }
     ) {
         Text(
