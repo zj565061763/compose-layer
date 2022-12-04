@@ -186,8 +186,7 @@ internal open class LayerImpl : Layer {
     protected var _layerContainer: LayerContainer? = null
         private set
 
-    protected var _isAttached = false
-        private set
+    private var _isAttached = false
 
     private val _contentScopeImpl = ContentScopeImpl()
     private var _content: @Composable ContentScope.() -> Unit by mutableStateOf({ })
