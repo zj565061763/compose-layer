@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
@@ -395,16 +395,4 @@ private fun Position.toAlignment(): Alignment {
         Position.BottomCenter, Position.Bottom -> Alignment.BottomCenter
         Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
     }
-}
-
-private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
-    pass: PointerEventPass
-): PointerInputChange {
-    var event: PointerEvent
-    do {
-        event = awaitPointerEvent(pass)
-    } while (
-        !event.changes.all { it.changedToDown() }
-    )
-    return event.changes[0]
 }
