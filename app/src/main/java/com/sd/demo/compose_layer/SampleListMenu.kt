@@ -108,8 +108,6 @@ private fun createLayer(): TargetLayer {
         layer.dialogBehavior
             .setBackgroundColor(Color.Transparent)
             .setConsumeTouchOutside(false)
-            .setCancelable(false)
-            .setCanceledOnTouchOutside(true)
         layer.setFixOverflowDirection(PlusDirection.All)
         layer.setContent {
             LayerContent(isVisible)
