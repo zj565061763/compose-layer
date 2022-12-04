@@ -66,7 +66,7 @@ private fun createLayer(): TargetLayer {
     LaunchedEffect(layer) {
         layer.setTarget("hello")
         // 关闭窗口行为
-        layer.setDialogBehavior { null }
+        layer.dialogBehavior.enabled = false
         layer.setContent {
             LayerContent(isVisible)
         }

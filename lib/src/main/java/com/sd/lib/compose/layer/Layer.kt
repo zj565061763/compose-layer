@@ -32,7 +32,7 @@ interface Layer {
     /**
      * 窗口行为
      */
-    val dialogBehaviorState: DialogBehavior?
+    val dialogBehavior: DialogBehavior
 
     /**
      * 设置内容
@@ -43,11 +43,6 @@ interface Layer {
      * 设置对齐的位置
      */
     fun setPosition(position: Position)
-
-    /**
-     * 设置窗口行为
-     */
-    fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?)
 
     /**
      * 是否裁剪内容区域，默认false
@@ -105,19 +100,32 @@ interface Layer {
         Center,
     }
 
-    data class DialogBehavior(
-        /** 是否可以取消（按返回键或者[canceledOnTouchOutside]为true的时候） */
-        val cancelable: Boolean = true,
+    class DialogBehavior {
+        /**
+         * 窗口行为是否开启，默认true
+         */
+        var enabled: Boolean by mutableStateOf(true)
 
-        /** 触摸到非内容区域是否关闭 */
-        val canceledOnTouchOutside: Boolean = true,
+        /**
+         * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
+         */
+        var cancelable: Boolean by mutableStateOf(true)
 
-        /** 是否消费掉非内容区域的触摸事件，默认true，消费掉之后触摸事件不会透过Layer */
-        val consumeTouchOutside: Boolean = true,
+        /**
+         * 触摸到非内容区域是否关闭，默认true
+         */
+        var canceledOnTouchOutside: Boolean by mutableStateOf(true)
 
-        /** 背景颜色 */
-        val backgroundColor: Color = Color.Black.copy(alpha = 0.3f)
-    )
+        /**
+         * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过Layer，默认true
+         */
+        var consumeTouchOutside: Boolean by mutableStateOf(true)
+
+        /**
+         * 背景颜色
+         */
+        var backgroundColor: Color by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    }
 
     interface ContentScope {
         /**
@@ -144,7 +152,6 @@ internal open class LayerImpl : Layer {
 
     private var _positionState: Position by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(false)
-    private var _dialogBehaviorState: DialogBehavior? by mutableStateOf(DialogBehavior())
 
     var isDebug = false
 
@@ -154,8 +161,7 @@ internal open class LayerImpl : Layer {
     final override val positionState: Position
         get() = _positionState
 
-    final override val dialogBehaviorState: DialogBehavior?
-        get() = _dialogBehaviorState
+    final override val dialogBehavior: DialogBehavior = DialogBehavior()
 
     final override fun setContent(content: @Composable ContentScope.() -> Unit) {
         _content = content
@@ -164,14 +170,6 @@ internal open class LayerImpl : Layer {
     final override fun setPosition(position: Position) {
         logMsg(isDebug) { "${this@LayerImpl} setPosition:$position" }
         _positionState = position
-    }
-
-    final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
-        _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())?.let {
-            if (it.canceledOnTouchOutside && !it.cancelable) {
-                it.copy(cancelable = true)
-            } else it
-        }
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
@@ -266,7 +264,8 @@ internal open class LayerImpl : Layer {
 
     @Composable
     protected fun BackgroundBox() {
-        _dialogBehaviorState?.let { behavior ->
+        val behavior = dialogBehavior
+        if (behavior.enabled) {
             AnimatedVisibility(
                 visible = isVisibleState,
                 enter = fadeIn(),
@@ -309,7 +308,9 @@ internal open class LayerImpl : Layer {
     }
 
     internal fun processDownEvent(event: PointerInputChange) {
-        val behavior = _dialogBehaviorState ?: return
+        val behavior = dialogBehavior
+        if (!behavior.enabled) return
+
         val layerLayout = _layerLayoutCoordinates ?: return
         val contentLayout = _contentLayoutCoordinates ?: return
 
@@ -323,7 +324,7 @@ internal open class LayerImpl : Layer {
             if (behavior.consumeTouchOutside) {
                 event.consume()
             } else {
-                // TODO 事件穿透
+                // 事件穿透
             }
         }
     }
