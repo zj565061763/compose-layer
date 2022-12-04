@@ -111,9 +111,9 @@ interface Layer {
 
 class DialogBehavior {
     private var _enabled by mutableStateOf(true)
-    private var _cancelable by mutableStateOf(true)
-    private var _canceledOnTouchOutside by mutableStateOf(true)
-    private var _consumeTouchOutside by mutableStateOf(true)
+    private var _cancelable = true
+    private var _canceledOnTouchOutside = true
+    private var _consumeTouchOutside = true
     private var _backgroundColor by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
