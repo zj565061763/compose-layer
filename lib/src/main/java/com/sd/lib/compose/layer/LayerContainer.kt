@@ -40,10 +40,8 @@ fun LayerContainer(
                         it.pointerInput(Unit) {
                             pointerInputStarted = true
                             forEachGesture {
-                                if (!layerContainer.hasAttachedLayer) {
-                                    pointerInputStarted = false
-                                }
                                 awaitPointerEventScope {
+                                    if (!layerContainer.hasAttachedLayer) pointerInputStarted = false
                                     val down = layerAwaitFirstDown(PointerEventPass.Initial)
                                     layerContainer.processDownEvent(down)
                                 }
