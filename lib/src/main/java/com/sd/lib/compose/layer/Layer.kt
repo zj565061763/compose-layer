@@ -167,10 +167,10 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun setDialogBehavior(block: (DialogBehavior) -> DialogBehavior?) {
-        val currentBehavior = _dialogBehaviorState ?: DialogBehavior()
-        val newBehavior = block(currentBehavior)
-        if (currentBehavior != newBehavior) {
-            _dialogBehaviorState = newBehavior
+        _dialogBehaviorState = block(_dialogBehaviorState ?: DialogBehavior())?.let {
+            if (it.canceledOnTouchOutside && !it.cancelable) {
+                it.copy(cancelable = true)
+            } else it
         }
     }
 
