@@ -159,6 +159,9 @@ class DialogBehavior {
      * [canceledOnTouchOutside]
      */
     fun setCanceledOnTouchOutside(value: Boolean) = apply {
+        if (value && !_cancelable) {
+            _cancelable = true
+        }
         _canceledOnTouchOutside = value
     }
 
