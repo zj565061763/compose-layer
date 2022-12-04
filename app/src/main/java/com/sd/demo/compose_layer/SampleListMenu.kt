@@ -105,10 +105,11 @@ private fun createLayer(): TargetLayer {
     val layer = rememberTargetLayer(true)
     LaunchedEffect(layer) {
         layer.setPosition(Layer.Position.TopEnd)
-        layer.dialogBehavior.run {
-            backgroundColor = Color.Transparent
-            consumeTouchOutside = false
-        }
+        layer.dialogBehavior
+            .setBackgroundColor(Color.Transparent)
+            .setConsumeTouchOutside(false)
+            .setCancelable(false)
+            .setCanceledOnTouchOutside(true)
         layer.setFixOverflowDirection(PlusDirection.All)
         layer.setContent {
             LayerContent(isVisible)

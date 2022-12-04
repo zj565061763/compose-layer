@@ -16,7 +16,8 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
-import com.sd.lib.compose.layer.Layer.*
+import com.sd.lib.compose.layer.Layer.ContentScope
+import com.sd.lib.compose.layer.Layer.Position
 
 interface Layer {
     /**
@@ -100,38 +101,79 @@ interface Layer {
         Center,
     }
 
-    class DialogBehavior {
-        /**
-         * 窗口行为是否开启，默认true
-         */
-        var enabled: Boolean by mutableStateOf(true)
-
-        /**
-         * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
-         */
-        var cancelable: Boolean by mutableStateOf(true)
-
-        /**
-         * 触摸到非内容区域是否关闭，默认true
-         */
-        var canceledOnTouchOutside: Boolean by mutableStateOf(true)
-
-        /**
-         * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过Layer，默认true
-         */
-        var consumeTouchOutside: Boolean by mutableStateOf(true)
-
-        /**
-         * 背景颜色
-         */
-        var backgroundColor: Color by mutableStateOf(Color.Black.copy(alpha = 0.3f))
-    }
-
     interface ContentScope {
         /**
          * 内容是否可见
          */
         val isVisible: Boolean
+    }
+}
+
+class DialogBehavior {
+    private var _enabled by mutableStateOf(true)
+    private var _cancelable by mutableStateOf(true)
+    private var _canceledOnTouchOutside by mutableStateOf(true)
+    private var _consumeTouchOutside by mutableStateOf(true)
+    private var _backgroundColor by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+
+    /**
+     * 窗口行为是否开启，默认true
+     */
+    val enabled: Boolean get() = _enabled
+
+    /**
+     * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
+     */
+    val cancelable: Boolean get() = _cancelable
+
+    /**
+     * 触摸到非内容区域是否关闭，默认true
+     */
+    val canceledOnTouchOutside: Boolean get() = _canceledOnTouchOutside
+
+    /**
+     * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过Layer，默认true
+     */
+    val consumeTouchOutside: Boolean get() = _consumeTouchOutside
+
+    /**
+     * 背景颜色
+     */
+    val backgroundColor: Color get() = _backgroundColor
+
+    /**
+     * [enabled]
+     */
+    fun setEnabled(value: Boolean) = apply {
+        _enabled = value
+    }
+
+    /**
+     * [cancelable]
+     */
+    fun setCancelable(value: Boolean) = apply {
+        _cancelable = value
+    }
+
+    /**
+     * [canceledOnTouchOutside]
+     */
+    fun setCanceledOnTouchOutside(value: Boolean) = apply {
+        _canceledOnTouchOutside = value
+    }
+
+    /**
+     * [consumeTouchOutside]
+     */
+    fun setConsumeTouchOutside(value: Boolean) = apply {
+        _consumeTouchOutside = value
+    }
+
+    /**
+     * [backgroundColor]
+     */
+    fun setBackgroundColor(value: Color) = apply {
+        _backgroundColor = value
     }
 }
 
