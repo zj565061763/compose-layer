@@ -104,8 +104,7 @@ internal class LayerContainer {
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
 
-    val hasAttachedLayer: Boolean
-        get() = _attachedLayerHolder.isNotEmpty()
+    val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
 
     @Composable
     fun rememberLayer(debug: Boolean): Layer {
