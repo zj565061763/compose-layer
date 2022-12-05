@@ -222,7 +222,7 @@ internal class LayerContainer {
 
     fun destroy() {
         _destroyed = true
-        _attachedLayerHolder.toTypedArray().forEach {
+        _layerHolder.toTypedArray().forEach {
             destroyLayer(it)
         }
         _layerHolder.clear()
