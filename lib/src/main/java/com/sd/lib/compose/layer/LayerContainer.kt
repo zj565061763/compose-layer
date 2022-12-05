@@ -127,7 +127,7 @@ internal class LayerContainer {
         layer._layerContainer?.destroyLayer(layer)
 
         _layerHolder.add(layer)
-        layer.onCreate(this)
+        layer.onInit(this)
         check(layer._layerContainer === this)
     }
 

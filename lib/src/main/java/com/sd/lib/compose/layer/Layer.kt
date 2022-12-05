@@ -215,6 +215,7 @@ open class FLayer : Layer {
 
     @Composable
     final override fun Init() {
+        logMsg(isDebug) { "${this@FLayer} Init" }
         val layerContainer = checkNotNull(LocalLayerContainer.current) {
             "CompositionLocal LocalLayerContainer not present"
         }
@@ -256,8 +257,8 @@ open class FLayer : Layer {
     /**
      * Layer被添加到[container]
      */
-    internal fun onCreate(container: LayerContainer) {
-        logMsg(isDebug) { "${this@FLayer} onCreate $container" }
+    internal fun onInit(container: LayerContainer) {
+        logMsg(isDebug) { "${this@FLayer} onInit $container" }
         _layerContainer = container
     }
 
