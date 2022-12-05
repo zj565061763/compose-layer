@@ -11,7 +11,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -34,17 +33,28 @@ class SampleDropDown : ComponentActivity() {
     }
 }
 
-@Composable
-private fun Content() {
-    val layer = rememberTargetLayer(true)
-    LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.Bottom)
-        layer.setClipToBounds(true)
-        layer.setClipBackgroundDirection(PlusDirection.Top)
-        layer.setContent {
-            LayerContent(isVisible)
+private val layer = FTargetLayer().apply {
+    this.isDebug = true
+    this.setPosition(Layer.Position.Bottom)
+    this.setTarget("button")
+    this.setClipToBounds(true)
+    this.setClipBackgroundDirection(PlusDirection.Top)
+    this.setContent {
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = slideInVertically { -it },
+            exit = slideOutVertically { -it },
+        ) {
+            VerticalList(
+                count = 5,
+            )
         }
     }
+}
+
+@Composable
+private fun Content() {
+    layer.Init()
 
     Column(
         modifier = Modifier
@@ -54,31 +64,11 @@ private fun Content() {
         Spacer(modifier = Modifier.height(300.dp))
         Button(
             onClick = {
-                layer.run {
-                    setTarget("button")
-                    layer.attach()
-                }
+                layer.attach()
             },
             modifier = Modifier.layerTarget("button")
         ) {
             Text("Click")
         }
-    }
-}
-
-@Composable
-private fun LayerContent(
-    isVisible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically { -it },
-        exit = slideOutVertically { -it },
-        modifier = modifier,
-    ) {
-        VerticalList(
-            count = 5,
-        )
     }
 }

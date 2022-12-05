@@ -10,7 +10,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -36,26 +35,31 @@ class SampleOverflow : ComponentActivity() {
     }
 }
 
+private val layerOverflow = FTargetLayer().apply {
+    this.isDebug = true
+    this.setPosition(Layer.Position.BottomCenter)
+    this.setTarget("button1")
+    this.setContent {
+        LayerContent(isVisible)
+    }
+}
+
+private val layerFixOverflow = FTargetLayer().apply {
+    this.isDebug = true
+    this.setPosition(Layer.Position.BottomCenter)
+    this.setTarget("button2")
+    this.setFixOverflowDirection(
+        PlusDirection.Bottom + PlusDirection.Start + PlusDirection.End
+    )
+    this.setContent {
+        LayerContent(isVisible)
+    }
+}
+
 @Composable
 private fun Content() {
-    val layerOverflow = rememberTargetLayer(true)
-    LaunchedEffect(layerOverflow) {
-        layerOverflow.setPosition(Layer.Position.BottomCenter)
-        layerOverflow.setContent {
-            LayerContent(isVisible)
-        }
-    }
-
-    val layerFixOverflow = rememberTargetLayer(true)
-    LaunchedEffect(layerFixOverflow) {
-        layerFixOverflow.setPosition(Layer.Position.BottomCenter)
-        layerFixOverflow.setFixOverflowDirection(
-            PlusDirection.Bottom + PlusDirection.Start + PlusDirection.End
-        )
-        layerFixOverflow.setContent {
-            LayerContent(isVisible)
-        }
-    }
+    layerOverflow.Init()
+    layerFixOverflow.Init()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -70,10 +74,7 @@ private fun Content() {
         ) {
             Button(
                 onClick = {
-                    layerOverflow.run {
-                        setTarget("button1")
-                        layerOverflow.attach()
-                    }
+                    layerOverflow.attach()
 
                 },
                 modifier = Modifier.layerTarget("button1")
@@ -83,10 +84,7 @@ private fun Content() {
 
             Button(
                 onClick = {
-                    layerFixOverflow.run {
-                        setTarget("button2")
-                        attach()
-                    }
+                    layerFixOverflow.attach()
                 },
                 modifier = Modifier.layerTarget("button2")
             ) {

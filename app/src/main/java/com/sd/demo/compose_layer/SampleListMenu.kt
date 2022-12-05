@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +26,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.*
+import com.sd.lib.compose.layer.FTargetLayer
+import com.sd.lib.compose.layer.Layer
+import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.PlusDirection
 import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleListMenu : ComponentActivity() {
@@ -48,9 +54,31 @@ class SampleListMenu : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
+private val layer = FTargetLayer().apply {
+    this.isDebug = true
+    this.setPosition(Layer.Position.TopEnd)
+    this.dialogBehavior
+        .setBackgroundColor(Color.Transparent)
+        .setConsumeTouchOutside(false)
+    this.setFixOverflowDirection(PlusDirection.All)
+    this.setContent {
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = scaleIn(),
+            exit = scaleOut(),
+        ) {
+            VerticalList(
+                count = 5,
+                modifier = Modifier.width(200.dp)
+            )
+        }
+    }
+}
+
 @Composable
 private fun Content() {
-    val layer = createLayer()
+    layer.Init()
 
     LazyColumn(
         Modifier
@@ -106,42 +134,6 @@ private fun ListItem(
         )
         Divider(
             modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
-}
-
-@Composable
-private fun createLayer(): TargetLayer {
-    val layer = rememberTargetLayer(true)
-    LaunchedEffect(layer) {
-        layer.setPosition(Layer.Position.TopEnd)
-        layer.dialogBehavior
-            .setBackgroundColor(Color.Transparent)
-            .setConsumeTouchOutside(false)
-        layer.setFixOverflowDirection(PlusDirection.All)
-        layer.setContent {
-            LayerContent(isVisible)
-        }
-        layer.setTarget("item_0")
-    }
-    return layer
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-private fun LayerContent(
-    isVisible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = scaleIn(),
-        exit = scaleOut(),
-        modifier = modifier,
-    ) {
-        VerticalList(
-            count = 5,
-            modifier = Modifier.width(200.dp)
         )
     }
 }

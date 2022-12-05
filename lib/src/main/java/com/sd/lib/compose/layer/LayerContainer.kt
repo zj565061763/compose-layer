@@ -28,6 +28,12 @@ fun LayerContainer(
         derivedStateOf { layerContainer.hasAttachedLayer || pointerInputStarted }
     }
 
+    DisposableEffect(layerContainer) {
+        onDispose {
+            layerContainer.destroy()
+        }
+    }
+
     CompositionLocalProvider(LocalLayerContainer provides layerContainer) {
         Box(
             modifier = modifier
@@ -59,28 +65,6 @@ fun LayerContainer(
 }
 
 /**
- * 创建并记住[Layer]
- */
-@Composable
-fun rememberLayer(debug: Boolean = false): Layer {
-    val layerContainer = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerContainer not present"
-    }
-    return layerContainer.rememberLayer(debug)
-}
-
-/**
- * 创建并记住[TargetLayer]
- */
-@Composable
-fun rememberTargetLayer(debug: Boolean = false): TargetLayer {
-    val layerContainer = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerContainer not present"
-    }
-    return layerContainer.rememberTargetLayer(debug)
-}
-
-/**
  * 设置要对齐的目标并绑定[LayerContainer]作用域内唯一的[tag]
  */
 fun Modifier.layerTarget(
@@ -101,10 +85,13 @@ fun Modifier.layerTarget(
     }
 }
 
-private val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { null }
+internal val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { null }
 
 internal class LayerContainer {
-    private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
+    private var _destroyed = false
+
+    private val _layerHolder: MutableSet<FLayer> = hashSetOf()
+    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
     private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
     private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
@@ -113,38 +100,6 @@ internal class LayerContainer {
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
 
     val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
-
-    @Composable
-    fun rememberLayer(debug: Boolean): Layer {
-        val layer = remember {
-            LayerImpl().also { initLayer(it, debug) }
-        }.apply {
-            this.isDebug = debug
-        }
-
-        DisposableEffect(layer) {
-            onDispose {
-                destroyLayer(layer)
-            }
-        }
-        return layer
-    }
-
-    @Composable
-    fun rememberTargetLayer(debug: Boolean): TargetLayer {
-        val layer = remember {
-            TargetLayerImpl().also { initLayer(it, debug) }
-        }.apply {
-            this.isDebug = debug
-        }
-
-        DisposableEffect(layer) {
-            onDispose {
-                destroyLayer(layer)
-            }
-        }
-        return layer
-    }
 
     @Composable
     fun Layers() {
@@ -164,27 +119,29 @@ internal class LayerContainer {
         }
     }
 
-    private fun initLayer(layer: LayerImpl, debug: Boolean) {
-        layer.isDebug = debug
-        layer.onCreate(this)
-    }
-
-    private fun destroyLayer(layer: LayerImpl) {
-        _attachedLayerHolder.remove(layer)
-        layer.onDestroy(this)
-    }
-
-    fun attachLayer(layer: LayerImpl) {
-        if (!_attachedLayerHolder.contains(layer)) {
-            _attachedLayerHolder.add(layer)
+    fun initLayer(layer: FLayer) {
+        if (_destroyed) return
+        if (!_layerHolder.contains(layer)) {
+            _layerHolder.add(layer)
+            layer.onCreate(this)
         }
     }
 
-    fun detachLayer(layer: LayerImpl) {
+    fun attachLayer(layer: FLayer) {
+        if (_destroyed) return
+        if (_layerHolder.contains(layer)) {
+            if (!_attachedLayerHolder.contains(layer)) {
+                _attachedLayerHolder.add(layer)
+            }
+        }
+    }
+
+    fun detachLayer(layer: FLayer) {
         _attachedLayerHolder.remove(layer)
     }
 
     fun processDownEvent(event: PointerInputChange) {
+        if (_destroyed) return
         val copyHolder = _attachedLayerHolder.toTypedArray()
         for (index in copyHolder.lastIndex downTo 0) {
             val layer = copyHolder[index]
@@ -194,6 +151,7 @@ internal class LayerContainer {
     }
 
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
+        if (_destroyed) return
         _containerLayout = layoutCoordinates
         _containerLayoutCallbackHolder.toTypedArray().forEach {
             it.invoke(layoutCoordinates)
@@ -201,6 +159,7 @@ internal class LayerContainer {
     }
 
     fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
+        if (_destroyed) return
         if (_containerLayoutCallbackHolder.add(callback)) {
             callback(_containerLayout)
         }
@@ -213,6 +172,7 @@ internal class LayerContainer {
     }
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+        if (_destroyed) return
         if (tag.isEmpty()) return
         val old = _targetLayoutHolder[tag]
         if (old != null) {
@@ -229,6 +189,7 @@ internal class LayerContainer {
     }
 
     fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
+        if (_destroyed) return
         if (tag.isEmpty()) return
         val holder = _targetLayoutCallbackHolder[tag] ?: hashSetOf<(LayoutCoordinates?) -> Unit>().also {
             _targetLayoutCallbackHolder[tag] = it
@@ -252,6 +213,22 @@ internal class LayerContainer {
     private fun notifyTargetLayoutCallback(tag: String, layoutCoordinates: LayoutCoordinates?) {
         _targetLayoutCallbackHolder[tag]?.toTypedArray()?.forEach {
             it.invoke(layoutCoordinates)
+        }
+    }
+
+    fun destroy() {
+        _destroyed = true
+        _attachedLayerHolder.toTypedArray().forEach {
+            destroyLayer(it)
+        }
+        _layerHolder.clear()
+        _attachedLayerHolder.clear()
+    }
+
+    private fun destroyLayer(layer: FLayer) {
+        if (_layerHolder.remove(layer)) {
+            _attachedLayerHolder.remove(layer)
+            layer.onDestroy(this)
         }
     }
 }

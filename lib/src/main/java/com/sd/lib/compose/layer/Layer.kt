@@ -36,6 +36,12 @@ interface Layer {
     val dialogBehavior: DialogBehavior
 
     /**
+     * 初始化
+     */
+    @Composable
+    fun Init()
+
+    /**
      * 设置内容
      */
     fun setContent(content: @Composable ContentScope.() -> Unit)
@@ -182,8 +188,8 @@ class DialogBehavior {
 
 //---------- Impl ----------
 
-internal open class LayerImpl : Layer {
-    protected var _layerContainer: LayerContainer? = null
+open class FLayer : Layer {
+    internal var _layerContainer: LayerContainer? = null
         private set
 
     private var _isAttached = false
@@ -207,12 +213,20 @@ internal open class LayerImpl : Layer {
 
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
 
+    @Composable
+    final override fun Init() {
+        val layerContainer = checkNotNull(LocalLayerContainer.current) {
+            "CompositionLocal LocalLayerContainer not present"
+        }
+        layerContainer.initLayer(this)
+    }
+
     final override fun setContent(content: @Composable ContentScope.() -> Unit) {
         _content = content
     }
 
     final override fun setPosition(position: Position) {
-        logMsg(isDebug) { "${this@LayerImpl} setPosition:$position" }
+        logMsg(isDebug) { "${this@FLayer} setPosition:$position" }
         _positionState = position
     }
 
@@ -222,7 +236,7 @@ internal open class LayerImpl : Layer {
 
     final override fun attach() {
         val container = _layerContainer ?: return
-        logMsg(isDebug) { "${this@LayerImpl} attach" }
+        logMsg(isDebug) { "${this@FLayer} attach" }
         _isAttached = true
         container.attachLayer(this)
         onAttach()
@@ -230,7 +244,7 @@ internal open class LayerImpl : Layer {
 
     final override fun detach() {
         if (_layerContainer == null) return
-        logMsg(isDebug) { "${this@LayerImpl} detach" }
+        logMsg(isDebug) { "${this@FLayer} detach" }
         _isAttached = false
         setContentVisible(false)
         onDetach()
@@ -243,7 +257,7 @@ internal open class LayerImpl : Layer {
      * Layer被添加到[container]
      */
     internal fun onCreate(container: LayerContainer) {
-        logMsg(isDebug) { "${this@LayerImpl} onCreate $container" }
+        logMsg(isDebug) { "${this@FLayer} onCreate $container" }
         _layerContainer = container
     }
 
@@ -251,7 +265,7 @@ internal open class LayerImpl : Layer {
      * Layer从[container]上被移除
      */
     internal fun onDestroy(container: LayerContainer) {
-        logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
+        logMsg(isDebug) { "${this@FLayer} onDestroy $container" }
         check(_layerContainer === container)
         detach()
         _layerContainer = null
@@ -272,7 +286,7 @@ internal open class LayerImpl : Layer {
         }
 
         if (old != isVisibleState) {
-            logMsg(isDebug) { "${this@LayerImpl} setContentVisible:$isVisibleState" }
+            logMsg(isDebug) { "${this@FLayer} setContentVisible:$isVisibleState" }
         }
     }
 
@@ -334,8 +348,8 @@ internal open class LayerImpl : Layer {
                     _contentLayoutCoordinates = it
                     if (!_isAttached) {
                         if (it.size == IntSize.Zero) {
-                            logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
-                            _layerContainer?.detachLayer(this@LayerImpl)
+                            logMsg(isDebug) { "${this@FLayer} detachLayer" }
+                            _layerContainer?.detachLayer(this@FLayer)
                         }
                     }
                 }
