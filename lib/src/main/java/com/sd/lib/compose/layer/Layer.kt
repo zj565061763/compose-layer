@@ -276,7 +276,7 @@ open class FLayer : Layer {
     /**
      * 设置内容可见状态
      */
-    protected fun setContentVisible(visible: Boolean) {
+    internal fun setContentVisible(visible: Boolean) {
         val old = isVisibleState
 
         if (visible) {
