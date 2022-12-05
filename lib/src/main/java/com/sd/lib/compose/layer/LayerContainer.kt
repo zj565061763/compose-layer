@@ -121,10 +121,14 @@ internal class LayerContainer {
 
     fun initLayer(layer: FLayer) {
         if (_destroyed) return
-        if (!_layerHolder.contains(layer)) {
-            _layerHolder.add(layer)
-            layer.onCreate(this)
-        }
+        if (_layerHolder.contains(layer)) return
+
+        // 如果layer已经被添加别的容器，则先把它从别的容器移除
+        layer._layerContainer?.destroyLayer(layer)
+
+        _layerHolder.add(layer)
+        layer.onCreate(this)
+        check(layer._layerContainer === this)
     }
 
     fun attachLayer(layer: FLayer) {
