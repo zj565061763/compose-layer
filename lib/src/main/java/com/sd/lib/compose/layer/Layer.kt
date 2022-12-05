@@ -308,7 +308,7 @@ open class FLayer : Layer {
     }
 
     @Composable
-    protected fun LayerBox(
+    internal fun LayerBox(
         content: @Composable BoxScope.() -> Unit,
     ) {
         Box(
@@ -323,7 +323,7 @@ open class FLayer : Layer {
     }
 
     @Composable
-    protected fun BackgroundBox() {
+    internal fun BackgroundBox() {
         val behavior = dialogBehavior
         if (behavior.enabled) {
             AnimatedVisibility(
@@ -341,7 +341,7 @@ open class FLayer : Layer {
     }
 
     @Composable
-    protected fun ContentBox(
+    internal fun ContentBox(
         modifier: Modifier = Modifier,
     ) {
         Box(
