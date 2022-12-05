@@ -233,6 +233,7 @@ internal class LayerContainer {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
             layer.onDestroy(this)
+            check(layer._layerContainer == null)
         }
     }
 }
