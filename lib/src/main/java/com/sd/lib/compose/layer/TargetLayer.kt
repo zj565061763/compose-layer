@@ -122,23 +122,23 @@ open class FTargetLayer : FLayer(), TargetLayer {
         _containerLayoutCoordinates = it
     }
 
-    override fun setTarget(target: String) {
+    final override fun setTarget(target: String) {
         _target = target
     }
 
-    override fun setTargetOffset(offset: IntOffset?) {
+    final override fun setTargetOffset(offset: IntOffset?) {
         _targetOffset = offset
     }
 
-    override fun setOffsetTransform(transform: OffsetTransform?) {
+    final override fun setOffsetTransform(transform: OffsetTransform?) {
         _offsetTransform = transform
     }
 
-    override fun setFixOverflowDirection(direction: PlusDirection?) {
+    final override fun setFixOverflowDirection(direction: PlusDirection?) {
         _fixOverflowDirectionState = direction
     }
 
-    override fun setClipBackgroundDirection(direction: PlusDirection?) {
+    final override fun setClipBackgroundDirection(direction: PlusDirection?) {
         _clipBackgroundDirectionState = direction
     }
 
