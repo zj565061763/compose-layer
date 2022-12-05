@@ -550,10 +550,10 @@ open class FTargetLayer : FLayer(), TargetLayer {
             }
 
             val preferPosition = mutableListOf(
-                Aligner.Position.TopEnd,
                 Aligner.Position.BottomEnd,
-                Aligner.Position.TopStart,
                 Aligner.Position.BottomStart,
+                Aligner.Position.TopEnd,
+                Aligner.Position.TopStart,
             ).apply {
                 remove(result.input.position)
             }

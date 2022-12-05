@@ -57,7 +57,7 @@ class SampleListMenu : ComponentActivity() {
 @OptIn(ExperimentalAnimationApi::class)
 private val layer = FTargetLayer().apply {
     this.isDebug = true
-    this.setPosition(Layer.Position.TopEnd)
+    this.setPosition(Layer.Position.BottomEnd)
     this.dialogBehavior
         .setBackgroundColor(Color.Transparent)
         .setConsumeTouchOutside(false)
