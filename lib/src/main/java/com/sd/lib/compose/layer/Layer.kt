@@ -240,6 +240,7 @@ open class FLayer : Layer {
         logMsg(isDebug) { "${this@FLayer} attach" }
         _isAttached = true
         container.attachLayer(this)
+        onAttachInternal()
         onAttach()
     }
 
@@ -248,8 +249,12 @@ open class FLayer : Layer {
         logMsg(isDebug) { "${this@FLayer} detach" }
         _isAttached = false
         setContentVisible(false)
+        onDetachInternal()
         onDetach()
     }
+
+    internal open fun onAttachInternal() {}
+    internal open fun onDetachInternal() {}
 
     protected open fun onAttach() {}
     protected open fun onDetach() {}

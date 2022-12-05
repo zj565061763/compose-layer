@@ -142,8 +142,8 @@ open class FTargetLayer : FLayer(), TargetLayer {
         _clipBackgroundDirectionState = direction
     }
 
-    override fun onAttach() {
-        super.onAttach()
+    override fun onAttachInternal() {
+        super.onAttachInternal()
         _layerContainer?.run {
             registerContainerLayoutCallback(_containerLayoutCallback)
             registerTargetLayoutCallback(_target, _targetLayoutCallback)
@@ -151,8 +151,8 @@ open class FTargetLayer : FLayer(), TargetLayer {
         updateUiState()
     }
 
-    override fun onDetach() {
-        super.onDetach()
+    override fun onDetachInternal() {
+        super.onDetachInternal()
         _layerContainer?.run {
             unregisterContainerLayoutCallback(_containerLayoutCallback)
             unregisterTargetLayoutCallback(_target, _targetLayoutCallback)
