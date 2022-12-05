@@ -259,6 +259,7 @@ open class FLayer : Layer {
      */
     internal fun onInit(container: LayerContainer) {
         logMsg(isDebug) { "${this@FLayer} onInit $container" }
+        check(_layerContainer == null)
         _layerContainer = container
     }
 
