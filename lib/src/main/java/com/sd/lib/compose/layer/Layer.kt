@@ -118,16 +118,16 @@ interface Layer {
 }
 
 class DialogBehavior {
-    private val _enabled = mutableStateOf(true)
+    private val _enabledState = mutableStateOf(true)
     private var _cancelable = true
     private var _canceledOnTouchOutside = true
     private var _consumeTouchOutside = true
-    private val _backgroundColor = mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    private val _backgroundColorState = mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
      * 窗口行为是否开启，默认true
      */
-    val enabled: Boolean get() = _enabled.value
+    val enabled: Boolean get() = _enabledState.value
 
     /**
      * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
@@ -147,13 +147,13 @@ class DialogBehavior {
     /**
      * 背景颜色
      */
-    val backgroundColor: Color get() = _backgroundColor.value
+    val backgroundColor: Color get() = _backgroundColorState.value
 
     /**
      * [enabled]
      */
     fun setEnabled(value: Boolean) = apply {
-        _enabled.value = value
+        _enabledState.value = value
     }
 
     /**
@@ -184,7 +184,7 @@ class DialogBehavior {
      * [backgroundColor]
      */
     fun setBackgroundColor(value: Color) = apply {
-        _backgroundColor.value = value
+        _backgroundColorState.value = value
     }
 }
 
@@ -197,7 +197,7 @@ open class FLayer : Layer {
     private var _isAttached = false
 
     private val _contentScopeImpl = ContentScopeImpl()
-    private val _content = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
+    private val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -225,7 +225,7 @@ open class FLayer : Layer {
     }
 
     final override fun setContent(content: @Composable ContentScope.() -> Unit) {
-        _content.value = content
+        _contentState.value = content
     }
 
     final override fun setPosition(position: Position) {
@@ -288,10 +288,10 @@ open class FLayer : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl.isVisible.value = true
+                _contentScopeImpl._isVisibleState.value = true
             }
         } else {
-            _contentScopeImpl.isVisible.value = false
+            _contentScopeImpl._isVisibleState.value = false
         }
 
         if (old != isVisibleState) {
@@ -370,7 +370,7 @@ open class FLayer : Layer {
                     }
                 }
         ) {
-            _content.value?.invoke(_contentScopeImpl)
+            _contentState.value?.invoke(_contentScopeImpl)
         }
     }
 
@@ -398,10 +398,10 @@ open class FLayer : Layer {
 }
 
 private class ContentScopeImpl : ContentScope {
-    val isVisible = mutableStateOf(false)
+    val _isVisibleState = mutableStateOf(false)
 
     override val isVisibleState: Boolean
-        get() = isVisible.value
+        get() = _isVisibleState.value
 }
 
 private fun Position.toAlignment(): Alignment {
