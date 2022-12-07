@@ -116,16 +116,16 @@ interface Layer {
 }
 
 class DialogBehavior {
-    private var _enabled by mutableStateOf(true)
+    private val _enabled = mutableStateOf(true)
     private var _cancelable = true
     private var _canceledOnTouchOutside = true
     private var _consumeTouchOutside = true
-    private var _backgroundColor by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    private var _backgroundColor = mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
      * 窗口行为是否开启，默认true
      */
-    val enabled: Boolean get() = _enabled
+    val enabled: Boolean get() = _enabled.value
 
     /**
      * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
@@ -145,13 +145,13 @@ class DialogBehavior {
     /**
      * 背景颜色
      */
-    val backgroundColor: Color get() = _backgroundColor
+    val backgroundColor: Color get() = _backgroundColor.value
 
     /**
      * [enabled]
      */
     fun setEnabled(value: Boolean) = apply {
-        _enabled = value
+        _enabled.value = value
     }
 
     /**
@@ -182,7 +182,7 @@ class DialogBehavior {
      * [backgroundColor]
      */
     fun setBackgroundColor(value: Color) = apply {
-        _backgroundColor = value
+        _backgroundColor.value = value
     }
 }
 
