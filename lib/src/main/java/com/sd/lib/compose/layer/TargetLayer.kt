@@ -93,10 +93,10 @@ open class FTargetLayer : FLayer(), TargetLayer {
     private val _aligner = FAligner()
 
     private var _offsetTransform: OffsetTransform? = null
-    private var _fixOverflowDirectionState: PlusDirection? by mutableStateOf(null)
-    private var _clipBackgroundDirectionState: PlusDirection? by mutableStateOf(null)
+    private val _fixOverflowDirectionState = mutableStateOf<PlusDirection?>(null)
+    private val _clipBackgroundDirectionState = mutableStateOf<PlusDirection?>(null)
 
-    private var _targetOffset: IntOffset? by mutableStateOf(null)
+    private val _targetOffset = mutableStateOf<IntOffset?>(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -108,10 +108,10 @@ open class FTargetLayer : FLayer(), TargetLayer {
         }
     }
 
-    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
     }
-    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
     }
 
@@ -127,7 +127,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
     }
 
     final override fun setTargetOffset(offset: IntOffset?) {
-        _targetOffset = offset
+        _targetOffset.value = offset
     }
 
     final override fun setOffsetTransform(transform: OffsetTransform?) {
@@ -135,11 +135,11 @@ open class FTargetLayer : FLayer(), TargetLayer {
     }
 
     final override fun setFixOverflowDirection(direction: PlusDirection?) {
-        _fixOverflowDirectionState = direction
+        _fixOverflowDirectionState.value = direction
     }
 
     final override fun setClipBackgroundDirection(direction: PlusDirection?) {
-        _clipBackgroundDirectionState = direction
+        _clipBackgroundDirectionState.value = direction
     }
 
     override fun onAttachInternal() {
@@ -208,7 +208,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
     }
 
     private fun updateUiState() {
-        val targetOffset = _targetOffset
+        val targetOffset = _targetOffset.value
         val targetLayout = if (targetOffset != null) {
             LayoutInfo(
                 size = IntSize.Zero,
@@ -290,7 +290,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                 }
             }
 
-            val fixOverflowDirection = _fixOverflowDirectionState
+            val fixOverflowDirection = _fixOverflowDirectionState.value
                 ?: return@SubcomposeLayout state.layoutNoneOverflow(
                     cs = cs,
                     uiState = uiState,
@@ -383,7 +383,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = _clipBackgroundDirectionState,
+                direction = _clipBackgroundDirectionState.value,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -436,7 +436,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = _clipBackgroundDirectionState,
+                direction = _clipBackgroundDirectionState.value,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -542,7 +542,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
         }
 
         private fun findBestResult(result: Aligner.Result): Aligner.Result {
-            val targetOffset = _targetOffset ?: return result
+            val targetOffset = _targetOffset.value ?: return result
 
             val overflowSizeDefault = result.sourceOverflow.totalOverflow()
             if (overflowSizeDefault == 0) {
