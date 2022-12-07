@@ -17,6 +17,7 @@ import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.setContent
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

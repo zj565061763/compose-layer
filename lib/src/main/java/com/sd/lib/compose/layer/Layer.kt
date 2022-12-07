@@ -44,9 +44,10 @@ interface Layer {
     fun Init()
 
     /**
-     * 设置内容
+     * 设置内容。由于Compose runtime的bug，此方法暂时不能用，等后续修复之后会开放，暂时用[setContent]扩展函数替代。
+     * bug测试地址：https://github.com/zj565061763/compose-demo
      */
-    fun setContent(content: @Composable ContentScope.() -> Unit)
+//    fun setContent(content: @Composable ContentScope.() -> Unit)
 
     /**
      * 设置对齐的位置
@@ -190,6 +191,13 @@ class DialogBehavior {
 
 //---------- Impl ----------
 
+/**
+ * 设置内容
+ */
+fun FLayer.setContent(content: @Composable ContentScope.() -> Unit) {
+    _contentState.value = content
+}
+
 open class FLayer : Layer {
     internal var _layerContainer: LayerContainer? = null
         private set
@@ -197,7 +205,7 @@ open class FLayer : Layer {
     private var _isAttached = false
 
     private val _contentScopeImpl = ContentScopeImpl()
-    private val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
+    internal val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -222,10 +230,6 @@ open class FLayer : Layer {
             "CompositionLocal LocalLayerContainer not present"
         }
         layerContainer.initLayer(this)
-    }
-
-    final override fun setContent(content: @Composable ContentScope.() -> Unit) {
-        _contentState.value = content
     }
 
     final override fun setPosition(position: Position) {
