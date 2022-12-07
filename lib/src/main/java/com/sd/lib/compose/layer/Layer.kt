@@ -125,7 +125,7 @@ class DialogBehavior {
     private val _backgroundColorState = mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
-     * 窗口行为是否开启，默认true
+     * 窗口行为是否开启(observable)，默认true
      */
     val enabled: Boolean get() = _enabledState.value
 
@@ -145,7 +145,7 @@ class DialogBehavior {
     val consumeTouchOutside: Boolean get() = _consumeTouchOutside
 
     /**
-     * 背景颜色
+     * 背景颜色(observable)
      */
     val backgroundColor: Color get() = _backgroundColorState.value
 
