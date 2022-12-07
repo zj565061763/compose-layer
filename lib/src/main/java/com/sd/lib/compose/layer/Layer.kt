@@ -120,7 +120,7 @@ class DialogBehavior {
     private var _cancelable = true
     private var _canceledOnTouchOutside = true
     private var _consumeTouchOutside = true
-    private var _backgroundColor = mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    private val _backgroundColor = mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
      * 窗口行为是否开启，默认true
