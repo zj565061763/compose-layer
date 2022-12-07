@@ -395,13 +395,13 @@ open class FLayer : Layer {
             }
         }
     }
+}
 
-    private class ContentScopeImpl : ContentScope {
-        var _isVisible = mutableStateOf(false)
+private class ContentScopeImpl : ContentScope {
+    val _isVisible = mutableStateOf(false)
 
-        override val isVisible: Boolean
-            get() = _isVisible.value
-    }
+    override val isVisible: Boolean
+        get() = _isVisible.value
 }
 
 private fun Position.toAlignment(): Alignment {
