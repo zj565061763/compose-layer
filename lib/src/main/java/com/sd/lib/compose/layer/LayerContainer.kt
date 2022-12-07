@@ -109,7 +109,7 @@ internal class LayerContainer {
             }
 
             val behavior = item.dialogBehavior
-            if (behavior.enabled) {
+            if (behavior.enabledState) {
                 BackHandler(item.isVisibleState) {
                     if (behavior.cancelable) {
                         item.detach()

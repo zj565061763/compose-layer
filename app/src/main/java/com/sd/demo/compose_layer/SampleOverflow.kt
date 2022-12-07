@@ -40,7 +40,7 @@ private val layerOverflow = FTargetLayer().apply {
     this.setPosition(Layer.Position.BottomCenter)
     this.setTarget("button1")
     this.setContent {
-        LayerContent(isVisible)
+        LayerContent(isVisibleState)
     }
 }
 
@@ -52,7 +52,7 @@ private val layerFixOverflow = FTargetLayer().apply {
         PlusDirection.Bottom + PlusDirection.Start + PlusDirection.End
     )
     this.setContent {
-        LayerContent(isVisible)
+        LayerContent(isVisibleState)
     }
 }
 

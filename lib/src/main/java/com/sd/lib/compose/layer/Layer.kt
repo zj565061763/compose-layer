@@ -111,9 +111,9 @@ interface Layer {
 
     interface ContentScope {
         /**
-         * 内容是否可见(observable)
+         * 内容是否可见
          */
-        val isVisible: Boolean
+        val isVisibleState: Boolean
     }
 }
 
@@ -125,9 +125,9 @@ class DialogBehavior {
     private val _backgroundColorState = mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
-     * (observable)窗口行为是否开启，默认true
+     * 窗口行为是否开启，默认true
      */
-    val enabled: Boolean get() = _enabledState.value
+    val enabledState: Boolean get() = _enabledState.value
 
     /**
      * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
@@ -145,12 +145,12 @@ class DialogBehavior {
     val consumeTouchOutside: Boolean get() = _consumeTouchOutside
 
     /**
-     * (observable)背景颜色
+     * 背景颜色
      */
-    val backgroundColor: Color get() = _backgroundColorState.value
+    val backgroundColorState: Color get() = _backgroundColorState.value
 
     /**
-     * [enabled]
+     * [enabledState]
      */
     fun setEnabled(value: Boolean) = apply {
         _enabledState.value = value
@@ -181,7 +181,7 @@ class DialogBehavior {
     }
 
     /**
-     * [backgroundColor]
+     * [backgroundColorState]
      */
     fun setBackgroundColor(value: Color) = apply {
         _backgroundColorState.value = value
@@ -208,7 +208,7 @@ open class FLayer : Layer {
     var isDebug = false
 
     final override val isVisibleState: Boolean
-        get() = _contentScopeImpl.isVisible
+        get() = _contentScopeImpl.isVisibleState
 
     final override val positionState: Position
         get() = _positionState.value
@@ -332,7 +332,7 @@ open class FLayer : Layer {
     @Composable
     internal fun BackgroundBox() {
         val behavior = dialogBehavior
-        if (behavior.enabled) {
+        if (behavior.enabledState) {
             AnimatedVisibility(
                 visible = isVisibleState,
                 enter = fadeIn(),
@@ -341,7 +341,7 @@ open class FLayer : Layer {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(behavior.backgroundColor)
+                        .background(behavior.backgroundColorState)
                 )
             }
         }
@@ -376,7 +376,7 @@ open class FLayer : Layer {
 
     internal fun processDownEvent(event: PointerInputChange) {
         val behavior = dialogBehavior
-        if (!behavior.enabled) return
+        if (!behavior.enabledState) return
 
         val layerLayout = _layerLayoutCoordinates ?: return
         val contentLayout = _contentLayoutCoordinates ?: return
@@ -400,7 +400,7 @@ open class FLayer : Layer {
 private class ContentScopeImpl : ContentScope {
     val _isVisibleState = mutableStateOf(false)
 
-    override val isVisible: Boolean
+    override val isVisibleState: Boolean
         get() = _isVisibleState.value
 }
 
