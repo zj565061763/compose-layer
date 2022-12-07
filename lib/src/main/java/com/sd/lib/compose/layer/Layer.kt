@@ -195,7 +195,7 @@ open class FLayer : Layer {
     private var _isAttached = false
 
     private val _contentScopeImpl = ContentScopeImpl()
-    private var _content: @Composable ContentScope.() -> Unit by mutableStateOf({ })
+    private val _content = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -223,7 +223,7 @@ open class FLayer : Layer {
     }
 
     final override fun setContent(content: @Composable ContentScope.() -> Unit) {
-        _content = content
+        _content.value = content
     }
 
     final override fun setPosition(position: Position) {
@@ -368,7 +368,7 @@ open class FLayer : Layer {
                     }
                 }
         ) {
-            _content.invoke(_contentScopeImpl)
+            _content.value?.invoke(_contentScopeImpl)
         }
     }
 
