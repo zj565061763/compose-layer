@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -200,8 +202,8 @@ open class FLayer : Layer {
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
-    private var _positionState: Position by mutableStateOf(Position.Center)
-    private var _clipToBoundsState by mutableStateOf(false)
+    private val _positionState = mutableStateOf(Position.Center)
+    private val _clipToBoundsState = mutableStateOf(false)
 
     var isDebug = false
 
@@ -209,7 +211,7 @@ open class FLayer : Layer {
         get() = _contentScopeImpl.isVisible
 
     final override val positionState: Position
-        get() = _positionState
+        get() = _positionState.value
 
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
 
@@ -228,11 +230,11 @@ open class FLayer : Layer {
 
     final override fun setPosition(position: Position) {
         logMsg(isDebug) { "${this@FLayer} setPosition:$position" }
-        _positionState = position
+        _positionState.value = position
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
-        _clipToBoundsState = clipToBounds
+        _clipToBoundsState.value = clipToBounds
     }
 
     final override fun attach() {
@@ -286,10 +288,10 @@ open class FLayer : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl._isVisible = true
+                _contentScopeImpl._isVisible.value = true
             }
         } else {
-            _contentScopeImpl._isVisible = false
+            _contentScopeImpl._isVisible.value = false
         }
 
         if (old != isVisibleState) {
@@ -361,7 +363,7 @@ open class FLayer : Layer {
                     }
                 }
                 .let {
-                    if (_clipToBoundsState) {
+                    if (_clipToBoundsState.value) {
                         it.clipToBounds()
                     } else {
                         it
@@ -395,10 +397,10 @@ open class FLayer : Layer {
     }
 
     private class ContentScopeImpl : ContentScope {
-        var _isVisible by mutableStateOf(false)
+        var _isVisible = mutableStateOf(false)
 
         override val isVisible: Boolean
-            get() = _isVisible
+            get() = _isVisible.value
     }
 }
 
