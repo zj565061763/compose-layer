@@ -39,7 +39,7 @@ private val layer1 = FLayer().apply {
     this.setPosition(Layer.Position.Center)
     this.setContent {
         AnimatedVisibility(
-            visible = isVisible,
+            visible = isVisibleState,
             enter = scaleIn(),
             exit = scaleOut(),
         ) {
@@ -57,7 +57,7 @@ private val layer2 = FLayer().apply {
     this.setPosition(Layer.Position.BottomCenter)
     this.setContent {
         AnimatedVisibility(
-            visible = isVisible,
+            visible = isVisibleState,
             enter = scaleIn(),
             exit = scaleOut(),
         ) {

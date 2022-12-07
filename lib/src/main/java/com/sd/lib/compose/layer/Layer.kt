@@ -113,7 +113,7 @@ interface Layer {
         /**
          * 内容是否可见
          */
-        val isVisible: Boolean
+        val isVisibleState: Boolean
     }
 }
 
@@ -208,7 +208,7 @@ open class FLayer : Layer {
     var isDebug = false
 
     final override val isVisibleState: Boolean
-        get() = _contentScopeImpl.isVisible
+        get() = _contentScopeImpl.isVisibleState
 
     final override val positionState: Position
         get() = _positionState.value
@@ -288,10 +288,10 @@ open class FLayer : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl._isVisible.value = true
+                _contentScopeImpl.isVisible.value = true
             }
         } else {
-            _contentScopeImpl._isVisible.value = false
+            _contentScopeImpl.isVisible.value = false
         }
 
         if (old != isVisibleState) {
@@ -398,10 +398,10 @@ open class FLayer : Layer {
 }
 
 private class ContentScopeImpl : ContentScope {
-    val _isVisible = mutableStateOf(false)
+    val isVisible = mutableStateOf(false)
 
-    override val isVisible: Boolean
-        get() = _isVisible.value
+    override val isVisibleState: Boolean
+        get() = isVisible.value
 }
 
 private fun Position.toAlignment(): Alignment {

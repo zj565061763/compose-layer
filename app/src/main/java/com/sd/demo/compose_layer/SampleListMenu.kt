@@ -64,7 +64,7 @@ private val layer = FTargetLayer().apply {
     this.setFixOverflowDirection(PlusDirection.All)
     this.setContent {
         AnimatedVisibility(
-            visible = isVisible,
+            visible = isVisibleState,
             enter = scaleIn(),
             exit = scaleOut(),
         ) {

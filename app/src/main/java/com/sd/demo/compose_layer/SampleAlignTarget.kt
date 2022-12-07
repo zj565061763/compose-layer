@@ -51,7 +51,7 @@ private val layer = FTargetLayer().apply {
     this.dialogBehavior.setEnabled(false)
     this.setContent {
         AnimatedVisibility(
-            visible = isVisible,
+            visible = isVisibleState,
             enter = scaleIn(),
             exit = scaleOut(),
         ) {
