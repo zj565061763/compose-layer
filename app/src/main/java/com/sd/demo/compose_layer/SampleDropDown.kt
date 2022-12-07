@@ -41,7 +41,7 @@ private val layer = FTargetLayer().apply {
     this.setClipBackgroundDirection(PlusDirection.Top)
     this.setContent {
         AnimatedVisibility(
-            visible = isVisibleState,
+            visible = isVisible,
             enter = slideInVertically { -it },
             exit = slideOutVertically { -it },
         ) {

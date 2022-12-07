@@ -111,9 +111,9 @@ interface Layer {
 
     interface ContentScope {
         /**
-         * 内容是否可见
+         * 内容是否可见(observable)
          */
-        val isVisibleState: Boolean
+        val isVisible: Boolean
     }
 }
 
@@ -208,7 +208,7 @@ open class FLayer : Layer {
     var isDebug = false
 
     final override val isVisibleState: Boolean
-        get() = _contentScopeImpl.isVisibleState
+        get() = _contentScopeImpl.isVisible
 
     final override val positionState: Position
         get() = _positionState.value
@@ -400,7 +400,7 @@ open class FLayer : Layer {
 private class ContentScopeImpl : ContentScope {
     val _isVisibleState = mutableStateOf(false)
 
-    override val isVisibleState: Boolean
+    override val isVisible: Boolean
         get() = _isVisibleState.value
 }
 
