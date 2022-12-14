@@ -7,9 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -119,16 +117,16 @@ interface Layer {
 }
 
 class DialogBehavior {
-    private val _enabledState = mutableStateOf(true)
+    private var _enabledState by mutableStateOf(true)
     private var _cancelable = true
     private var _canceledOnTouchOutside = true
     private var _consumeTouchOutside = true
-    private val _backgroundColorState = mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
      * 窗口行为是否开启，默认true
      */
-    val enabledState: Boolean get() = _enabledState.value
+    val enabledState: Boolean get() = _enabledState
 
     /**
      * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
@@ -148,13 +146,13 @@ class DialogBehavior {
     /**
      * 背景颜色
      */
-    val backgroundColorState: Color get() = _backgroundColorState.value
+    val backgroundColorState: Color get() = _backgroundColorState
 
     /**
      * [enabledState]
      */
     fun setEnabled(value: Boolean) = apply {
-        _enabledState.value = value
+        _enabledState = value
     }
 
     /**
@@ -185,7 +183,7 @@ class DialogBehavior {
      * [backgroundColorState]
      */
     fun setBackgroundColor(value: Color) = apply {
-        _backgroundColorState.value = value
+        _backgroundColorState = value
     }
 }
 
@@ -210,17 +208,13 @@ open class FLayer : Layer {
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
-    private val _positionState = mutableStateOf(Position.Center)
-    private val _clipToBoundsState = mutableStateOf(false)
+    private var _positionState by mutableStateOf(Position.Center)
+    private var _clipToBoundsState by mutableStateOf(false)
 
     var isDebug = false
 
-    final override val isVisibleState: Boolean
-        get() = _contentScopeImpl.isVisibleState
-
-    final override val positionState: Position
-        get() = _positionState.value
-
+    final override val isVisibleState: Boolean get() = _contentScopeImpl.isVisibleState
+    final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
 
     @Composable
@@ -234,11 +228,11 @@ open class FLayer : Layer {
 
     final override fun setPosition(position: Position) {
         logMsg(isDebug) { "${this@FLayer} setPosition:$position" }
-        _positionState.value = position
+        _positionState = position
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
-        _clipToBoundsState.value = clipToBounds
+        _clipToBoundsState = clipToBounds
     }
 
     final override fun attach() {
@@ -292,10 +286,10 @@ open class FLayer : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl._isVisibleState.value = true
+                _contentScopeImpl.setVisibleState(true)
             }
         } else {
-            _contentScopeImpl._isVisibleState.value = false
+            _contentScopeImpl.setVisibleState(false)
         }
 
         if (old != isVisibleState) {
@@ -367,7 +361,7 @@ open class FLayer : Layer {
                     }
                 }
                 .let {
-                    if (_clipToBoundsState.value) {
+                    if (_clipToBoundsState) {
                         it.clipToBounds()
                     } else {
                         it
@@ -402,10 +396,13 @@ open class FLayer : Layer {
 }
 
 private class ContentScopeImpl : ContentScope {
-    val _isVisibleState = mutableStateOf(false)
+    private var _isVisibleState by mutableStateOf(false)
 
-    override val isVisibleState: Boolean
-        get() = _isVisibleState.value
+    fun setVisibleState(visible: Boolean) {
+        _isVisibleState = visible
+    }
+
+    override val isVisibleState: Boolean get() = _isVisibleState
 }
 
 private fun Position.toAlignment(): Alignment {
