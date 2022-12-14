@@ -6,7 +6,7 @@ plugins {
 
 def libGroupId = "com.sd.lib.android"
 def libArtifactId = "compose-layer"
-def libVersionName = "1.0.0-alpha08"
+def libVersionName = "1.0.0-alpha09"
 
 android {
     namespace 'com.sd.lib.compose.layer'
@@ -61,7 +61,6 @@ afterEvaluate {
                 artifactId = libArtifactId
                 version = libVersionName
 
-                // 上传源码
                 artifact generateSourcesJar
             }
         }
