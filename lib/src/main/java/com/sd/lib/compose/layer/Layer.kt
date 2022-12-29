@@ -247,6 +247,7 @@ open class FLayer : Layer {
 
     final override fun detach() {
         if (_layerContainer == null) return
+        if (!_isAttached) return
         logMsg(isDebug) { "${this@FLayer} detach" }
         _isAttached = false
         setContentVisible(false)
