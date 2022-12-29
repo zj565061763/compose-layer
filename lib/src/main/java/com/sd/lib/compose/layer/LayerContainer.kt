@@ -93,11 +93,11 @@ internal class LayerContainer {
     private val _layerHolder: MutableSet<FLayer> = hashSetOf()
     private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
 
-    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
-    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
-
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
+
+    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
+    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
     val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
 
