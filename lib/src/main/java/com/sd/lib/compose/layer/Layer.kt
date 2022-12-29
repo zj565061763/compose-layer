@@ -355,8 +355,9 @@ open class FLayer : Layer {
             modifier = modifier
                 .onGloballyPositioned {
                     _contentLayoutCoordinates = it
-                    if (!_isAttached) {
-                        if (it.size == IntSize.Zero) {
+                    if (it.size == IntSize.Zero) {
+                        logMsg(isDebug) { "${this@FLayer} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
+                        if (!_isAttached && !isVisibleState) {
                             logMsg(isDebug) { "${this@FLayer} detachLayer" }
                             _layerContainer?.detachLayer(this@FLayer)
                         }
