@@ -237,6 +237,7 @@ open class FLayer : Layer {
 
     final override fun attach() {
         val container = _layerContainer ?: return
+        if (_isAttached) return
         logMsg(isDebug) { "${this@FLayer} attach" }
         _isAttached = true
         container.attachLayer(this)
