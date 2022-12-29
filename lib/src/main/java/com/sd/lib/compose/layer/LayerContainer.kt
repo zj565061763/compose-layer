@@ -178,10 +178,11 @@ internal class LayerContainer {
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
         if (_destroyed) return
         if (tag.isEmpty()) return
-        val old = _targetLayoutHolder[tag]
-        if (old != null) {
+
+        _targetLayoutHolder[tag]?.let { old ->
             check(old === layoutCoordinates) { "Tag:$tag has already specified." }
         }
+
         _targetLayoutHolder[tag] = layoutCoordinates
         notifyTargetLayoutCallback(tag, layoutCoordinates)
     }
