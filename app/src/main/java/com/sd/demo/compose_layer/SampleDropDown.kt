@@ -38,7 +38,7 @@ private val layer = FTargetLayer().apply {
     this.setPosition(Layer.Position.Bottom)
     this.setTarget("button")
     this.setClipToBounds(true)
-    this.setClipBackgroundDirection(PlusDirection.Top)
+    this.setClipBackgroundDirection(Directions.Top)
     this.setContent {
         AnimatedVisibility(
             visible = isVisibleState,

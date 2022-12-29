@@ -58,7 +58,7 @@ private val layer = FTargetLayer().apply {
     this.dialogBehavior
         .setBackgroundColor(Color.Transparent)
         .setConsumeTouchOutside(false)
-    this.setFixOverflowDirection(PlusDirection.All)
+    this.setFixOverflowDirection(Directions.All)
     this.setContent {
         AnimatedVisibility(
             visible = isVisibleState,

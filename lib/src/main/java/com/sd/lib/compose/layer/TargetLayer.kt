@@ -30,14 +30,14 @@ interface TargetLayer : Layer {
     fun setOffsetTransform(transform: OffsetTransform?)
 
     /**
-     * 设置修复溢出的方向[PlusDirection]
+     * 设置修复溢出的方向[Directions]
      */
-    fun setFixOverflowDirection(direction: PlusDirection?)
+    fun setFixOverflowDirection(direction: Directions?)
 
     /**
-     * 设置要裁切背景的方向[PlusDirection]
+     * 设置要裁切背景的方向[Directions]
      */
-    fun setClipBackgroundDirection(direction: PlusDirection?)
+    fun setClipBackgroundDirection(direction: Directions?)
 }
 
 fun interface OffsetTransform {
@@ -56,7 +56,7 @@ fun interface OffsetTransform {
     }
 }
 
-sealed class PlusDirection(direction: Int) {
+sealed class Directions(direction: Int) {
     private val _direction = direction
 
     fun hasTop() = FlagTop and _direction != 0
@@ -64,18 +64,18 @@ sealed class PlusDirection(direction: Int) {
     fun hasStart() = FlagStart and _direction != 0
     fun hasEnd() = FlagEnd and _direction != 0
 
-    operator fun plus(direction: PlusDirection): PlusDirection {
+    operator fun plus(direction: Directions): Directions {
         val plusDirection = this._direction or direction._direction
         return Plus(plusDirection)
     }
 
-    object Top : PlusDirection(FlagTop)
-    object Bottom : PlusDirection(FlagBottom)
-    object Start : PlusDirection(FlagStart)
-    object End : PlusDirection(FlagEnd)
-    object All : PlusDirection(FlagAll)
+    object Top : Directions(FlagTop)
+    object Bottom : Directions(FlagBottom)
+    object Start : Directions(FlagStart)
+    object End : Directions(FlagEnd)
+    object All : Directions(FlagAll)
 
-    private class Plus(direction: Int) : PlusDirection(direction)
+    private class Plus(direction: Int) : Directions(direction)
 
     companion object {
         private const val FlagTop = 1
@@ -94,8 +94,8 @@ open class FTargetLayer : FLayer(), TargetLayer {
 
     private var _offsetTransform: OffsetTransform? = null
 
-    private var _fixOverflowDirectionState by mutableStateOf<PlusDirection?>(null)
-    private var _clipBackgroundDirectionState by mutableStateOf<PlusDirection?>(null)
+    private var _fixOverflowDirectionState by mutableStateOf<Directions?>(null)
+    private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
     private var _targetOffsetState by mutableStateOf<IntOffset?>(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
@@ -134,11 +134,11 @@ open class FTargetLayer : FLayer(), TargetLayer {
         _offsetTransform = transform
     }
 
-    final override fun setFixOverflowDirection(direction: PlusDirection?) {
+    final override fun setFixOverflowDirection(direction: Directions?) {
         _fixOverflowDirectionState = direction
     }
 
-    final override fun setClipBackgroundDirection(direction: PlusDirection?) {
+    final override fun setClipBackgroundDirection(direction: Directions?) {
         _clipBackgroundDirectionState = direction
     }
 
@@ -404,7 +404,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
         fun layoutFixOverflow(
             cs: Constraints,
             uiState: UiState,
-            direction: PlusDirection,
+            direction: Directions,
         ): MeasureResult {
             val originalPlaceable = measureContent(cs, slotId = null)
             val result = alignTarget(
@@ -490,7 +490,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
             cs: Constraints,
             contentOffset: IntOffset,
             contentSize: IntSize,
-            direction: PlusDirection?,
+            direction: Directions?,
         ): PlaceInfo {
             if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
                 return PlaceInfo(
@@ -592,7 +592,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
         private fun checkOverflow(
             result: Aligner.Result,
             cs: Constraints,
-            direction: PlusDirection,
+            direction: Directions,
         ): Pair<Constraints?, Aligner.Result> {
             var resultConstraints: Constraints? = null
 
