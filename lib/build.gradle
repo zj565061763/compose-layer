@@ -42,7 +42,7 @@ dependencies {
     implementation platform("androidx.compose:compose-bom:$compose_bom_version")
     implementation 'androidx.compose.foundation:foundation'
     implementation 'androidx.activity:activity-compose:1.6.1'
-    implementation 'com.github.zj565061763:aligner:1.0.0-rc02'
+    implementation 'com.github.zj565061763:aligner:1.0.0'
 }
 
 
