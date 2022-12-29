@@ -89,9 +89,14 @@ sealed class Directions(direction: Int) {
 //---------- Impl ----------
 
 open class FTargetLayer : FLayer(), TargetLayer {
-    private val _uiState = MutableStateFlow(UiState.Empty)
-    private val _aligner = FAligner()
+    private val _uiState = MutableStateFlow(
+        UiState(
+            targetLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
+            containerLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
+        )
+    )
 
+    private val _aligner = FAligner()
     private var _offsetTransform: OffsetTransform? = null
 
     private var _fixOverflowDirectionState by mutableStateOf<Directions?>(null)
@@ -307,14 +312,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
     private data class UiState(
         val targetLayout: LayoutInfo,
         val containerLayout: LayoutInfo,
-    ) {
-        companion object {
-            val Empty = UiState(
-                targetLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
-                containerLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
-            )
-        }
-    }
+    )
 
     private data class LayoutInfo(
         val size: IntSize,
