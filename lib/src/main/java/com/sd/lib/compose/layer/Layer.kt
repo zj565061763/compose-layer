@@ -286,10 +286,10 @@ open class FLayer : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl.setVisibleState(true)
+                _contentScopeImpl.setVisible(true)
             }
         } else {
-            _contentScopeImpl.setVisibleState(false)
+            _contentScopeImpl.setVisible(false)
         }
 
         if (old != isVisibleState) {
@@ -398,7 +398,7 @@ open class FLayer : Layer {
 private class ContentScopeImpl : ContentScope {
     private var _isVisibleState by mutableStateOf(false)
 
-    fun setVisibleState(visible: Boolean) {
+    fun setVisible(visible: Boolean) {
         _isVisibleState = visible
     }
 
