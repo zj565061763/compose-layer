@@ -8,16 +8,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
-import com.sd.lib.compose.layer.setContent
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,45 +33,28 @@ class SampleAlignContainer : ComponentActivity() {
 }
 
 @OptIn(ExperimentalAnimationApi::class)
-private val layer1 = FLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.Center)
-    this.setContent {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            ColorBox(
-                color = Color.Red,
-                text = "1",
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalAnimationApi::class)
-private val layer2 = FLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.BottomCenter)
-    this.setContent {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            ColorBox(
-                color = Color.Red,
-                text = "2",
-            )
-        }
-    }
-}
-
 @Composable
 private fun Content() {
-    layer1.Init()
-    layer2.Init()
+    var showLayer by remember { mutableStateOf(false) }
+
+    if (showLayer) {
+        FLayer(
+            onDetach = {
+                showLayer = false
+            }
+        ) {
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                ColorBox(
+                    color = Color.Red,
+                    text = "Box",
+                )
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -82,8 +63,7 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                layer2.attach()
-                layer1.attach()
+                showLayer = true
             }
         ) {
             Text(text = "Attach")
