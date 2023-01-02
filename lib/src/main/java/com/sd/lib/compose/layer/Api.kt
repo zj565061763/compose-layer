@@ -12,6 +12,7 @@ fun FLayer(
     dialogCanceledOnTouchOutside: Boolean = true,
     dialogConsumeTouchOutside: Boolean = true,
     dialogBackgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+    debug: Boolean = false,
     onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
@@ -28,6 +29,7 @@ fun FLayer(
     }
 
     layer.apply {
+        this.isDebug = debug
         this.setPosition(position)
         this.setClipToBounds(clipToBounds)
         this.dialogBehavior.apply {

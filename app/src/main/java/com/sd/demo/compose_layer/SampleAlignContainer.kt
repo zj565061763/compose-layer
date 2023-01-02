@@ -39,6 +39,7 @@ private fun Content() {
 
     if (showLayer) {
         FLayer(
+            debug = true,
             onDetach = {
                 showLayer = false
             }
