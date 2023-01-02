@@ -35,13 +35,13 @@ class SampleAlignContainer : ComponentActivity() {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
-    var showLayer by remember { mutableStateOf(false) }
+    var attach by remember { mutableStateOf(false) }
 
-    if (showLayer) {
+    if (attach) {
         FLayer(
             debug = true,
             onDetach = {
-                showLayer = false
+                attach = false
             }
         ) {
             AnimatedVisibility(
@@ -64,7 +64,7 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                showLayer = true
+                attach = true
             }
         ) {
             Text(text = "Attach")
