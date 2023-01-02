@@ -252,7 +252,6 @@ open class FLayer : Layer {
         _isAttached = false
         setContentVisible(false)
         onDetachInternal()
-        onDetach()
     }
 
     internal open fun onAttachInternal() {}
@@ -359,7 +358,10 @@ open class FLayer : Layer {
                         logMsg(isDebug) { "${this@FLayer} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
                             logMsg(isDebug) { "${this@FLayer} detachLayer" }
-                            _layerContainer?.detachLayer(this@FLayer)
+                            if (_layerContainer?.detachLayer(this@FLayer) == true) {
+                                logMsg(isDebug) { "${this@FLayer} onDetach" }
+                                onDetach()
+                            }
                         }
                     }
                 }

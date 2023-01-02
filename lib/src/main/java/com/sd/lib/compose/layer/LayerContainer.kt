@@ -140,8 +140,8 @@ internal class LayerContainer {
         }
     }
 
-    fun detachLayer(layer: FLayer) {
-        _attachedLayerHolder.remove(layer)
+    fun detachLayer(layer: FLayer): Boolean {
+        return _attachedLayerHolder.remove(layer)
     }
 
     fun processDownEvent(event: PointerInputChange) {
