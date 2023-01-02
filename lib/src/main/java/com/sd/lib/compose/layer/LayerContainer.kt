@@ -131,6 +131,14 @@ internal class LayerContainer {
         check(layer._layerContainer === this)
     }
 
+    fun destroyLayer(layer: FLayer) {
+        if (_layerHolder.remove(layer)) {
+            _attachedLayerHolder.remove(layer)
+            layer.onDestroy(this)
+            check(layer._layerContainer == null)
+        }
+    }
+
     fun attachLayer(layer: FLayer) {
         if (_destroyed) return
         if (_layerHolder.contains(layer)) {
@@ -228,14 +236,6 @@ internal class LayerContainer {
         }
         _layerHolder.clear()
         _attachedLayerHolder.clear()
-    }
-
-    private fun destroyLayer(layer: FLayer) {
-        if (_layerHolder.remove(layer)) {
-            _attachedLayerHolder.remove(layer)
-            layer.onDestroy(this)
-            check(layer._layerContainer == null)
-        }
     }
 }
 

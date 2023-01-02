@@ -21,6 +21,7 @@ fun FLayer(
         object : FLayer() {
             override fun onDetach() {
                 super.onDetach()
+                _layerContainer?.destroyLayer(this)
                 onDetachUpdated()
             }
         }
@@ -44,7 +45,6 @@ fun FLayer(
         layer.attach()
         onDispose {
             layer.detach()
-            // TODO destroy layer
         }
     }
 }
