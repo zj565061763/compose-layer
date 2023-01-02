@@ -40,9 +40,7 @@ private fun Content() {
     if (attach) {
         FLayer(
             debug = true,
-            onDetach = {
-                attach = false
-            }
+            onDetach = { attach = false },
         ) {
             AnimatedVisibility(
                 visible = isVisibleState,
