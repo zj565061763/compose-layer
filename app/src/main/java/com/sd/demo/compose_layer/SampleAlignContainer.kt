@@ -83,12 +83,8 @@ private fun layerAttach1(): MutableState<Boolean> {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer2(): Layer {
-    return remember {
-        FLayer().apply {
-            this.setPosition(Layer.Position.BottomCenter)
-        }
-    }.also {
-        it.Init()
+    return remember { FLayer() }.also {
+        it.setPosition(Layer.Position.BottomCenter)
         it.setContent {
             AnimatedVisibility(
                 visible = isVisibleState,
@@ -101,5 +97,6 @@ private fun layer2(): Layer {
                 )
             }
         }
+        it.Init()
     }
 }
