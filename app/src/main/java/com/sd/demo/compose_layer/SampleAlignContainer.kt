@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayer
+import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
 
 class SampleAlignContainer : ComponentActivity() {
@@ -35,12 +36,12 @@ class SampleAlignContainer : ComponentActivity() {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
-    var attach by remember { mutableStateOf(false) }
-
-    if (attach) {
+    var attach1 by remember { mutableStateOf(false) }
+    if (attach1) {
         FLayer(
+            onDetach = { attach1 = false },
             debug = true,
-            onDetach = { attach = false },
+            zIndex = 1f,
         ) {
             AnimatedVisibility(
                 visible = isVisibleState,
@@ -49,7 +50,26 @@ private fun Content() {
             ) {
                 ColorBox(
                     color = Color.Red,
-                    text = "Box",
+                    text = "Box1",
+                )
+            }
+        }
+    }
+
+    var attach2 by remember { mutableStateOf(false) }
+    if (attach2) {
+        FLayer(
+            onDetach = { attach2 = false },
+            position = Layer.Position.BottomCenter,
+        ) {
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                ColorBox(
+                    color = Color.Red,
+                    text = "Box2",
                 )
             }
         }
@@ -62,7 +82,8 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                attach = true
+                attach1 = true
+                attach2 = true
             }
         ) {
             Text(text = "Attach")
