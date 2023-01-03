@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -33,28 +33,29 @@ class SampleDropDown : ComponentActivity() {
     }
 }
 
-private val layer = FTargetLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.Bottom)
-    this.setTarget("button")
-    this.setClipToBounds(true)
-    this.setClipBackgroundDirection(Directions.Top)
-    this.setContent {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = slideInVertically { -it },
-            exit = slideOutVertically { -it },
-        ) {
-            VerticalList(
-                count = 5,
-            )
-        }
-    }
-}
-
 @Composable
 private fun Content() {
-    layer.Init()
+    var attach by remember { mutableStateOf(false) }
+    if (attach) {
+        FTargetLayer(
+            onDetach = { attach = false },
+            debug = true,
+            position = Layer.Position.Bottom,
+            target = "button",
+            clipToBounds = true,
+            clipBackgroundDirection = Directions.Top,
+        ) {
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = slideInVertically { -it },
+                exit = slideOutVertically { -it },
+            ) {
+                VerticalList(
+                    count = 5,
+                )
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -64,7 +65,7 @@ private fun Content() {
         Spacer(modifier = Modifier.height(300.dp))
         Button(
             onClick = {
-                layer.attach()
+                attach = true
             },
             modifier = Modifier.layerTarget("button")
         ) {
