@@ -14,24 +14,18 @@ fun FLayer(
     clipToBounds: Boolean = false,
     zIndex: Float? = null,
     debug: Boolean = false,
-    onAttach: (Layer) -> Unit = {},
-    onDetach: (Layer) -> Unit = {},
+    onCreate: (Layer) -> Unit = { it.attach() },
+    onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
-    val onAttachUpdated by rememberUpdatedState(onAttach)
     val onDetachUpdated by rememberUpdatedState(onDetach)
 
     val layer = remember {
         object : FLayer() {
-            override fun onAttach() {
-                super.onAttach()
-                onAttachUpdated(this)
-            }
-
             override fun onDetach() {
                 super.onDetach()
                 _layerContainer?.destroyLayer(this)
-                onDetachUpdated(this)
+                onDetachUpdated()
             }
         }
     }
@@ -53,7 +47,7 @@ fun FLayer(
     }
 
     DisposableEffect(layer) {
-        layer.attach()
+        onCreate(layer)
         onDispose {
             layer.detach()
         }
