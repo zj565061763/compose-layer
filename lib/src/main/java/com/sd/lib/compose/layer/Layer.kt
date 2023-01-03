@@ -219,7 +219,6 @@ open class FLayer : Layer {
 
     @Composable
     final override fun Init() {
-        logMsg(isDebug) { "${this@FLayer} Init" }
         val layerContainer = checkNotNull(LocalLayerContainer.current) {
             "CompositionLocal LocalLayerContainer not present"
         }
@@ -227,7 +226,6 @@ open class FLayer : Layer {
     }
 
     final override fun setPosition(position: Position) {
-        logMsg(isDebug) { "${this@FLayer} setPosition:$position" }
         _positionState = position
     }
 
