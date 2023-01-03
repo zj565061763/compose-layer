@@ -13,13 +13,20 @@ fun FLayer(
     dialogConsumeTouchOutside: Boolean = true,
     dialogBackgroundColor: Color = Color.Black.copy(alpha = 0.3f),
     debug: Boolean = false,
+    onAttach: () -> Unit = {},
     onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
+    val onAttachUpdated by rememberUpdatedState(onAttach)
     val onDetachUpdated by rememberUpdatedState(onDetach)
 
     val layer = remember {
         object : FLayer() {
+            override fun onAttach() {
+                super.onAttach()
+                onAttachUpdated()
+            }
+
             override fun onDetach() {
                 super.onDetach()
                 _layerContainer?.destroyLayer(this)
