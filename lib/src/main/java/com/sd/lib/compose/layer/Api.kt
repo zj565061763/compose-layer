@@ -5,16 +5,17 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun FLayer(
-    position: Layer.Position = Layer.Position.Center,
-    clipToBounds: Boolean = false,
     dialogEnable: Boolean = true,
     dialogCancelable: Boolean = true,
     dialogCanceledOnTouchOutside: Boolean = true,
     dialogConsumeTouchOutside: Boolean = true,
     dialogBackgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+    position: Layer.Position = Layer.Position.Center,
+    clipToBounds: Boolean = false,
+    zIndex: Float? = null,
     debug: Boolean = false,
-    onAttach: () -> Unit = {},
-    onDetach: () -> Unit = {},
+    onAttach: (Layer) -> Unit = {},
+    onDetach: (Layer) -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
     val onAttachUpdated by rememberUpdatedState(onAttach)
@@ -24,21 +25,19 @@ fun FLayer(
         object : FLayer() {
             override fun onAttach() {
                 super.onAttach()
-                onAttachUpdated()
+                onAttachUpdated(this)
             }
 
             override fun onDetach() {
                 super.onDetach()
                 _layerContainer?.destroyLayer(this)
-                onDetachUpdated()
+                onDetachUpdated(this)
             }
         }
     }
 
     layer.apply {
         this.isDebug = debug
-        this.setPosition(position)
-        this.setClipToBounds(clipToBounds)
         this.dialogBehavior.apply {
             this.setEnabled(dialogEnable)
             this.setCancelable(dialogCancelable)
@@ -46,6 +45,9 @@ fun FLayer(
             this.setConsumeTouchOutside(dialogConsumeTouchOutside)
             this.setBackgroundColor(dialogBackgroundColor)
         }
+        this.setPosition(position)
+        this.setClipToBounds(clipToBounds)
+        this.setZIndex(zIndex)
         this.setContent(content)
         this.Init()
     }

@@ -104,7 +104,8 @@ internal class LayerContainer {
     @Composable
     fun Layers() {
         _attachedLayerHolder.forEachIndexed { index, item ->
-            Box(modifier = Modifier.zIndex(index.toFloat())) {
+            val zIndex = item.zIndexState ?: index.toFloat()
+            Box(modifier = Modifier.zIndex(zIndex)) {
                 item.Content()
             }
 

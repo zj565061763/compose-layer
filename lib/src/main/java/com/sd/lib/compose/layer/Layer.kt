@@ -36,6 +36,11 @@ interface Layer {
     val dialogBehavior: DialogBehavior
 
     /**
+     * Z坐标
+     */
+    val zIndexState: Float?
+
+    /**
      * 初始化
      */
     @Composable
@@ -56,6 +61,11 @@ interface Layer {
      * 是否裁剪内容区域，默认false
      */
     fun setClipToBounds(clipToBounds: Boolean)
+
+    /**
+     * 设置Z坐标
+     */
+    fun setZIndex(index: Float?)
 
     /**
      * 添加到容器
@@ -210,12 +220,14 @@ open class FLayer : Layer {
 
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(false)
+    private var _zIndex by mutableStateOf<Float?>(null)
 
     var isDebug = false
 
     final override val isVisibleState: Boolean get() = _contentScopeImpl.isVisibleState
     final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
+    final override val zIndexState: Float? get() = _zIndex
 
     @Composable
     final override fun Init() {
@@ -231,6 +243,10 @@ open class FLayer : Layer {
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
         _clipToBoundsState = clipToBounds
+    }
+
+    final override fun setZIndex(index: Float?) {
+        _zIndex = index
     }
 
     final override fun attach() {
