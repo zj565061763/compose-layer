@@ -15,7 +15,6 @@ fun FLayer(
     clipToBounds: Boolean = false,
     zIndex: Float? = null,
     debug: Boolean = false,
-    onCreate: (Layer) -> Unit = { it.attach() },
     onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
@@ -32,7 +31,6 @@ fun FLayer(
         clipToBounds = clipToBounds,
         zIndex = zIndex,
         debug = debug,
-        onCreate = onCreate,
         onDetach = onDetach,
         content = content,
     )
@@ -54,7 +52,6 @@ fun FTargetLayer(
     fixOverflowDirection: Directions? = null,
     clipBackgroundDirection: Directions? = null,
     debug: Boolean = false,
-    onCreate: (Layer) -> Unit = { it.attach() },
     onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
@@ -77,7 +74,6 @@ fun FTargetLayer(
         clipToBounds = clipToBounds,
         zIndex = zIndex,
         debug = debug,
-        onCreate = onCreate,
         onDetach = onDetach,
         content = content,
     )
@@ -97,7 +93,6 @@ private fun <T : FLayer> Layer(
     clipToBounds: Boolean = false,
     zIndex: Float? = null,
     debug: Boolean = false,
-    onCreate: (Layer) -> Unit = { it.attach() },
     onDetach: () -> Unit = {},
     content: @Composable Layer.ContentScope.() -> Unit,
 ) {
@@ -135,7 +130,7 @@ private fun <T : FLayer> Layer(
     }
 
     DisposableEffect(layer) {
-        onCreate(layer)
+        layer.attach()
         onDispose {
             layer.detach()
         }
