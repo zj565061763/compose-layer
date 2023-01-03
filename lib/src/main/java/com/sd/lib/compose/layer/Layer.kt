@@ -223,6 +223,7 @@ open class FLayer : Layer {
     private var _zIndex by mutableStateOf<Float?>(null)
 
     var isDebug = false
+    internal var attachCallback: AttachCallback? = null
 
     final override val isVisibleState: Boolean get() = _contentScopeImpl.isVisibleState
     final override val positionState: Position get() = _positionState
@@ -257,6 +258,7 @@ open class FLayer : Layer {
         container.attachLayer(this)
         onAttachInternal()
         onAttach()
+        attachCallback?.onAttach()
     }
 
     final override fun detach() {
@@ -375,6 +377,7 @@ open class FLayer : Layer {
                             if (_layerContainer?.detachLayer(this@FLayer) == true) {
                                 logMsg(isDebug) { "${this@FLayer} onDetach" }
                                 onDetach()
+                                attachCallback?.onDetach()
                             }
                         }
                     }
@@ -438,4 +441,9 @@ private fun Position.toAlignment(): Alignment {
         Position.BottomCenter, Position.Bottom -> Alignment.BottomCenter
         Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
     }
+}
+
+internal interface AttachCallback {
+    fun onAttach()
+    fun onDetach()
 }

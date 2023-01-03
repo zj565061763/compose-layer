@@ -17,7 +17,7 @@ interface TargetLayer : Layer {
     /**
      * 设置目标
      */
-    fun setTarget(target: String)
+    fun setTarget(target: String?)
 
     /**
      * 设置一个目标坐标，如果不为null，则会显示在该坐标附近，此时[setTarget]设置的目标无效。
@@ -127,8 +127,8 @@ open class FTargetLayer : FLayer(), TargetLayer {
         _containerLayoutCoordinates = it
     }
 
-    final override fun setTarget(target: String) {
-        _target = target
+    final override fun setTarget(target: String?) {
+        _target = target ?: ""
     }
 
     final override fun setTargetOffset(offset: IntOffset?) {
