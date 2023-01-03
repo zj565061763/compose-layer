@@ -13,6 +13,22 @@ import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.properties.Delegates
 
+@Composable
+fun rememberTargetLayer(
+    content: @Composable Layer.ContentScope.() -> Unit
+): TargetLayer {
+    val layer = remember { FTargetLayer() }.apply {
+        this.Init()
+        this.setContent(content)
+    }
+    DisposableEffect(layer) {
+        onDispose {
+            layer.destroy()
+        }
+    }
+    return layer
+}
+
 interface TargetLayer : Layer {
     /**
      * 设置目标

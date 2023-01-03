@@ -19,7 +19,25 @@ import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.ContentScope
 import com.sd.lib.compose.layer.Layer.Position
 
+@Composable
+fun rememberLayer(
+    content: @Composable ContentScope.() -> Unit
+): Layer {
+    val layer = remember { FLayer() }.apply {
+        this.Init()
+        this.setContent(content)
+    }
+    DisposableEffect(layer) {
+        onDispose {
+            layer.destroy()
+        }
+    }
+    return layer
+}
+
 interface Layer {
+    var isDebug: Boolean
+
     /**
      * 当前Layer是否可见
      */
@@ -39,18 +57,6 @@ interface Layer {
      * Z坐标
      */
     val zIndexState: Float?
-
-    /**
-     * 初始化
-     */
-    @Composable
-    fun Init()
-
-    /**
-     * 设置内容。由于Compose runtime的bug，此方法暂时不能用，等后续修复之后会开放，暂时用[setContent]扩展函数替代。
-     * bug测试地址：https://github.com/zj565061763/compose-demo
-     */
-//    fun setContent(content: @Composable ContentScope.() -> Unit)
 
     /**
      * 设置对齐的位置
@@ -199,13 +205,6 @@ class DialogBehavior {
 
 //---------- Impl ----------
 
-/**
- * 设置内容
- */
-fun FLayer.setContent(content: @Composable ContentScope.() -> Unit) {
-    _contentState.value = content
-}
-
 open class FLayer : Layer {
     internal var _layerContainer: LayerContainer? = null
         private set
@@ -213,7 +212,7 @@ open class FLayer : Layer {
     private var _isAttached = false
 
     private val _contentScopeImpl = ContentScopeImpl()
-    internal val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
+    private val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -222,21 +221,11 @@ open class FLayer : Layer {
     private var _clipToBoundsState by mutableStateOf(false)
     private var _zIndex by mutableStateOf<Float?>(null)
 
-    var isDebug = false
-    internal var attachCallback: AttachCallback? = null
-
+    final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _contentScopeImpl.isVisibleState
     final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
     final override val zIndexState: Float? get() = _zIndex
-
-    @Composable
-    final override fun Init() {
-        val layerContainer = checkNotNull(LocalLayerContainer.current) {
-            "CompositionLocal LocalLayerContainer not present"
-        }
-        layerContainer.initLayer(this)
-    }
 
     final override fun setPosition(position: Position) {
         _positionState = position
@@ -258,7 +247,6 @@ open class FLayer : Layer {
         container.attachLayer(this)
         onAttachInternal()
         onAttach()
-        attachCallback?.onAttach()
     }
 
     final override fun detach() {
@@ -275,6 +263,22 @@ open class FLayer : Layer {
 
     protected open fun onAttach() {}
     protected open fun onDetach() {}
+
+    @Composable
+    internal fun Init() {
+        val layerContainer = checkNotNull(LocalLayerContainer.current) {
+            "CompositionLocal LocalLayerContainer not present"
+        }
+        layerContainer.initLayer(this)
+    }
+
+    internal fun setContent(content: @Composable ContentScope.() -> Unit) {
+        _contentState.value = content
+    }
+
+    internal fun destroy() {
+        _layerContainer?.destroyLayer(this)
+    }
 
     /**
      * Layer被添加到[container]
@@ -377,7 +381,6 @@ open class FLayer : Layer {
                             if (_layerContainer?.detachLayer(this@FLayer) == true) {
                                 logMsg(isDebug) { "${this@FLayer} onDetach" }
                                 onDetach()
-                                attachCallback?.onDetach()
                             }
                         }
                     }
@@ -441,9 +444,4 @@ private fun Position.toAlignment(): Alignment {
         Position.BottomCenter, Position.Bottom -> Alignment.BottomCenter
         Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
     }
-}
-
-internal interface AttachCallback {
-    fun onAttach()
-    fun onDetach()
 }
