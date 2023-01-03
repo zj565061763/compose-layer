@@ -35,11 +35,8 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val attach1 = remember { mutableStateOf(false) }
-    val attach2 = remember { mutableStateOf(false) }
-
-    Layer1(attach1)
-    Layer2(attach2)
+    val layerAttach1 = layerAttach1()
+    val layerAttach2 = layerAttach2()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -48,8 +45,8 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                attach1.value = true
-                attach2.value = true
+                layerAttach1.value = true
+                layerAttach2.value = true
             }
         ) {
             Text(text = "Attach")
@@ -59,9 +56,8 @@ private fun Content() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun Layer1(
-    attach: MutableState<Boolean>,
-) {
+private fun layerAttach1(): MutableState<Boolean> {
+    val attach = remember { mutableStateOf(false) }
     if (attach.value) {
         FLayer(
             onDetach = { attach.value = false },
@@ -80,13 +76,13 @@ private fun Layer1(
             }
         }
     }
+    return attach
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun Layer2(
-    attach: MutableState<Boolean>,
-) {
+private fun layerAttach2(): MutableState<Boolean> {
+    val attach = remember { mutableStateOf(false) }
     if (attach.value) {
         FLayer(
             onDetach = { attach.value = false },
@@ -104,4 +100,5 @@ private fun Layer2(
             }
         }
     }
+    return attach
 }
