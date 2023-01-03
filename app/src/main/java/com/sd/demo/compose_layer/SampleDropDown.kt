@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -35,10 +38,31 @@ class SampleDropDown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    var attach by remember { mutableStateOf(false) }
-    if (attach) {
+    val layerAttach = layerAttach()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp),
+    ) {
+        Spacer(modifier = Modifier.height(300.dp))
+        Button(
+            onClick = {
+                layerAttach.value = true
+            },
+            modifier = Modifier.layerTarget("button")
+        ) {
+            Text("Click")
+        }
+    }
+}
+
+@Composable
+private fun layerAttach(): MutableState<Boolean> {
+    val attach = remember { mutableStateOf(false) }
+    if (attach.value) {
         FTargetLayer(
-            onDetach = { attach = false },
+            onDetach = { attach.value = false },
             debug = true,
             position = Layer.Position.Bottom,
             target = "button",
@@ -56,20 +80,5 @@ private fun Content() {
             }
         }
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp),
-    ) {
-        Spacer(modifier = Modifier.height(300.dp))
-        Button(
-            onClick = {
-                attach = true
-            },
-            modifier = Modifier.layerTarget("button")
-        ) {
-            Text("Click")
-        }
-    }
+    return attach
 }
