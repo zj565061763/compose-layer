@@ -33,13 +33,38 @@ class SampleAlignContainer : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Content() {
-    var attach1 by remember { mutableStateOf(false) }
-    if (attach1) {
+    val attach1 = remember { mutableStateOf(false) }
+    val attach2 = remember { mutableStateOf(false) }
+
+    Layer1(attach1)
+    Layer2(attach2)
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Button(
+            onClick = {
+                attach1.value = true
+                attach2.value = true
+            }
+        ) {
+            Text(text = "Attach")
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun Layer1(
+    attach: MutableState<Boolean>,
+) {
+    if (attach.value) {
         FLayer(
-            onDetach = { attach1 = false },
+            onDetach = { attach.value = false },
             debug = true,
             zIndex = 1f,
         ) {
@@ -55,11 +80,16 @@ private fun Content() {
             }
         }
     }
+}
 
-    var attach2 by remember { mutableStateOf(false) }
-    if (attach2) {
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun Layer2(
+    attach: MutableState<Boolean>,
+) {
+    if (attach.value) {
         FLayer(
-            onDetach = { attach2 = false },
+            onDetach = { attach.value = false },
             position = Layer.Position.BottomCenter,
         ) {
             AnimatedVisibility(
@@ -72,21 +102,6 @@ private fun Content() {
                     text = "Box2",
                 )
             }
-        }
-    }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Button(
-            onClick = {
-                attach1 = true
-                attach2 = true
-            }
-        ) {
-            Text(text = "Attach")
         }
     }
 }
