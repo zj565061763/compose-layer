@@ -14,10 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.FLayer
-import com.sd.lib.compose.layer.Layer
-import com.sd.lib.compose.layer.LayerContainer
-import com.sd.lib.compose.layer.setContent
+import com.sd.lib.compose.layer.*
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +33,7 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layerAttach1 = layerAttach1()
+    val layer1 = layer1()
     val layer2 = layer2()
 
     Column(
@@ -46,7 +43,7 @@ private fun Content() {
     ) {
         Button(
             onClick = {
-                layerAttach1.value = true
+                layer1.attach()
                 layer2.attach()
             }
         ) {
@@ -57,46 +54,39 @@ private fun Content() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun layerAttach1(): MutableState<Boolean> {
-    val attach = remember { mutableStateOf(false) }
-    if (attach.value) {
-        FLayer(
-            onDetach = { attach.value = false },
-            debug = true,
-            zIndex = 1f,
+private fun layer1(): Layer {
+    return rememberLayer {
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = scaleIn(),
+            exit = scaleOut(),
         ) {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = scaleIn(),
-                exit = scaleOut(),
-            ) {
-                ColorBox(
-                    color = Color.Red,
-                    text = "Box1",
-                )
-            }
+            ColorBox(
+                color = Color.Red,
+                text = "Box1",
+            )
         }
+    }.also {
+        it.isDebug = true
+        it.setZIndex(1f)
     }
-    return attach
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer2(): Layer {
-    return remember { FLayer() }.also {
-        it.setPosition(Layer.Position.BottomCenter)
-        it.setContent {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = scaleIn(),
-                exit = scaleOut(),
-            ) {
-                ColorBox(
-                    color = Color.Red,
-                    text = "Box2",
-                )
-            }
+    return rememberLayer {
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = scaleIn(),
+            exit = scaleOut(),
+        ) {
+            ColorBox(
+                color = Color.Red,
+                text = "Box2",
+            )
         }
-        it.Init()
+    }.also {
+        it.setPosition(Layer.Position.BottomCenter)
     }
 }
