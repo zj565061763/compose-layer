@@ -86,20 +86,20 @@ private fun layer2(): Layer {
     return remember {
         FLayer().apply {
             this.setPosition(Layer.Position.BottomCenter)
-            this.setContent {
-                AnimatedVisibility(
-                    visible = isVisibleState,
-                    enter = scaleIn(),
-                    exit = scaleOut(),
-                ) {
-                    ColorBox(
-                        color = Color.Red,
-                        text = "Box2",
-                    )
-                }
-            }
         }
     }.also {
         it.Init()
+        it.setContent {
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                ColorBox(
+                    color = Color.Red,
+                    text = "Box2",
+                )
+            }
+        }
     }
 }
