@@ -92,6 +92,9 @@ internal class LayerContainer {
 
     private val _layerHolder: MutableSet<FLayer> = hashSetOf()
     private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
+    private val _sortedLayerHolder by derivedStateOf {
+        _attachedLayerHolder.sortedBy { it.zIndexState ?: 0f }
+    }
 
     private var _containerLayout: LayoutCoordinates? = null
     private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
@@ -103,7 +106,7 @@ internal class LayerContainer {
 
     @Composable
     fun Layers() {
-        _attachedLayerHolder.forEach { item ->
+        _sortedLayerHolder.forEach { item ->
             val zIndex = item.zIndexState ?: 0f
             Box(modifier = Modifier.zIndex(zIndex)) {
                 item.Content()
@@ -155,7 +158,7 @@ internal class LayerContainer {
 
     fun processDownEvent(event: PointerInputChange) {
         if (_destroyed) return
-        val copyHolder = _attachedLayerHolder.toTypedArray()
+        val copyHolder = _sortedLayerHolder.toTypedArray()
         for (index in copyHolder.lastIndex downTo 0) {
             val layer = copyHolder[index]
             layer.processDownEvent(event)
