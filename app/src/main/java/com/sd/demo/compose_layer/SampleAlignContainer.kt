@@ -17,6 +17,7 @@ import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.FLayer
 import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.setContent
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +37,7 @@ class SampleAlignContainer : ComponentActivity() {
 @Composable
 private fun Content() {
     val layerAttach1 = layerAttach1()
-    val layerAttach2 = layerAttach2()
+    val layer2 = layer2()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,7 +47,7 @@ private fun Content() {
         Button(
             onClick = {
                 layerAttach1.value = true
-                layerAttach2.value = true
+                layer2.attach()
             }
         ) {
             Text(text = "Attach")
@@ -81,24 +82,24 @@ private fun layerAttach1(): MutableState<Boolean> {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun layerAttach2(): MutableState<Boolean> {
-    val attach = remember { mutableStateOf(false) }
-    if (attach.value) {
-        FLayer(
-            onDetach = { attach.value = false },
-            position = Layer.Position.BottomCenter,
-        ) {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = scaleIn(),
-                exit = scaleOut(),
-            ) {
-                ColorBox(
-                    color = Color.Red,
-                    text = "Box2",
-                )
+private fun layer2(): Layer {
+    return remember {
+        FLayer().apply {
+            this.setPosition(Layer.Position.BottomCenter)
+            this.setContent {
+                AnimatedVisibility(
+                    visible = isVisibleState,
+                    enter = scaleIn(),
+                    exit = scaleOut(),
+                ) {
+                    ColorBox(
+                        color = Color.Red,
+                        text = "Box2",
+                    )
+                }
             }
         }
+    }.also {
+        it.Init()
     }
-    return attach
 }
