@@ -128,7 +128,7 @@ internal class LayerContainer {
         if (_layerHolder.contains(layer)) return
 
         // 如果layer已经被添加别的容器，则先把它从别的容器移除
-        layer._layerContainer?.destroyLayer(layer)
+        layer.destroy()
 
         _layerHolder.add(layer)
         layer.onInit(this)
