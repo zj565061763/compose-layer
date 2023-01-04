@@ -113,6 +113,8 @@ interface Layer {
          * 内容是否可见
          */
         val isVisibleState: Boolean
+
+        val layer: Layer
     }
 }
 
@@ -402,16 +404,17 @@ internal open class LayerImpl : Layer {
             }
         }
     }
-}
 
-private class ContentScopeImpl : ContentScope {
-    private var _isVisibleState by mutableStateOf(false)
+    private inner class ContentScopeImpl : ContentScope {
+        private var _isVisibleState by mutableStateOf(false)
 
-    fun setVisible(visible: Boolean) {
-        _isVisibleState = visible
+        fun setVisible(visible: Boolean) {
+            _isVisibleState = visible
+        }
+
+        override val isVisibleState: Boolean get() = _isVisibleState
+        override val layer: Layer get() = this@LayerImpl
     }
-
-    override val isVisibleState: Boolean get() = _isVisibleState
 }
 
 private fun Position.toAlignment(): Alignment {
