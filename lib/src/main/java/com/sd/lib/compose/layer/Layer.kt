@@ -240,7 +240,7 @@ open class FLayer : Layer {
     }
 
     final override fun attach() {
-        val container = _layerContainer ?: error("You should call Init() before this.")
+        val container = _layerContainer ?: return
         if (_isAttached) return
         logMsg(isDebug) { "${this@FLayer} attach" }
         _isAttached = true
