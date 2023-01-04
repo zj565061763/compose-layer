@@ -11,9 +11,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -38,7 +35,7 @@ class SampleDropDown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-    val layerAttach = layerAttach()
+    val layer = layer()
 
     Column(
         modifier = Modifier
@@ -48,7 +45,7 @@ private fun Content() {
         Spacer(modifier = Modifier.height(300.dp))
         Button(
             onClick = {
-                layerAttach.value = true
+                layer.attach()
             },
             modifier = Modifier.layerTarget("button")
         ) {
@@ -58,27 +55,24 @@ private fun Content() {
 }
 
 @Composable
-private fun layerAttach(): MutableState<Boolean> {
-    val attach = remember { mutableStateOf(false) }
-    if (attach.value) {
-        FTargetLayer(
-            onDetach = { attach.value = false },
-            debug = true,
-            position = Layer.Position.Bottom,
-            target = "button",
-            clipToBounds = true,
-            clipBackgroundDirection = Directions.Top,
+private fun layer(): TargetLayer {
+    return rememberTargetLayer(
+        onCreate = {
+            it.isDebug = true
+            it.setTarget("button")
+            it.setPosition(Layer.Position.Bottom)
+            it.setClipToBounds(true)
+            it.setClipBackgroundDirection(Directions.Top)
+        }
+    ) {
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = slideInVertically { -it },
+            exit = slideOutVertically { -it },
         ) {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = slideInVertically { -it },
-                exit = slideOutVertically { -it },
-            ) {
-                VerticalList(
-                    count = 5,
-                )
-            }
+            VerticalList(
+                count = 5,
+            )
         }
     }
-    return attach
 }

@@ -4,10 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,31 +48,9 @@ class SampleListMenu : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
-private val layer = FTargetLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.BottomEnd)
-    this.dialogBehavior
-        .setBackgroundColor(Color.Transparent)
-        .setConsumeTouchOutside(false)
-    this.setFixOverflowDirection(Directions.All)
-    this.setContent {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            VerticalList(
-                count = 5,
-                modifier = Modifier.width(200.dp)
-            )
-        }
-    }
-}
-
 @Composable
 private fun Content() {
-    layer.Init()
+    val layer = layer()
 
     LazyColumn(
         Modifier
@@ -89,6 +64,31 @@ private fun Content() {
                 layer.setTargetOffset(it)
                 layer.attach()
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun layer(): TargetLayer {
+    return rememberTargetLayer(
+        onCreate = {
+            it.isDebug = true
+            it.dialogBehavior
+                .setBackgroundColor(Color.Transparent)
+                .setConsumeTouchOutside(false)
+            it.setFixOverflowDirection(Directions.All)
+        }
+    ) {
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = scaleIn(),
+            exit = scaleOut(),
+        ) {
+            VerticalList(
+                count = 5,
+                modifier = Modifier.width(200.dp)
+            )
         }
     }
 }

@@ -55,7 +55,12 @@ private fun Content() {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer1(): Layer {
-    return rememberLayer {
+    return rememberLayer(
+        onCreate = {
+            it.isDebug = true
+            it.setZIndex(1f)
+        }
+    ) {
         AnimatedVisibility(
             visible = isVisibleState,
             enter = scaleIn(),
@@ -66,16 +71,17 @@ private fun layer1(): Layer {
                 text = "Box1",
             )
         }
-    }.also {
-        it.isDebug = true
-        it.setZIndex(1f)
     }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer2(): Layer {
-    return rememberLayer {
+    return rememberLayer(
+        onCreate = {
+            it.setPosition(Layer.Position.BottomCenter)
+        }
+    ) {
         AnimatedVisibility(
             visible = isVisibleState,
             enter = scaleIn(),
@@ -86,7 +92,5 @@ private fun layer2(): Layer {
                 text = "Box2",
             )
         }
-    }.also {
-        it.setPosition(Layer.Position.BottomCenter)
     }
 }

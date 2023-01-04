@@ -42,30 +42,9 @@ class SampleAlignTarget : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
-private val layer = FTargetLayer().apply {
-    this.isDebug = true
-    // 设置目标
-    this.setTarget("hello")
-    // 关闭窗口行为
-    this.dialogBehavior.setEnabled(false)
-    this.setContent {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            ColorBox(
-                color = Color.Red,
-                text = "Box",
-            )
-        }
-    }
-}
-
 @Composable
 private fun Content() {
-    layer.Init()
+    val layer = layer()
 
     Box(modifier = Modifier.fillMaxSize()) {
         TargetView("hello")
@@ -78,6 +57,29 @@ private fun Content() {
                 layer.attach()
             }
         )
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun layer(): TargetLayer {
+    return rememberTargetLayer(
+        onCreate = {
+            it.isDebug = true
+            it.setTarget("hello")
+            it.dialogBehavior.setEnabled(false)
+        }
+    ) {
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = scaleIn(),
+            exit = scaleOut(),
+        ) {
+            ColorBox(
+                color = Color.Red,
+                text = "Box",
+            )
+        }
     }
 }
 

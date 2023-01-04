@@ -35,31 +35,9 @@ class SampleOverflow : ComponentActivity() {
     }
 }
 
-private val layerOverflow = FTargetLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.BottomCenter)
-    this.setTarget("button1")
-    this.setContent {
-        LayerContent(isVisibleState)
-    }
-}
-
-private val layerFixOverflow = FTargetLayer().apply {
-    this.isDebug = true
-    this.setPosition(Layer.Position.BottomCenter)
-    this.setTarget("button2")
-    this.setFixOverflowDirection(
-        Directions.Bottom + Directions.Start + Directions.End
-    )
-    this.setContent {
-        LayerContent(isVisibleState)
-    }
-}
-
 @Composable
 private fun Content() {
-    layerOverflow.Init()
-    layerFixOverflow.Init()
+    val layer = layer()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -74,8 +52,9 @@ private fun Content() {
         ) {
             Button(
                 onClick = {
-                    layerOverflow.attach()
-
+                    layer.setTarget("button1")
+                    layer.setFixOverflowDirection(null)
+                    layer.attach()
                 },
                 modifier = Modifier.layerTarget("button1")
             ) {
@@ -84,7 +63,11 @@ private fun Content() {
 
             Button(
                 onClick = {
-                    layerFixOverflow.attach()
+                    layer.setTarget("button2")
+                    layer.setFixOverflowDirection(
+                        Directions.Bottom + Directions.Start + Directions.End
+                    )
+                    layer.attach()
                 },
                 modifier = Modifier.layerTarget("button2")
             ) {
@@ -96,19 +79,22 @@ private fun Content() {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun LayerContent(
-    isVisible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-        exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-        modifier = modifier,
+private fun layer(): TargetLayer {
+    return rememberTargetLayer(
+        onCreate = {
+            it.isDebug = true
+            it.setPosition(Layer.Position.BottomCenter)
+        }
     ) {
-        VerticalList(
-            count = 50,
-            modifier = Modifier.navigationBarsPadding(),
-        )
+        AnimatedVisibility(
+            visible = isVisibleState,
+            enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+            exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+        ) {
+            VerticalList(
+                count = 50,
+                modifier = Modifier.navigationBarsPadding(),
+            )
+        }
     }
 }

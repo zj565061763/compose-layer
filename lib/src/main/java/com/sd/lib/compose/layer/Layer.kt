@@ -19,22 +19,6 @@ import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.ContentScope
 import com.sd.lib.compose.layer.Layer.Position
 
-@Composable
-fun rememberLayer(
-    content: @Composable ContentScope.() -> Unit
-): Layer {
-    val layer = remember { FLayer() }.apply {
-        this.Init()
-        this.setContent(content)
-    }
-    DisposableEffect(layer) {
-        onDispose {
-            layer.destroy()
-        }
-    }
-    return layer
-}
-
 interface Layer {
     var isDebug: Boolean
 
