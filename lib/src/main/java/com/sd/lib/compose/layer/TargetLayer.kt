@@ -88,7 +88,7 @@ sealed class Directions(direction: Int) {
 
 //---------- Impl ----------
 
-open class FTargetLayer : FLayer(), TargetLayer {
+internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _uiState = MutableStateFlow(
         UiState(
             targetLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
@@ -105,7 +105,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            logMsg(isDebug) { "${this@FTargetLayer} target changed $oldValue -> $newValue" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} target changed $oldValue -> $newValue" }
             _layerContainer?.run {
                 unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
                 registerTargetLayoutCallback(newValue, _targetLayoutCallback)
@@ -277,11 +277,11 @@ open class FTargetLayer : FLayer(), TargetLayer {
             val isContainerReady = uiState.containerLayout.isAttached
             val isReady = isTargetReady && isContainerReady
 
-            logMsg(isDebug) { "${this@FTargetLayer} layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
             if (!isVisibleState) {
                 return@SubcomposeLayout state.layoutLastVisible(cs).also {
-                    logMsg(isDebug) { "${this@FTargetLayer} layout invisible" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible" }
                     if (isReady) {
                         setContentVisible(true)
                     }
@@ -290,7 +290,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
 
             if (!isReady) {
                 return@SubcomposeLayout state.layoutLastVisible(cs).also {
-                    logMsg(isDebug) { "${this@FTargetLayer} layout not ready" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} layout not ready" }
                     setContentVisible(false)
                 }
             }
@@ -387,7 +387,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@FTargetLayer} layout none overflow ($x, $y)" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x, $y)" }
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -421,7 +421,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
             val contentPlaceable = if (fixedConstraints != null) {
                 measureContent(fixedConstraints).also { placeable ->
                     logMsg(isDebug) {
-                        "${this@FTargetLayer} fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${placeable.width}, ${placeable.height}) offset:($x, $y)->(${fixedResult.x}, ${fixedResult.y})"
+                        "${this@TargetLayerImpl} fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${placeable.width}, ${placeable.height}) offset:($x, $y)->(${fixedResult.x}, ${fixedResult.y})"
                     }
                     x = fixedResult.x
                     y = fixedResult.y
@@ -440,7 +440,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@FTargetLayer} layout fix overflow ($x, $y)" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow ($x, $y)" }
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -509,25 +509,25 @@ open class FTargetLayer : FLayer(), TargetLayer {
 
             if (direction.hasTop()) {
                 height -= contentY.also {
-                    logMsg(isDebug) { "${this@FTargetLayer} clip background top:$it" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background top:$it" }
                 }
                 y = contentY
             }
             if (direction.hasBottom()) {
                 height -= (cs.maxHeight - contentY - contentSize.height).also {
-                    logMsg(isDebug) { "${this@FTargetLayer} clip background bottom:$it" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background bottom:$it" }
                 }
             }
 
             if (direction.hasStart()) {
                 width -= contentX.also {
-                    logMsg(isDebug) { "${this@FTargetLayer} clip background start:$it" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background start:$it" }
                 }
                 x = contentX
             }
             if (direction.hasEnd()) {
                 width -= (cs.maxWidth - contentX - contentSize.width).also {
-                    logMsg(isDebug) { "${this@FTargetLayer} clip background end:$it" }
+                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background end:$it" }
                 }
             }
 
@@ -581,7 +581,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
             }
 
             logMsg(isDebug) {
-                "${this@FTargetLayer} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
+                "${this@TargetLayerImpl} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
             }
 
             return bestResult
@@ -613,7 +613,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                             if (top > 0) {
                                 overSize += top
                                 isTopOverflow = true
-                                logMsg(isDebug) { "${this@FTargetLayer} top overflow:$top" }
+                                logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
                             }
                         }
 
@@ -621,7 +621,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                             if (bottom > 0) {
                                 overSize += bottom
                                 isBottomOverflow = true
-                                logMsg(isDebug) { "${this@FTargetLayer} bottom overflow:$bottom" }
+                                logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
                             }
                         }
 
@@ -655,7 +655,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                             if (start > 0) {
                                 overSize += start
                                 isStartOverflow = true
-                                logMsg(isDebug) { "${this@FTargetLayer} start overflow:$start" }
+                                logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
                             }
                         }
 
@@ -663,7 +663,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                             if (end > 0) {
                                 overSize += end
                                 isEndOverflow = true
-                                logMsg(isDebug) { "${this@FTargetLayer} end overflow:$end" }
+                                logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
                             }
                         }
 
@@ -698,7 +698,7 @@ open class FTargetLayer : FLayer(), TargetLayer {
                     break
                 }
 
-                logMsg(isDebug) { "${this@FTargetLayer} checkOverflow -----> ${++count}" }
+                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
             }
 
             return Pair(resultConstraints, result)

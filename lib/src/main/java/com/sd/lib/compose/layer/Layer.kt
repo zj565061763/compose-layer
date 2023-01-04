@@ -189,7 +189,7 @@ class DialogBehavior {
 
 //---------- Impl ----------
 
-open class FLayer : Layer {
+internal open class LayerImpl : Layer {
     internal var _layerContainer: LayerContainer? = null
         private set
 
@@ -226,7 +226,7 @@ open class FLayer : Layer {
     final override fun attach() {
         val container = _layerContainer ?: return
         if (_isAttached) return
-        logMsg(isDebug) { "${this@FLayer} attach" }
+        logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
         container.attachLayer(this)
         onAttachInternal()
@@ -236,7 +236,7 @@ open class FLayer : Layer {
     final override fun detach() {
         if (_layerContainer == null) return
         if (!_isAttached) return
-        logMsg(isDebug) { "${this@FLayer} detach" }
+        logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
         onDetachInternal()
@@ -268,7 +268,7 @@ open class FLayer : Layer {
      * Layer被添加到[container]
      */
     internal fun onInit(container: LayerContainer) {
-        logMsg(isDebug) { "${this@FLayer} onInit $container" }
+        logMsg(isDebug) { "${this@LayerImpl} onInit $container" }
         check(_layerContainer == null)
         _layerContainer = container
     }
@@ -277,7 +277,7 @@ open class FLayer : Layer {
      * Layer从[container]上被移除
      */
     internal fun onDestroy(container: LayerContainer) {
-        logMsg(isDebug) { "${this@FLayer} onDestroy $container" }
+        logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
         check(_layerContainer === container)
         detach()
         _layerContainer = null
@@ -298,7 +298,7 @@ open class FLayer : Layer {
         }
 
         if (old != isVisibleState) {
-            logMsg(isDebug) { "${this@FLayer} setContentVisible:$isVisibleState" }
+            logMsg(isDebug) { "${this@LayerImpl} setContentVisible:$isVisibleState" }
         }
     }
 
@@ -359,11 +359,11 @@ open class FLayer : Layer {
                 .onGloballyPositioned {
                     _contentLayoutCoordinates = it
                     if (it.size == IntSize.Zero) {
-                        logMsg(isDebug) { "${this@FLayer} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
+                        logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
-                            logMsg(isDebug) { "${this@FLayer} detachLayer" }
-                            if (_layerContainer?.detachLayer(this@FLayer) == true) {
-                                logMsg(isDebug) { "${this@FLayer} onDetach" }
+                            logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
+                            if (_layerContainer?.detachLayer(this@LayerImpl) == true) {
+                                logMsg(isDebug) { "${this@LayerImpl} onDetach" }
                                 onDetach()
                             }
                         }

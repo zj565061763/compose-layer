@@ -9,7 +9,7 @@ fun rememberLayer(
     content: @Composable Layer.ContentScope.() -> Unit
 ): Layer {
     return rememberLayer(
-        factory = { FLayer().also(onCreate) },
+        factory = { LayerImpl().also(onCreate) },
         destroyOnDispose = destroyOnDispose,
         content = content,
     )
@@ -22,14 +22,14 @@ fun rememberTargetLayer(
     content: @Composable Layer.ContentScope.() -> Unit
 ): TargetLayer {
     return rememberLayer(
-        factory = { FTargetLayer().also(onCreate) },
+        factory = { TargetLayerImpl().also(onCreate) },
         destroyOnDispose = destroyOnDispose,
         content = content,
     )
 }
 
 @Composable
-private fun <T : FLayer> rememberLayer(
+private fun <T : LayerImpl> rememberLayer(
     factory: () -> T,
     destroyOnDispose: Boolean = true,
     content: @Composable Layer.ContentScope.() -> Unit

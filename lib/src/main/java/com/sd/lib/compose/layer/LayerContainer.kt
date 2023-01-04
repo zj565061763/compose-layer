@@ -90,8 +90,8 @@ internal val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { n
 internal class LayerContainer {
     private var _destroyed = false
 
-    private val _layerHolder: MutableSet<FLayer> = hashSetOf()
-    private val _attachedLayerHolder: MutableList<FLayer> = mutableStateListOf()
+    private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
+    private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayerHolder by derivedStateOf {
         _attachedLayerHolder.sortedBy { it.zIndexState ?: 0f }
     }
@@ -123,7 +123,7 @@ internal class LayerContainer {
         }
     }
 
-    fun initLayer(layer: FLayer) {
+    fun initLayer(layer: LayerImpl) {
         if (_destroyed) return
         if (_layerHolder.contains(layer)) return
 
@@ -135,7 +135,7 @@ internal class LayerContainer {
         check(layer._layerContainer === this)
     }
 
-    fun destroyLayer(layer: FLayer) {
+    fun destroyLayer(layer: LayerImpl) {
         if (_layerHolder.remove(layer)) {
             _attachedLayerHolder.remove(layer)
             layer.onDestroy(this)
@@ -143,7 +143,7 @@ internal class LayerContainer {
         }
     }
 
-    fun attachLayer(layer: FLayer) {
+    fun attachLayer(layer: LayerImpl) {
         if (_destroyed) return
         if (_layerHolder.contains(layer)) {
             if (!_attachedLayerHolder.contains(layer)) {
@@ -152,7 +152,7 @@ internal class LayerContainer {
         }
     }
 
-    fun detachLayer(layer: FLayer): Boolean {
+    fun detachLayer(layer: LayerImpl): Boolean {
         return _attachedLayerHolder.remove(layer)
     }
 
