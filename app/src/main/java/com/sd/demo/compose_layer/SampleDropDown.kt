@@ -3,8 +3,6 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
@@ -60,14 +58,10 @@ private fun layer(): TargetLayer {
             it.isDebug = true
             it.setTarget("button")
             it.setPosition(Layer.Position.Bottom)
-            it.setClipToBounds(true)
             it.setClipBackgroundDirection(Directions.Top)
         },
         wrapper = {
-            LayerAnimatedVisibility(
-                enter = slideInVertically { -it },
-                exit = slideOutVertically { -it },
-            )
+            LayerAnimatedSlideDownUp()
         }
     ) {
         VerticalList(count = 5)

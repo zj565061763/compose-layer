@@ -1,6 +1,8 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -40,12 +42,12 @@ interface Layer {
     val zIndexState: Float?
 
     /**
-     * 设置对齐的位置
+     * 设置对齐的位置，默认[Position.Center]
      */
     fun setPosition(position: Position)
 
     /**
-     * 是否裁剪内容区域，默认false
+     * 是否裁剪内容区域，默认true
      */
     fun setClipToBounds(clipToBounds: Boolean)
 
@@ -186,20 +188,6 @@ interface LayerContentWrapperScope : LayerContentScope {
     fun Content()
 }
 
-@Composable
-fun LayerContentWrapperScope.LayerAnimatedVisibility(
-    enter: EnterTransition = fadeIn(),
-    exit: ExitTransition = fadeOut(),
-) {
-    AnimatedVisibility(
-        visible = layer.isVisibleState,
-        enter = enter,
-        exit = exit,
-    ) {
-        Content()
-    }
-}
-
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
@@ -219,7 +207,7 @@ internal open class LayerImpl : Layer {
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
 
     private var _positionState by mutableStateOf(Position.Center)
-    private var _clipToBoundsState by mutableStateOf(false)
+    private var _clipToBoundsState by mutableStateOf(true)
     private var _zIndex by mutableStateOf<Float?>(null)
 
     final override var isDebug: Boolean = false
