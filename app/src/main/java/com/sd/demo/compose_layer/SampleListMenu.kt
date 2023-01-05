@@ -78,18 +78,21 @@ private fun layer(): TargetLayer {
                 .setBackgroundColor(Color.Transparent)
                 .setConsumeTouchOutside(false)
             it.setFixOverflowDirection(Directions.All)
+        },
+        wrapper = {
+            AnimatedVisibility(
+                visible = layer.isVisibleState,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                Content()
+            }
         }
     ) {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            VerticalList(
-                count = 5,
-                modifier = Modifier.width(200.dp)
-            )
-        }
+        VerticalList(
+            count = 5,
+            modifier = Modifier.width(200.dp)
+        )
     }
 }
 

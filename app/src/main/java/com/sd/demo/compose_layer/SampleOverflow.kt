@@ -84,17 +84,20 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setPosition(Layer.Position.BottomCenter)
+        },
+        wrapper = {
+            AnimatedVisibility(
+                visible = layer.isVisibleState,
+                enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+                exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+            ) {
+                Content()
+            }
         }
     ) {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-            exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-        ) {
-            VerticalList(
-                count = 50,
-                modifier = Modifier.navigationBarsPadding(),
-            )
-        }
+        VerticalList(
+            count = 50,
+            modifier = Modifier.navigationBarsPadding(),
+        )
     }
 }

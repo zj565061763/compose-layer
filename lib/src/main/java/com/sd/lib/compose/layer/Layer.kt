@@ -16,7 +16,6 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
-import com.sd.lib.compose.layer.Layer.ContentScope
 import com.sd.lib.compose.layer.Layer.Position
 
 interface Layer {
@@ -107,15 +106,6 @@ interface Layer {
         /** 中间对齐 */
         Center,
     }
-
-    interface ContentScope {
-        /**
-         * 内容是否可见
-         */
-        val isVisibleState: Boolean
-
-        val layer: Layer
-    }
 }
 
 class DialogBehavior {
@@ -189,6 +179,10 @@ class DialogBehavior {
     }
 }
 
+interface LayerContentScope {
+    val layer: Layer
+}
+
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
@@ -196,9 +190,10 @@ internal open class LayerImpl : Layer {
         private set
 
     private var _isAttached = false
+    private var _isVisibleState by mutableStateOf(false)
 
     private val _contentScopeImpl = ContentScopeImpl()
-    private val _contentState = mutableStateOf<(@Composable ContentScope.() -> Unit)?>(null)
+    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -208,7 +203,7 @@ internal open class LayerImpl : Layer {
     private var _zIndex by mutableStateOf<Float?>(null)
 
     final override var isDebug: Boolean = false
-    final override val isVisibleState: Boolean get() = _contentScopeImpl.isVisibleState
+    final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
     final override val zIndexState: Float? get() = _zIndex
@@ -258,7 +253,7 @@ internal open class LayerImpl : Layer {
         layerContainer.initLayer(this)
     }
 
-    internal fun setContent(content: @Composable ContentScope.() -> Unit) {
+    internal fun setContent(content: @Composable LayerContentScope.() -> Unit) {
         _contentState.value = content
     }
 
@@ -293,10 +288,10 @@ internal open class LayerImpl : Layer {
 
         if (visible) {
             if (_isAttached) {
-                _contentScopeImpl.setVisible(true)
+                _isVisibleState = true
             }
         } else {
-            _contentScopeImpl.setVisible(false)
+            _isVisibleState = false
         }
 
         if (old != isVisibleState) {
@@ -405,14 +400,7 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    private inner class ContentScopeImpl : ContentScope {
-        private var _isVisibleState by mutableStateOf(false)
-
-        fun setVisible(visible: Boolean) {
-            _isVisibleState = visible
-        }
-
-        override val isVisibleState: Boolean get() = _isVisibleState
+    private inner class ContentScopeImpl : LayerContentScope {
         override val layer: Layer get() = this@LayerImpl
     }
 }

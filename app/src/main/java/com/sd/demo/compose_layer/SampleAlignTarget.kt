@@ -3,12 +3,10 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +58,6 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer(): TargetLayer {
     return rememberTargetLayer(
@@ -70,16 +67,10 @@ private fun layer(): TargetLayer {
             it.dialogBehavior.setEnabled(false)
         }
     ) {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = scaleIn(),
-            exit = scaleOut(),
-        ) {
-            ColorBox(
-                color = Color.Red,
-                text = "Box",
-            )
-        }
+        ColorBox(
+            color = Color.Red,
+            text = "Box",
+        )
     }
 }
 

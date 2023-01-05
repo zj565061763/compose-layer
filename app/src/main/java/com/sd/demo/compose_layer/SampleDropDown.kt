@@ -63,16 +63,17 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.Bottom)
             it.setClipToBounds(true)
             it.setClipBackgroundDirection(Directions.Top)
+        },
+        wrapper = {
+            AnimatedVisibility(
+                visible = layer.isVisibleState,
+                enter = slideInVertically { -it },
+                exit = slideOutVertically { -it },
+            ) {
+                Content()
+            }
         }
     ) {
-        AnimatedVisibility(
-            visible = isVisibleState,
-            enter = slideInVertically { -it },
-            exit = slideOutVertically { -it },
-        ) {
-            VerticalList(
-                count = 5,
-            )
-        }
+        VerticalList(count = 5)
     }
 }
