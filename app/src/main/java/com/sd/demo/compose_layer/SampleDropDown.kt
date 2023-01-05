@@ -3,7 +3,6 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
@@ -65,13 +64,10 @@ private fun layer(): TargetLayer {
             it.setClipBackgroundDirection(Directions.Top)
         },
         wrapper = {
-            AnimatedVisibility(
-                visible = layer.isVisibleState,
+            LayerAnimatedVisibility(
                 enter = slideInVertically { -it },
                 exit = slideOutVertically { -it },
-            ) {
-                Content()
-            }
+            )
         }
     ) {
         VerticalList(count = 5)

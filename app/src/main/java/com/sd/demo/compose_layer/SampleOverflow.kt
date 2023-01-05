@@ -86,13 +86,10 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.BottomCenter)
         },
         wrapper = {
-            AnimatedVisibility(
-                visible = layer.isVisibleState,
+            LayerAnimatedVisibility(
                 enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
                 exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-            ) {
-                Content()
-            }
+            )
         }
     ) {
         VerticalList(

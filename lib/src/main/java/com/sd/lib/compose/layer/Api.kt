@@ -1,23 +1,13 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.runtime.*
 
 @Composable
 fun rememberLayer(
     onCreate: (Layer) -> Unit = {},
     destroyOnDispose: Boolean = true,
-    wrapper: @Composable LayerWrapperScope.() -> Unit = {
-        AnimatedVisibility(
-            visible = layer.isVisibleState,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            Content()
-        }
-    },
+    wrapper: @Composable LayerWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     return rememberLayer(
@@ -32,15 +22,7 @@ fun rememberLayer(
 fun rememberTargetLayer(
     onCreate: (TargetLayer) -> Unit = {},
     destroyOnDispose: Boolean = true,
-    wrapper: @Composable LayerWrapperScope.() -> Unit = {
-        AnimatedVisibility(
-            visible = layer.isVisibleState,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            Content()
-        }
-    },
+    wrapper: @Composable LayerWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     return rememberLayer(
@@ -49,6 +31,20 @@ fun rememberTargetLayer(
         wrapper = wrapper,
         content = content,
     )
+}
+
+@Composable
+fun LayerWrapperScope.LayerAnimatedVisibility(
+    enter: EnterTransition = fadeIn(),
+    exit: ExitTransition = fadeOut(),
+) {
+    AnimatedVisibility(
+        visible = layer.isVisibleState,
+        enter = enter,
+        exit = exit,
+    ) {
+        Content()
+    }
 }
 
 @Composable

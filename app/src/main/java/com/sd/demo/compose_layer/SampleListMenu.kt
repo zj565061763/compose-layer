@@ -80,13 +80,10 @@ private fun layer(): TargetLayer {
             it.setFixOverflowDirection(Directions.All)
         },
         wrapper = {
-            AnimatedVisibility(
-                visible = layer.isVisibleState,
+            LayerAnimatedVisibility(
                 enter = scaleIn(),
                 exit = scaleOut(),
-            ) {
-                Content()
-            }
+            )
         }
     ) {
         VerticalList(
