@@ -1,8 +1,6 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -183,6 +181,25 @@ interface LayerContentScope {
     val layer: Layer
 }
 
+interface LayerContentWrapperScope : LayerContentScope {
+    @Composable
+    fun Content()
+}
+
+@Composable
+fun LayerContentWrapperScope.LayerAnimatedVisibility(
+    enter: EnterTransition = fadeIn(),
+    exit: ExitTransition = fadeOut(),
+) {
+    AnimatedVisibility(
+        visible = layer.isVisibleState,
+        enter = enter,
+        exit = exit,
+    ) {
+        Content()
+    }
+}
+
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
@@ -192,8 +209,11 @@ internal open class LayerImpl : Layer {
     private var _isAttached = false
     private var _isVisibleState by mutableStateOf(false)
 
-    private val _contentScopeImpl = ContentScopeImpl()
+    private val _contentScope = ContentWrapperScopeImpl()
     private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
+    private val _contentWrapperState = mutableStateOf<(@Composable LayerContentWrapperScope.() -> Unit)>({
+        Content()
+    })
 
     private var _layerLayoutCoordinates: LayoutCoordinates? = null
     private var _contentLayoutCoordinates: LayoutCoordinates? = null
@@ -255,6 +275,10 @@ internal open class LayerImpl : Layer {
 
     internal fun setContent(content: @Composable LayerContentScope.() -> Unit) {
         _contentState.value = content
+    }
+
+    internal fun setContentWrapper(content: @Composable LayerContentWrapperScope.() -> Unit) {
+        _contentWrapperState.value = content
     }
 
     internal fun destroy() {
@@ -374,7 +398,7 @@ internal open class LayerImpl : Layer {
                     }
                 }
         ) {
-            _contentState.value?.invoke(_contentScopeImpl)
+            _contentWrapperState.value.invoke(_contentScope)
         }
     }
 
@@ -400,7 +424,12 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    private inner class ContentScopeImpl : LayerContentScope {
+    private inner class ContentWrapperScopeImpl : LayerContentWrapperScope {
+        @Composable
+        override fun Content() {
+            _contentState.value?.invoke(this)
+        }
+
         override val layer: Layer get() = this@LayerImpl
     }
 }
