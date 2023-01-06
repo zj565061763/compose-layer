@@ -57,6 +57,16 @@ interface Layer {
     fun setZIndex(index: Float?)
 
     /**
+     * 添加到容器回调
+     */
+    fun onAttach(callback: ((Layer) -> Unit)?)
+
+    /**
+     * 从容器上移除回调
+     */
+    fun onDetach(callback: ((Layer) -> Unit)?)
+
+    /**
      * 添加到容器
      */
     fun attach()
@@ -210,6 +220,9 @@ internal open class LayerImpl : Layer {
     private var _clipToBoundsState by mutableStateOf(true)
     private var _zIndex by mutableStateOf<Float?>(null)
 
+    private var _onAttachCallback: ((Layer) -> Unit)? = null
+    private var _onDetachCallback: ((Layer) -> Unit)? = null
+
     final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
@@ -226,6 +239,14 @@ internal open class LayerImpl : Layer {
 
     final override fun setZIndex(index: Float?) {
         _zIndex = index
+    }
+
+    final override fun onAttach(callback: ((Layer) -> Unit)?) {
+        _onAttachCallback = callback
+    }
+
+    final override fun onDetach(callback: ((Layer) -> Unit)?) {
+        _onDetachCallback = callback
     }
 
     final override fun attach() {
@@ -250,8 +271,13 @@ internal open class LayerImpl : Layer {
     internal open fun onAttachInternal() {}
     internal open fun onDetachInternal() {}
 
-    protected open fun onAttach() {}
-    protected open fun onDetach() {}
+    private fun onAttach() {
+        _onAttachCallback?.invoke(this)
+    }
+
+    private fun onDetach() {
+        _onDetachCallback?.invoke(this)
+    }
 
     @Composable
     internal fun Init() {

@@ -61,6 +61,12 @@ private fun layer1(): Layer {
         onCreate = {
             it.isDebug = true
             it.setZIndex(1f)
+            it.onAttach {
+                logMsg { "onAttach" }
+            }
+            it.onDetach {
+                logMsg { "onDetach" }
+            }
         },
     ) {
         ColorBox(
