@@ -17,7 +17,7 @@ fun rememberLayerAttach(
             wrapper = wrapper,
             content = content,
         ).also {
-            it.SyncAttach(attach)
+            it.syncAttachState(attach)
         }
     }
     return attach
@@ -38,14 +38,14 @@ fun rememberTargetLayerAttach(
             wrapper = wrapper,
             content = content,
         ).also {
-            it.SyncAttach(attach)
+            it.syncAttachState(attach)
         }
     }
     return attach
 }
 
 @Composable
-private fun Layer.SyncAttach(state: MutableState<Boolean>) {
+fun Layer.syncAttachState(state: MutableState<Boolean>) {
     if (state.value) {
         DisposableEffect(this) {
             val callback: (Layer) -> Unit = {
