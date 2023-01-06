@@ -53,6 +53,9 @@ private fun Content() {
     }
 }
 
+/**
+ * [rememberLayer]会在内存中保存Layer对象
+ */
 @Composable
 private fun layer1(): Layer {
     return rememberLayer(
@@ -74,6 +77,9 @@ private fun layer1(): Layer {
     }
 }
 
+/**
+ * [rememberLayerApi]每次显示的时候都会新建一个新的Layer对象
+ */
 @Composable
 private fun layer2(): LayerApi {
     return rememberLayerApi(
