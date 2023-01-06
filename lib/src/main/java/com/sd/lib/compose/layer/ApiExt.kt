@@ -47,9 +47,15 @@ fun rememberTargetLayerAttach(
 @Composable
 private fun Layer.SyncAttach(state: MutableState<Boolean>) {
     if (state.value) {
-        LaunchedEffect(this) {
-            onDetach { state.value = false }
+        DisposableEffect(this) {
+            val callback: (Layer) -> Unit = {
+                state.value = false
+            }
+            registerDetachCallback(callback)
             attach()
+            onDispose {
+                unregisterDetachCallback(callback)
+            }
         }
     }
 }

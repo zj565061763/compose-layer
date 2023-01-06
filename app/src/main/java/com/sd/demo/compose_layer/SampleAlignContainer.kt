@@ -61,10 +61,10 @@ private fun layer1(): Layer {
         onCreate = {
             it.isDebug = true
             it.setZIndex(1f)
-            it.onAttach {
+            it.registerAttachCallback {
                 logMsg { "onAttach" }
             }
-            it.onDetach {
+            it.registerDetachCallback {
                 logMsg { "onDetach" }
             }
         },

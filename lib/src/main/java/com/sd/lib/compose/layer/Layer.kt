@@ -57,14 +57,24 @@ interface Layer {
     fun setZIndex(index: Float?)
 
     /**
-     * 添加到容器回调
+     * 注册[attach]回调
      */
-    fun onAttach(callback: ((Layer) -> Unit)?)
+    fun registerAttachCallback(callback: (Layer) -> Unit)
 
     /**
-     * 从容器上移除回调
+     * 取消注册
      */
-    fun onDetach(callback: ((Layer) -> Unit)?)
+    fun unregisterAttachCallback(callback: (Layer) -> Unit)
+
+    /**
+     * 注册[detach]回调
+     */
+    fun registerDetachCallback(callback: (Layer) -> Unit)
+
+    /**
+     * 取消注册
+     */
+    fun unregisterDetachCallback(callback: (Layer) -> Unit)
 
     /**
      * 添加到容器
@@ -220,8 +230,8 @@ internal open class LayerImpl : Layer {
     private var _clipToBoundsState by mutableStateOf(true)
     private var _zIndex by mutableStateOf<Float?>(null)
 
-    private var _onAttachCallback: ((Layer) -> Unit)? = null
-    private var _onDetachCallback: ((Layer) -> Unit)? = null
+    private val _attachCallbackHolder: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
+    private val _detachCallbackHolder: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
 
     final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _isVisibleState
@@ -241,12 +251,20 @@ internal open class LayerImpl : Layer {
         _zIndex = index
     }
 
-    final override fun onAttach(callback: ((Layer) -> Unit)?) {
-        _onAttachCallback = callback
+    final override fun registerAttachCallback(callback: (Layer) -> Unit) {
+        _attachCallbackHolder.add(callback)
     }
 
-    final override fun onDetach(callback: ((Layer) -> Unit)?) {
-        _onDetachCallback = callback
+    final override fun unregisterAttachCallback(callback: (Layer) -> Unit) {
+        _attachCallbackHolder.remove(callback)
+    }
+
+    final override fun registerDetachCallback(callback: (Layer) -> Unit) {
+        _detachCallbackHolder.add(callback)
+    }
+
+    final override fun unregisterDetachCallback(callback: (Layer) -> Unit) {
+        _detachCallbackHolder.remove(callback)
     }
 
     final override fun attach() {
@@ -272,11 +290,17 @@ internal open class LayerImpl : Layer {
     internal open fun onDetachInternal() {}
 
     private fun onAttach() {
-        _onAttachCallback?.invoke(this)
+        val holder = _attachCallbackHolder.toTypedArray()
+        holder.forEach {
+            it.invoke(this)
+        }
     }
 
     private fun onDetach() {
-        _onDetachCallback?.invoke(this)
+        val holder = _detachCallbackHolder.toTypedArray()
+        holder.forEach {
+            it.invoke(this)
+        }
     }
 
     @Composable
