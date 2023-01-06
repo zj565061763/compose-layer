@@ -10,16 +10,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Layer
-import com.sd.lib.compose.layer.LayerContainer
-import com.sd.lib.compose.layer.rememberLayer
-import com.sd.lib.compose.layer.rememberLayerAttach
+import com.sd.lib.compose.layer.*
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +45,7 @@ private fun Content() {
         Button(
             onClick = {
                 layer1.attach()
-                layer2.value = true
+                layer2.attach()
             }
         ) {
             Text(text = "Attach")
@@ -79,8 +75,8 @@ private fun layer1(): Layer {
 }
 
 @Composable
-private fun layer2(): MutableState<Boolean> {
-    return rememberLayerAttach(
+private fun layer2(): LayerApi {
+    return rememberLayerApi(
         onCreate = {
             it.setPosition(Layer.Position.BottomCenter)
         }

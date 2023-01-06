@@ -1,60 +1,77 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 @Composable
-fun rememberLayerAttach(
+fun rememberLayerApi(
     onCreate: (Layer) -> Unit = {},
     destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
-): MutableState<Boolean> {
-    val attach = remember { mutableStateOf(false) }
-    if (attach.value) {
+): LayerApi {
+    val layerApi = remember { LayerApiImpl() }
+    if (layerApi.isAttached) {
         rememberLayer(
             onCreate = onCreate,
             destroyOnDispose = destroyOnDispose,
             wrapper = wrapper,
             content = content,
         ).also {
-            it.syncAttachState(attach)
+            layerApi.syncAttachState(it)
         }
     }
-    return attach
+    return layerApi
 }
 
 @Composable
-fun rememberTargetLayerAttach(
+fun rememberTargetLayerApi(
     onCreate: (TargetLayer) -> Unit = {},
     destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
-): MutableState<Boolean> {
-    val attach = remember { mutableStateOf(false) }
-    if (attach.value) {
+): LayerApi {
+    val layerApi = remember { LayerApiImpl() }
+    if (layerApi.isAttached) {
         rememberTargetLayer(
             onCreate = onCreate,
             destroyOnDispose = destroyOnDispose,
             wrapper = wrapper,
             content = content,
         ).also {
-            it.syncAttachState(attach)
+            layerApi.syncAttachState(it)
         }
     }
-    return attach
+    return layerApi
 }
 
-@Composable
-fun Layer.syncAttachState(state: MutableState<Boolean>) {
-    if (state.value) {
-        DisposableEffect(this) {
-            val callback: (Layer) -> Unit = {
-                state.value = false
-            }
-            registerDetachCallback(callback)
-            attach()
-            onDispose {
-                unregisterDetachCallback(callback)
+interface LayerApi {
+    fun attach()
+}
+
+internal class LayerApiImpl : LayerApi {
+    private val _attach = mutableStateOf(false)
+
+    val isAttached: Boolean get() = _attach.value
+
+    override fun attach() {
+        _attach.value = true
+    }
+
+    @Composable
+    fun syncAttachState(layer: Layer) {
+        if (isAttached) {
+            DisposableEffect(layer) {
+                val callback: (Layer) -> Unit = {
+                    _attach.value = false
+                }
+                layer.registerDetachCallback(callback)
+                layer.attach()
+                onDispose {
+                    layer.unregisterDetachCallback(callback)
+                }
             }
         }
     }
