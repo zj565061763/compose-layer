@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.*
+import com.sd.lib.compose.layer.Layer
+import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.rememberLayer
 
 class SampleAlignContainer : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,9 +55,6 @@ private fun Content() {
     }
 }
 
-/**
- * [rememberLayer]会在内存中保存Layer对象
- */
 @Composable
 private fun layer1(): Layer {
     return rememberLayer(
@@ -77,21 +76,16 @@ private fun layer1(): Layer {
     }
 }
 
-/**
- * [rememberLayerApi]每次显示的时候都会新建一个新的Layer对象
- */
 @Composable
-private fun layer2(): LayerApi {
-    return rememberLayerApi {
-        rememberLayer(
-            onCreate = {
-                it.setPosition(Layer.Position.BottomCenter)
-            }
-        ) {
-            ColorBox(
-                color = Color.Red,
-                text = "Box2",
-            )
+private fun layer2(): Layer {
+    return rememberLayer(
+        onCreate = {
+            it.setPosition(Layer.Position.BottomCenter)
         }
+    ) {
+        ColorBox(
+            color = Color.Red,
+            text = "Box2",
+        )
     }
 }
