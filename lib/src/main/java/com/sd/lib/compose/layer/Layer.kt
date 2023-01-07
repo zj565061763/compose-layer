@@ -211,7 +211,7 @@ interface LayerContentWrapperScope : LayerContentScope {
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
-    internal var _layerContainer: LayerContainer? = null
+    internal var layerContainer: LayerContainer? = null
         private set
 
     private var _isAttached = false
@@ -268,7 +268,7 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun attach() {
-        val container = _layerContainer ?: return
+        val container = layerContainer ?: return
         if (_isAttached) return
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
@@ -278,7 +278,7 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun detach() {
-        if (_layerContainer == null) return
+        if (layerContainer == null) return
         if (!_isAttached) return
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
@@ -320,7 +320,7 @@ internal open class LayerImpl : Layer {
     }
 
     internal fun destroy() {
-        _layerContainer?.destroyLayer(this)
+        layerContainer?.destroyLayer(this)
     }
 
     /**
@@ -328,8 +328,8 @@ internal open class LayerImpl : Layer {
      */
     internal fun onInit(container: LayerContainer) {
         logMsg(isDebug) { "${this@LayerImpl} onInit $container" }
-        check(_layerContainer == null)
-        _layerContainer = container
+        check(layerContainer == null)
+        layerContainer = container
     }
 
     /**
@@ -337,9 +337,9 @@ internal open class LayerImpl : Layer {
      */
     internal fun onDestroy(container: LayerContainer) {
         logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
-        check(_layerContainer === container)
+        check(layerContainer === container)
         detach()
-        _layerContainer = null
+        layerContainer = null
     }
 
     /**
@@ -421,7 +421,7 @@ internal open class LayerImpl : Layer {
                         logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
                             logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
-                            if (_layerContainer?.detachLayer(this@LayerImpl) == true) {
+                            if (layerContainer?.detachLayer(this@LayerImpl) == true) {
                                 logMsg(isDebug) { "${this@LayerImpl} onDetach" }
                                 onDetach()
                             }

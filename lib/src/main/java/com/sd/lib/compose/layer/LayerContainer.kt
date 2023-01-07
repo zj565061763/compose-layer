@@ -90,7 +90,6 @@ internal val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { n
 internal class LayerContainer {
     private var _destroyed = false
 
-    private val _layerHolder: MutableSet<LayerImpl> = hashSetOf()
     private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayerHolder by derivedStateOf {
         _attachedLayerHolder.sortedBy { it.zIndexState ?: 0f }
@@ -125,27 +124,24 @@ internal class LayerContainer {
 
     fun initLayer(layer: LayerImpl) {
         if (_destroyed) return
-        if (_layerHolder.contains(layer)) return
+        if (layer.layerContainer === this) return
 
-        // 如果layer已经被添加别的容器，则先把它从别的容器移除
         layer.destroy()
-
-        _layerHolder.add(layer)
         layer.onInit(this)
-        check(layer._layerContainer === this)
+        check(layer.layerContainer === this)
     }
 
     fun destroyLayer(layer: LayerImpl) {
-        if (_layerHolder.remove(layer)) {
+        if (layer.layerContainer === this) {
             _attachedLayerHolder.remove(layer)
             layer.onDestroy(this)
-            check(layer._layerContainer == null)
+            check(layer.layerContainer == null)
         }
     }
 
     fun attachLayer(layer: LayerImpl) {
         if (_destroyed) return
-        if (_layerHolder.contains(layer)) {
+        if (layer.layerContainer === this) {
             if (!_attachedLayerHolder.contains(layer)) {
                 _attachedLayerHolder.add(layer)
             }
@@ -235,11 +231,17 @@ internal class LayerContainer {
 
     fun destroy() {
         _destroyed = true
-        _layerHolder.toTypedArray().forEach {
+
+        _attachedLayerHolder.toTypedArray().forEach {
             destroyLayer(it)
         }
-        _layerHolder.clear()
         _attachedLayerHolder.clear()
+
+        _containerLayout = null
+        _containerLayoutCallbackHolder.clear()
+
+        _targetLayoutHolder.clear()
+        _targetLayoutCallbackHolder.clear()
     }
 }
 

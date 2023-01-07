@@ -106,7 +106,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
             logMsg(isDebug) { "${this@TargetLayerImpl} target changed $oldValue -> $newValue" }
-            _layerContainer?.run {
+            layerContainer?.run {
                 unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
                 registerTargetLayoutCallback(newValue, _targetLayoutCallback)
             }
@@ -149,7 +149,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun onAttachInternal() {
         super.onAttachInternal()
-        _layerContainer?.run {
+        layerContainer?.run {
             registerContainerLayoutCallback(_containerLayoutCallback)
             registerTargetLayoutCallback(_target, _targetLayoutCallback)
         }
@@ -158,7 +158,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun onDetachInternal() {
         super.onDetachInternal()
-        _layerContainer?.run {
+        layerContainer?.run {
             unregisterContainerLayoutCallback(_containerLayoutCallback)
             unregisterTargetLayoutCallback(_target, _targetLayoutCallback)
         }
