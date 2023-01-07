@@ -284,6 +284,7 @@ internal open class LayerImpl : Layer {
         _isAttached = false
         setContentVisible(false)
         onDetachInternal()
+        onDetach()
     }
 
     internal open fun onAttachInternal() {}
@@ -421,10 +422,7 @@ internal open class LayerImpl : Layer {
                         logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
                             logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
-                            if (layerContainer?.detachLayer(this@LayerImpl) == true) {
-                                logMsg(isDebug) { "${this@LayerImpl} onDetach" }
-                                onDetach()
-                            }
+                            layerContainer?.detachLayer(this@LayerImpl)
                         }
                     }
                 }
