@@ -1,17 +1,17 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 
 @Composable
 fun rememberLayer(
     onCreate: (Layer) -> Unit = {},
-    destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     return rememberLayer(
         factory = { LayerImpl().also(onCreate) },
-        destroyOnDispose = destroyOnDispose,
         wrapper = wrapper,
         content = content,
     )
@@ -20,13 +20,11 @@ fun rememberLayer(
 @Composable
 fun rememberTargetLayer(
     onCreate: (TargetLayer) -> Unit = {},
-    destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     return rememberLayer(
         factory = { TargetLayerImpl().also(onCreate) },
-        destroyOnDispose = destroyOnDispose,
         wrapper = wrapper,
         content = content,
     )
@@ -35,12 +33,9 @@ fun rememberTargetLayer(
 @Composable
 private fun <T : LayerImpl> rememberLayer(
     factory: () -> T,
-    destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit,
     content: @Composable LayerContentScope.() -> Unit
 ): T {
-    val destroyOnDisposeUpdated by rememberUpdatedState(destroyOnDispose)
-
     val layer = remember { factory() }.apply {
         this.Init()
         this.setContentWrapper(wrapper)
@@ -49,9 +44,7 @@ private fun <T : LayerImpl> rememberLayer(
 
     DisposableEffect(layer) {
         onDispose {
-            if (destroyOnDisposeUpdated) {
-                layer.destroy()
-            }
+            layer.destroy()
         }
     }
     return layer

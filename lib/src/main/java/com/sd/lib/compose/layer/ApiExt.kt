@@ -8,41 +8,44 @@ import androidx.compose.runtime.remember
 @Composable
 fun rememberLayerApi(
     onCreate: (Layer) -> Unit = {},
-    destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): LayerApi {
-    val layerApi = remember { LayerApiImpl() }
-    if (layerApi.isAttached) {
-        rememberLayer(
-            onCreate = onCreate,
-            destroyOnDispose = destroyOnDispose,
-            wrapper = wrapper,
-            content = content,
-        ).also {
-            layerApi.syncAttachState(it)
+    return rememberLayerApi(
+        factory = {
+            rememberLayer(
+                onCreate = onCreate,
+                wrapper = wrapper,
+                content = content,
+            )
         }
-    }
-    return layerApi
+    )
 }
 
 @Composable
 fun rememberTargetLayerApi(
     onCreate: (TargetLayer) -> Unit = {},
-    destroyOnDispose: Boolean = true,
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): LayerApi {
+    return rememberLayerApi(
+        factory = {
+            rememberTargetLayer(
+                onCreate = onCreate,
+                wrapper = wrapper,
+                content = content,
+            )
+        }
+    )
+}
+
+@Composable
+fun rememberLayerApi(
+    factory: @Composable () -> Layer,
+): LayerApi {
     val layerApi = remember { LayerApiImpl() }
     if (layerApi.isAttached) {
-        rememberTargetLayer(
-            onCreate = onCreate,
-            destroyOnDispose = destroyOnDispose,
-            wrapper = wrapper,
-            content = content,
-        ).also {
-            layerApi.syncAttachState(it)
-        }
+        layerApi.syncAttachState(factory())
     }
     return layerApi
 }
