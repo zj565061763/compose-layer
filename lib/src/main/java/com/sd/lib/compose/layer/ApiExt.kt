@@ -7,40 +7,6 @@ import androidx.compose.runtime.remember
 
 @Composable
 fun rememberLayerApi(
-    onCreate: (Layer) -> Unit = {},
-    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
-    content: @Composable LayerContentScope.() -> Unit
-): LayerApi {
-    return rememberLayerApi(
-        factory = {
-            rememberLayer(
-                onCreate = onCreate,
-                wrapper = wrapper,
-                content = content,
-            )
-        }
-    )
-}
-
-@Composable
-fun rememberTargetLayerApi(
-    onCreate: (TargetLayer) -> Unit = {},
-    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
-    content: @Composable LayerContentScope.() -> Unit
-): LayerApi {
-    return rememberLayerApi(
-        factory = {
-            rememberTargetLayer(
-                onCreate = onCreate,
-                wrapper = wrapper,
-                content = content,
-            )
-        }
-    )
-}
-
-@Composable
-fun rememberLayerApi(
     factory: @Composable () -> Layer,
 ): LayerApi {
     val layerApi = remember { LayerApiImpl() }

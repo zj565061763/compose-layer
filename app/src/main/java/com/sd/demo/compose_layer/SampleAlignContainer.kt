@@ -82,14 +82,16 @@ private fun layer1(): Layer {
  */
 @Composable
 private fun layer2(): LayerApi {
-    return rememberLayerApi(
-        onCreate = {
-            it.setPosition(Layer.Position.BottomCenter)
+    return rememberLayerApi {
+        rememberLayer(
+            onCreate = {
+                it.setPosition(Layer.Position.BottomCenter)
+            }
+        ) {
+            ColorBox(
+                color = Color.Red,
+                text = "Box2",
+            )
         }
-    ) {
-        ColorBox(
-            color = Color.Red,
-            text = "Box2",
-        )
     }
 }
