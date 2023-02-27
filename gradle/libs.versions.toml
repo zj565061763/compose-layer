@@ -29,7 +29,7 @@ androidx-test-ext-junit = "androidx.test.ext:junit:1.1.5"
 androidx-test-espresso-core = "androidx.test.espresso:espresso-core:3.5.1"
 
 sd-aligner = "com.github.zj565061763:aligner:1.0.0"
-sd-composeSystemui = "com.github.zj565061763:compose-systemui:1.0.0-beta02"
+sd-composeSystemui = "com.github.zj565061763:compose-systemui:1.0.0-beta03"
 
 [plugins]
 
