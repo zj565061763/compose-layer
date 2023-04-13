@@ -10,11 +10,19 @@ fun rememberLayer(
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
-    return rememberLayer(
-        factory = { LayerImpl().also(onCreate) },
-        wrapper = wrapper,
-        content = content,
-    )
+    val layer = remember {
+        LayerImpl().also(onCreate)
+    }.apply {
+        this.Init()
+        this.setContentWrapper(wrapper)
+        this.setContent(content)
+    }
+    DisposableEffect(layer) {
+        onDispose {
+            layer.destroy()
+        }
+    }
+    return layer
 }
 
 @Composable
@@ -23,25 +31,13 @@ fun rememberTargetLayer(
     wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
-    return rememberLayer(
-        factory = { TargetLayerImpl().also(onCreate) },
-        wrapper = wrapper,
-        content = content,
-    )
-}
-
-@Composable
-private fun <T : LayerImpl> rememberLayer(
-    factory: () -> T,
-    wrapper: @Composable LayerContentWrapperScope.() -> Unit,
-    content: @Composable LayerContentScope.() -> Unit
-): T {
-    val layer = remember { factory() }.apply {
+    val layer = remember {
+        TargetLayerImpl().also(onCreate)
+    }.apply {
         this.Init()
         this.setContentWrapper(wrapper)
         this.setContent(content)
     }
-
     DisposableEffect(layer) {
         onDispose {
             layer.destroy()
