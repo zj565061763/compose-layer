@@ -141,17 +141,17 @@ class DialogBehavior {
     val enabledState: Boolean get() = _enabledState
 
     /**
-     * 按返回键或者[canceledOnTouchOutside]为true的时候，是否可以关闭，默认true
+     * 窗口是否可以取消，例如按返回键，默认true
      */
     val cancelable: Boolean get() = _cancelable
 
     /**
-     * 触摸到非内容区域是否关闭，默认true
+     * 触摸到非内容区域窗口是否取消，默认true
      */
     val canceledOnTouchOutside: Boolean get() = _canceledOnTouchOutside
 
     /**
-     * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过Layer，默认true
+     * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过窗口，默认true
      */
     val consumeTouchOutside: Boolean get() = _consumeTouchOutside
 
