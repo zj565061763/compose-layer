@@ -3,12 +3,15 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.zIndex
@@ -47,7 +50,7 @@ fun LayerContainer(
                             pointerInputStarted = true
                             awaitEachGesture {
                                 if (!layerContainer.hasAttachedLayer) pointerInputStarted = false
-                                val down = layerAwaitFirstDown(PointerEventPass.Initial)
+                                val down = awaitFirstDown(pass = PointerEventPass.Initial)
                                 layerContainer.processDownEvent(down)
                             }
                         }
@@ -247,16 +250,4 @@ internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
     if (isDebug) {
         Log.i("FLayer", block())
     }
-}
-
-private suspend fun AwaitPointerEventScope.layerAwaitFirstDown(
-    pass: PointerEventPass
-): PointerInputChange {
-    var event: PointerEvent
-    do {
-        event = awaitPointerEvent(pass)
-    } while (
-        !event.changes.all { it.changedToDown() }
-    )
-    return event.changes[0]
 }
