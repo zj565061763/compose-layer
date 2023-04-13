@@ -2,7 +2,7 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -45,12 +45,10 @@ fun LayerContainer(
                     if (shouldPointerInput) {
                         it.pointerInput(Unit) {
                             pointerInputStarted = true
-                            forEachGesture {
-                                awaitPointerEventScope {
-                                    if (!layerContainer.hasAttachedLayer) pointerInputStarted = false
-                                    val down = layerAwaitFirstDown(PointerEventPass.Initial)
-                                    layerContainer.processDownEvent(down)
-                                }
+                            awaitEachGesture {
+                                if (!layerContainer.hasAttachedLayer) pointerInputStarted = false
+                                val down = layerAwaitFirstDown(PointerEventPass.Initial)
+                                layerContainer.processDownEvent(down)
                             }
                         }
                     } else {
