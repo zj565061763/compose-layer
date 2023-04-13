@@ -127,23 +127,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _containerLayoutCoordinates = it
     }
 
-    final override fun setTarget(target: String?) {
+    override fun setTarget(target: String?) {
         _target = target ?: ""
     }
 
-    final override fun setTargetOffset(offset: IntOffset?) {
+    override fun setTargetOffset(offset: IntOffset?) {
         _targetOffsetState = offset
     }
 
-    final override fun setOffsetTransform(transform: OffsetTransform?) {
+    override fun setOffsetTransform(transform: OffsetTransform?) {
         _offsetTransform = transform
     }
 
-    final override fun setFixOverflowDirection(direction: Directions?) {
+    override fun setFixOverflowDirection(direction: Directions?) {
         _fixOverflowDirectionState = direction
     }
 
-    final override fun setClipBackgroundDirection(direction: Directions?) {
+    override fun setClipBackgroundDirection(direction: Directions?) {
         _clipBackgroundDirectionState = direction
     }
 
