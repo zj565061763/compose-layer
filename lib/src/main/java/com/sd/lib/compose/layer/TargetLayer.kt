@@ -91,8 +91,8 @@ sealed class Directions(direction: Int) {
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _uiState = MutableStateFlow(
         UiState(
-            targetLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
-            containerLayout = LayoutInfo(IntSize.Zero, offset = IntOffset.Zero, false),
+            targetLayout = LayoutInfo(size = IntSize.Zero, offset = IntOffset.Zero, isAttached = false),
+            containerLayout = LayoutInfo(size = IntSize.Zero, offset = IntOffset.Zero, isAttached = false),
         )
     )
 
