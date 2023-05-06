@@ -60,5 +60,4 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
 
     implementation(project(":lib"))
-    implementation(libs.sd.composeSystemui)
 }

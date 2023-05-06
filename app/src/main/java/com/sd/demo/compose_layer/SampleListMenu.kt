@@ -9,7 +9,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,27 +20,16 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.*
-import com.sd.lib.compose.systemui.rememberStatusBarController
 
 class SampleListMenu : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            val statusBarController = rememberStatusBarController()
-            SideEffect {
-                statusBarController.isLight = true
-                statusBarController.color = Color.Transparent
-            }
-
             AppTheme {
-                Surface {
-                    LayerContainer(modifier = Modifier.fillMaxSize()) {
-                        Content()
-                    }
+                LayerContainer(modifier = Modifier.fillMaxSize()) {
+                    Content()
                 }
             }
         }
