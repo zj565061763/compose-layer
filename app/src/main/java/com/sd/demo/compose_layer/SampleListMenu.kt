@@ -28,7 +28,7 @@ class SampleListMenu : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                LayerContainer(modifier = Modifier.fillMaxSize()) {
+                LayerContainer {
                     Content()
                 }
             }
