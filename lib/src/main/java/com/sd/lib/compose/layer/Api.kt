@@ -30,16 +30,16 @@ fun LayerContainer(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .onGloballyPositioned {
-                container.updateContainerLayout(it)
-            },
+    CompositionLocalProvider(
+        LocalContainerForComposable provides container,
+        LocalContainerForLayer provides container,
     ) {
-        CompositionLocalProvider(
-            LocalContainerForComposable provides container,
-            LocalContainerForLayer provides container,
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    container.updateContainerLayout(it)
+                },
         ) {
             content()
             container.Layers()
