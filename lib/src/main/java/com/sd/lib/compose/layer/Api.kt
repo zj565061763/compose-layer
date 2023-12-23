@@ -23,7 +23,7 @@ internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerApi
 internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerApiForLayer?> { null }
 
 /**
- * 用来存放Layer的容器
+ * 显示Layer的容器
  */
 @Composable
 fun LayerContainer(
