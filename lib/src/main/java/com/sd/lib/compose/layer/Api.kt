@@ -102,9 +102,7 @@ fun rememberLayer(
     val layer = remember {
         LayerImpl().also(onCreate)
     }.apply {
-        this.Init()
-        this.setContent(content)
-        this.setDisplay(display)
+        this.Init(content = content, display = display)
     }
     DisposableEffect(layer) {
         onDispose {
@@ -123,9 +121,7 @@ fun rememberTargetLayer(
     val layer = remember {
         TargetLayerImpl().also(onCreate)
     }.apply {
-        this.Init()
-        this.setContent(content)
-        this.setDisplay(display)
+        this.Init(content = content, display = display)
     }
     DisposableEffect(layer) {
         onDispose {

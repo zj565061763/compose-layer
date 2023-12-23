@@ -289,19 +289,17 @@ internal open class LayerImpl : Layer {
     protected open fun onDetach() {}
 
     @Composable
-    internal fun Init() {
+    internal fun Init(
+        content: @Composable LayerContentScope.() -> Unit,
+        display: @Composable LayerDisplayScope.() -> Unit,
+    ) {
         val layerContainer = checkNotNull(LocalContainerForLayer.current) {
             "Not in LayerContainer scope."
         }
         layerContainer.initLayer(this)
-    }
 
-    internal fun setContent(content: @Composable LayerContentScope.() -> Unit) {
         _contentState.value = content
-    }
-
-    internal fun setDisplay(content: @Composable LayerDisplayScope.() -> Unit) {
-        _displayState.value = content
+        _displayState.value = display
     }
 
     internal fun destroy() {
