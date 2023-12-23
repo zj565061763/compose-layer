@@ -96,15 +96,15 @@ fun Modifier.layerTarget(tag: String): Modifier = composed {
 @Composable
 fun rememberLayer(
     onCreate: (Layer) -> Unit = {},
-    wrapper: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
+    display: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     val layer = remember {
         LayerImpl().also(onCreate)
     }.apply {
         this.Init()
-        this.setContentWrapper(wrapper)
         this.setContent(content)
+        this.setDisplay(display)
     }
     DisposableEffect(layer) {
         onDispose {
@@ -117,15 +117,15 @@ fun rememberLayer(
 @Composable
 fun rememberTargetLayer(
     onCreate: (TargetLayer) -> Unit = {},
-    wrapper: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
+    display: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     val layer = remember {
         TargetLayerImpl().also(onCreate)
     }.apply {
         this.Init()
-        this.setContentWrapper(wrapper)
         this.setContent(content)
+        this.setDisplay(display)
     }
     DisposableEffect(layer) {
         onDispose {

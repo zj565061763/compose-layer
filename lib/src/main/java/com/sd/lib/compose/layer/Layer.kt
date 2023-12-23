@@ -300,7 +300,7 @@ internal open class LayerImpl : Layer {
         _contentState.value = content
     }
 
-    internal fun setContentWrapper(content: @Composable LayerDisplayScope.() -> Unit) {
+    internal fun setDisplay(content: @Composable LayerDisplayScope.() -> Unit) {
         _displayState.value = content
     }
 

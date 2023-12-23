@@ -67,7 +67,7 @@ private fun layer(): TargetLayer {
                 .setConsumeTouchOutside(false)
             it.setFixOverflowDirection(Directions.All)
         },
-        wrapper = {
+        display = {
             LayerAnimatedDefault(
                 enter = scaleIn(),
                 exit = scaleOut(),

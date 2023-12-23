@@ -80,7 +80,7 @@ private fun layer(): TargetLayer {
             it.isDebug = true
             it.setPosition(Layer.Position.BottomCenter)
         },
-        wrapper = {
+        display = {
             LayerAnimatedDefault(
                 enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
                 exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),

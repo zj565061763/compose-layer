@@ -67,7 +67,7 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.Bottom)
             it.setClipBackgroundDirection(Directions.Top)
         },
-        wrapper = {
+        display = {
             LayerAnimatedSlideDownUp()
         }
     ) {
