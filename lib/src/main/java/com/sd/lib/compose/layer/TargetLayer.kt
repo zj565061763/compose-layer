@@ -2,6 +2,7 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -95,11 +96,13 @@ sealed class Directions(direction: Int) {
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
+    @Immutable
     private data class UiState(
         val targetLayout: LayoutInfo,
         val containerLayout: LayoutInfo,
     )
 
+    @Immutable
     private data class LayoutInfo(
         val size: IntSize,
         val offset: IntOffset,
