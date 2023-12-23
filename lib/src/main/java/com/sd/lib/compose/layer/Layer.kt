@@ -216,7 +216,7 @@ interface LayerContentWrapperScope : LayerContentScope {
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
-    internal var layerContainer: LayerContainer? = null
+    internal var layerContainer: ContainerApiForLayer? = null
         private set
 
     private var _isAttached = false
@@ -312,7 +312,7 @@ internal open class LayerImpl : Layer {
     @Composable
     internal fun Init() {
         val layerContainer = checkNotNull(LocalContainerForLayer.current) {
-            "CompositionLocal LocalLayerContainer not present"
+            "Not in LayerContainer scope."
         }
         layerContainer.initLayer(this)
     }
