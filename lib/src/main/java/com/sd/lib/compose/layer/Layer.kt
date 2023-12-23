@@ -131,7 +131,7 @@ interface Layer {
 class DialogBehavior {
     private var _enabledState by mutableStateOf(true)
     private var _cancelable = true
-    private var _canceledOnTouchOutside = true
+    private var _canceledOnTouchOutside = false
     private var _consumeTouchOutside = true
     private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
@@ -146,7 +146,7 @@ class DialogBehavior {
     val cancelable: Boolean get() = _cancelable
 
     /**
-     * 触摸到非内容区域窗口是否取消，默认true
+     * 触摸到非内容区域窗口是否取消，默认false
      */
     val canceledOnTouchOutside: Boolean get() = _canceledOnTouchOutside
 
