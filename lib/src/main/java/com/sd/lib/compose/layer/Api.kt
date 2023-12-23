@@ -70,12 +70,12 @@ fun Modifier.layerTarget(tag: String): Modifier = composed {
 
 @Composable
 fun rememberLayer(
-    onCreate: (Layer) -> Unit = {},
+    onCreate: ((Layer) -> Unit)? = null,
     display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     val layer = remember {
-        LayerImpl().also(onCreate)
+        LayerImpl().also { onCreate?.invoke(it) }
     }.apply {
         this.Init(content = content, display = display)
     }
@@ -89,12 +89,12 @@ fun rememberLayer(
 
 @Composable
 fun rememberTargetLayer(
-    onCreate: (TargetLayer) -> Unit = {},
+    onCreate: ((TargetLayer) -> Unit)? = null,
     display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     val layer = remember {
-        TargetLayerImpl().also(onCreate)
+        TargetLayerImpl().also { onCreate?.invoke(it) }
     }.apply {
         this.Init(content = content, display = display)
     }
