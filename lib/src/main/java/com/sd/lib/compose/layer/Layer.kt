@@ -208,9 +208,7 @@ internal open class LayerImpl : Layer {
 
     private val _displayScope = LayerDisplayScopeImpl()
     private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
-    private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({
-        Content()
-    })
+    private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({ Content() })
 
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
