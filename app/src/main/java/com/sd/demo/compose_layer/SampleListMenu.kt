@@ -74,7 +74,9 @@ private fun layer(): TargetLayer {
     return rememberTargetLayer(
         onCreate = {
             it.isDebug = true
-            it.dialogBehavior.setBackgroundColor(Color.Transparent)
+            it.dialogBehavior
+                .setCanceledOnTouchOutside(true)
+                .setBackgroundColor(Color.Transparent)
             it.setFixOverflowDirection(Directions.All)
         },
         display = {

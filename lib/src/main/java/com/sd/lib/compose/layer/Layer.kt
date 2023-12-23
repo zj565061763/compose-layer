@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.Position
@@ -208,9 +207,6 @@ internal open class LayerImpl : Layer {
         Content()
     })
 
-    private var _layerLayout: LayoutCoordinates? = null
-    private var _contentLayout: LayoutCoordinates? = null
-
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
 
@@ -352,11 +348,7 @@ internal open class LayerImpl : Layer {
     @Composable
     protected fun LayerBox(content: @Composable BoxScope.() -> Unit) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned {
-                    _layerLayout = it
-                }
+            modifier = Modifier.fillMaxSize()
         ) {
             content()
         }
@@ -369,7 +361,6 @@ internal open class LayerImpl : Layer {
         Box(
             modifier = modifier
                 .onGloballyPositioned {
-                    _contentLayout = it
                     if (it.size == IntSize.Zero) {
                         logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
