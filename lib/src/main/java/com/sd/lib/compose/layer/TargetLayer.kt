@@ -110,7 +110,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            logMsg(isDebug) { "${this@TargetLayerImpl} target changed $oldValue -> $newValue" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} target changed ($oldValue) -> ($newValue)" }
             layerContainer?.run {
                 unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
                 registerTargetLayoutCallback(newValue, _targetLayoutCallback)
