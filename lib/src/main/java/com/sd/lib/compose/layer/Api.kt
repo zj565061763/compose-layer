@@ -30,7 +30,7 @@ fun LayerContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val container = remember { LayerContainerImpl() }
+    val container = remember { newLayerContainer() }
 
     DisposableEffect(container) {
         onDispose {

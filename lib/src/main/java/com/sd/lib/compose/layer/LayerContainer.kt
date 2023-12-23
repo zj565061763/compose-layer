@@ -13,6 +13,10 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.zIndex
 
+internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
+
+internal interface LayerContainer : ContainerApiForComposable, ContainerApiForLayer
+
 internal interface ContainerApiForComposable {
     val hasAttachedLayer: Boolean
 
@@ -48,7 +52,7 @@ internal interface ContainerApiForLayer {
     fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
 }
 
-internal abstract class ComposableLayerContainer : ContainerApiForComposable {
+private abstract class ComposableLayerContainer : ContainerApiForComposable {
     protected var destroyed = false
         private set
 
@@ -96,7 +100,7 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
     protected abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
 }
 
-internal class LayerContainerImpl : ComposableLayerContainer(), ContainerApiForLayer {
+private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayers by derivedStateOf {
         _attachedLayers.sortedBy { it.zIndexState ?: 0f }
