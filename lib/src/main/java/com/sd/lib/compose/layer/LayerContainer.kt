@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -71,7 +70,7 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
         if (tag.isEmpty()) error("tag is empty.")
 
         _targetLayouts.put(tag, layoutCoordinates)?.let { old ->
-            check(old === layoutCoordinates) { "Tag:$tag has already specified." }
+            if (old !== layoutCoordinates) error("Tag:$tag already exist.")
         }
         onUpdateTargetLayout(tag, layoutCoordinates)
     }
