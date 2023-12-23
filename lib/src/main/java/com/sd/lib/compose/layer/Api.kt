@@ -81,7 +81,7 @@ fun Modifier.layerTarget(
     if (tag.isEmpty()) error("tag is empty.")
 
     val container = checkNotNull(LocalContainerForComposable.current) {
-        "CompositionLocal LocalLayerContainer not present"
+        "CompositionLocal LocalContainerForComposable not present."
     }
 
     DisposableEffect(container, tag) {
