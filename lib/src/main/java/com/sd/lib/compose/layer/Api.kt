@@ -19,8 +19,8 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 
-internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerApiForComposable?> { null }
-internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerApiForLayer?> { null }
+internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
+internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer?> { null }
 
 /**
  * 显示Layer的容器

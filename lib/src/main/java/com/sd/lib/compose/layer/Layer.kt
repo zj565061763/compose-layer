@@ -206,7 +206,7 @@ interface LayerContentWrapperScope : LayerContentScope {
 //---------- Impl ----------
 
 internal open class LayerImpl : Layer {
-    internal var layerContainer: ContainerApiForLayer? = null
+    internal var layerContainer: ContainerForLayer? = null
         private set
 
     private var _isAttached = false
@@ -311,7 +311,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer被添加到[container]
      */
-    internal fun onInit(container: ContainerApiForLayer) {
+    internal fun onInit(container: ContainerForLayer) {
         logMsg(isDebug) { "${this@LayerImpl} onInit $container" }
         check(layerContainer == null)
         layerContainer = container
@@ -320,7 +320,7 @@ internal open class LayerImpl : Layer {
     /**
      * Layer从[container]上被移除
      */
-    internal fun onDestroy(container: ContainerApiForLayer) {
+    internal fun onDestroy(container: ContainerForLayer) {
         logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
         check(layerContainer === container)
         detach()

@@ -12,9 +12,9 @@ import androidx.compose.ui.layout.LayoutCoordinates
 
 internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
 
-internal interface LayerContainer : ContainerApiForComposable, ContainerApiForLayer
+internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
-internal interface ContainerApiForComposable {
+internal interface ContainerForComposable {
     val hasAttachedLayer: Boolean
 
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
@@ -31,7 +31,7 @@ internal interface ContainerApiForComposable {
     fun Layers()
 }
 
-internal interface ContainerApiForLayer {
+internal interface ContainerForLayer {
     fun initLayer(layer: LayerImpl)
 
     fun attachLayer(layer: LayerImpl)
@@ -49,7 +49,7 @@ internal interface ContainerApiForLayer {
     fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
 }
 
-private abstract class ComposableLayerContainer : ContainerApiForComposable {
+private abstract class ComposableLayerContainer : ContainerForComposable {
     protected var destroyed = false
         private set
 
