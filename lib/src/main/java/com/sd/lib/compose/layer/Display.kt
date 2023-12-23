@@ -1,11 +1,19 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+
+internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }
 
 @Composable
 fun LayerDisplayScope.LayerAnimatedSlideUpDown() {
-    LayerAnimatedDefault(
+    DisplayDefault(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     )
@@ -13,14 +21,14 @@ fun LayerDisplayScope.LayerAnimatedSlideUpDown() {
 
 @Composable
 fun LayerDisplayScope.LayerAnimatedSlideDownUp() {
-    LayerAnimatedDefault(
+    DisplayDefault(
         enter = slideInVertically { -it },
         exit = slideOutVertically { -it },
     )
 }
 
 @Composable
-fun LayerDisplayScope.LayerAnimatedDefault(
+fun LayerDisplayScope.DisplayDefault(
     enter: EnterTransition = fadeIn(),
     exit: ExitTransition = fadeOut(),
 ) {

@@ -81,7 +81,7 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.BottomCenter)
         },
         display = {
-            LayerAnimatedDefault(
+            DisplayDefault(
                 enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
                 exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
             )

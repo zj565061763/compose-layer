@@ -96,7 +96,7 @@ fun Modifier.layerTarget(tag: String): Modifier = composed {
 @Composable
 fun rememberLayer(
     onCreate: (Layer) -> Unit = {},
-    display: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
+    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     val layer = remember {
@@ -117,7 +117,7 @@ fun rememberLayer(
 @Composable
 fun rememberTargetLayer(
     onCreate: (TargetLayer) -> Unit = {},
-    display: @Composable LayerDisplayScope.() -> Unit = { LayerAnimatedDefault() },
+    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     val layer = remember {
