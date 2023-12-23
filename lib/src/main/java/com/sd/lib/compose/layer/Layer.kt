@@ -285,11 +285,13 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun detach() {
-        if (layerContainer == null) return
         if (!_isAttached) return
+        if (layerContainer == null) return
+
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
         setContentVisible(false)
+
         onDetachInternal()
         onDetach()
     }
