@@ -233,7 +233,7 @@ internal open class LayerImpl : Layer {
 
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
-    private var _zIndex by mutableStateOf<Float?>(null)
+    private var _zIndexState by mutableStateOf<Float?>(null)
 
     private val _attachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
     private val _detachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
@@ -242,7 +242,7 @@ internal open class LayerImpl : Layer {
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
-    final override val zIndexState: Float? get() = _zIndex
+    final override val zIndexState: Float? get() = _zIndexState
 
     final override fun setPosition(position: Position) {
         _positionState = position
@@ -253,7 +253,7 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun setZIndex(index: Float?) {
-        _zIndex = index
+        _zIndexState = index
     }
 
     final override fun registerAttachCallback(callback: (Layer) -> Unit) {
