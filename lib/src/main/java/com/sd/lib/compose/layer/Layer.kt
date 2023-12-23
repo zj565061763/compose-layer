@@ -353,9 +353,7 @@ internal open class LayerImpl : Layer {
     }
 
     @Composable
-    internal fun ContentBox(
-        modifier: Modifier = Modifier,
-    ) {
+    protected fun ContentBox(modifier: Modifier = Modifier) {
         Box(
             modifier = modifier
                 .onGloballyPositioned {
@@ -380,7 +378,7 @@ internal open class LayerImpl : Layer {
     }
 
     @Composable
-    internal fun BackgroundBox() {
+    protected fun BackgroundBox() {
         val behavior = dialogBehavior
         if (behavior.enabledState) {
             AnimatedVisibility(
