@@ -81,7 +81,6 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
         }
     }
 
-
     @CallSuper
     override fun destroy() {
         destroyed = true
@@ -89,10 +88,7 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
         _targetLayouts.clear()
     }
 
-
-    protected fun getTargetLayout(tag: String): LayoutCoordinates? {
-        return _targetLayouts[tag]
-    }
+    protected fun getTargetLayout(tag: String): LayoutCoordinates? = _targetLayouts[tag]
 
     protected abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
 
