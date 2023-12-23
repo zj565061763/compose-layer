@@ -7,7 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -130,15 +134,21 @@ interface Layer {
 
 class DialogBehavior {
     private var _enabledState by mutableStateOf(true)
+    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+
     private var _cancelable = true
     private var _canceledOnTouchOutside = false
     private var _consumeTouchOutside = true
-    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
     /**
      * 窗口行为是否开启，默认true
      */
     val enabledState: Boolean get() = _enabledState
+
+    /**
+     * 背景颜色
+     */
+    val backgroundColorState: Color get() = _backgroundColorState
 
     /**
      * 窗口是否可以取消，例如按返回键，默认true
@@ -156,15 +166,17 @@ class DialogBehavior {
     val consumeTouchOutside: Boolean get() = _consumeTouchOutside
 
     /**
-     * 背景颜色
-     */
-    val backgroundColorState: Color get() = _backgroundColorState
-
-    /**
      * [enabledState]
      */
     fun setEnabled(value: Boolean) = apply {
         _enabledState = value
+    }
+
+    /**
+     * [backgroundColorState]
+     */
+    fun setBackgroundColor(value: Color) = apply {
+        _backgroundColorState = value
     }
 
     /**
@@ -189,13 +201,6 @@ class DialogBehavior {
      */
     fun setConsumeTouchOutside(value: Boolean) = apply {
         _consumeTouchOutside = value
-    }
-
-    /**
-     * [backgroundColorState]
-     */
-    fun setBackgroundColor(value: Color) = apply {
-        _backgroundColorState = value
     }
 }
 
