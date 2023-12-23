@@ -58,6 +58,7 @@ private fun layer1(): Layer {
         onCreate = {
             it.isDebug = true
             it.setZIndex(1f)
+            it.dialogBehavior.setCanceledOnTouchOutside(true)
             it.registerAttachCallback {
                 logMsg { "onAttach" }
             }
@@ -78,6 +79,7 @@ private fun layer2(): Layer {
     return rememberLayer(
         onCreate = {
             it.setPosition(Layer.Position.BottomCenter)
+            it.dialogBehavior.setCanceledOnTouchOutside(true)
         }
     ) {
         ColorBox(
