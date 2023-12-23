@@ -97,15 +97,15 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
 }
 
 internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer {
-    private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
-    private val _sortedLayerHolder by derivedStateOf {
-        _attachedLayerHolder.sortedBy { it.zIndexState ?: 0f }
+    private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
+    private val _sortedLayers by derivedStateOf {
+        _attachedLayers.sortedByDescending { it.zIndexState ?: 0f }
     }
 
     private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
     private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
-    override val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
+    override val hasAttachedLayer by derivedStateOf { _attachedLayers.isNotEmpty() }
 
     override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         _containerLayoutCallbacks.toTypedArray().forEach {
@@ -133,19 +133,19 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
     override fun attachLayer(layer: LayerImpl) {
         if (destroyed) return
         if (layer.layerContainer === this) {
-            if (!_attachedLayerHolder.contains(layer)) {
-                _attachedLayerHolder.add(layer)
+            if (!_attachedLayers.contains(layer)) {
+                _attachedLayers.add(layer)
             }
         }
     }
 
     override fun detachLayer(layer: LayerImpl): Boolean {
-        return _attachedLayerHolder.remove(layer)
+        return _attachedLayers.remove(layer)
     }
 
     override fun destroyLayer(layer: LayerImpl) {
         if (layer.layerContainer === this) {
-            _attachedLayerHolder.remove(layer)
+            _attachedLayers.remove(layer)
             layer.onDestroy(this)
             check(layer.layerContainer == null)
         }
@@ -190,19 +190,17 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
 
     override fun destroy() {
         super.destroy()
-        _attachedLayerHolder.toTypedArray().forEach {
+        _attachedLayers.toTypedArray().forEach {
             destroyLayer(it)
         }
-        _attachedLayerHolder.clear()
+        _attachedLayers.clear()
         _containerLayoutCallbacks.clear()
         _targetLayoutCallbacks.clear()
     }
 
     override fun processDownEvent(event: PointerInputChange) {
         if (destroyed) return
-        val copyHolder = _sortedLayerHolder.toTypedArray()
-        for (index in copyHolder.lastIndex downTo 0) {
-            val layer = copyHolder[index]
+        for (layer in _sortedLayers.toTypedArray()) {
             layer.processDownEvent(event)
             if (event.isConsumed) break
         }
@@ -210,7 +208,7 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
 
     @Composable
     override fun Layers() {
-        _sortedLayerHolder.forEach { item ->
+        _sortedLayers.forEach { item ->
             val zIndex = item.zIndexState ?: 0f
             Box(modifier = Modifier.zIndex(zIndex)) {
                 item.Content()
