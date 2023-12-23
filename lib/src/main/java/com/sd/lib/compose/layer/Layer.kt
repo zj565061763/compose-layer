@@ -224,8 +224,8 @@ internal open class LayerImpl : Layer {
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
 
-    private val _attachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
-    private val _detachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
+    private val _attachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
+    private val _detachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
 
     final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _isVisibleState
