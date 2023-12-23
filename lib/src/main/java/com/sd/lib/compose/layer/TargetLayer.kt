@@ -1,7 +1,12 @@
 package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.*
@@ -69,11 +74,11 @@ sealed class Directions(direction: Int) {
         return Plus(plusDirection)
     }
 
-    object Top : Directions(FlagTop)
-    object Bottom : Directions(FlagBottom)
-    object Start : Directions(FlagStart)
-    object End : Directions(FlagEnd)
-    object All : Directions(FlagAll)
+    data object Top : Directions(FlagTop)
+    data object Bottom : Directions(FlagBottom)
+    data object Start : Directions(FlagStart)
+    data object End : Directions(FlagEnd)
+    data object All : Directions(FlagAll)
 
     private class Plus(direction: Int) : Directions(direction)
 
@@ -793,6 +798,7 @@ private fun Layer.Position.isCenterVertical(): Boolean = when (this) {
     Layer.Position.EndCenter,
     Layer.Position.Center,
     -> true
+
     else -> false
 }
 
@@ -801,5 +807,6 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
     Layer.Position.BottomCenter,
     Layer.Position.Center,
     -> true
+
     else -> false
 }
