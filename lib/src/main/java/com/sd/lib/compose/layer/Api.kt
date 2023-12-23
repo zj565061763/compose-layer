@@ -1,22 +1,14 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 
 internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
@@ -38,30 +30,11 @@ fun LayerContainer(
         }
     }
 
-    var pointerInputStarted by remember { mutableStateOf(false) }
-    val shouldPointerInput by remember {
-        derivedStateOf { container.hasAttachedLayer || pointerInputStarted }
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()
             .onGloballyPositioned {
                 container.updateContainerLayout(it)
-            }
-            .let {
-                if (shouldPointerInput) {
-                    it.pointerInput(Unit) {
-                        pointerInputStarted = true
-                        awaitEachGesture {
-                            if (!container.hasAttachedLayer) pointerInputStarted = false
-                            val down = awaitFirstDown(pass = PointerEventPass.Initial)
-                            container.processDownEvent(down)
-                        }
-                    }
-                } else {
-                    it
-                }
             },
     ) {
         CompositionLocalProvider(

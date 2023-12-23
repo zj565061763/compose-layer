@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 
 internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
@@ -22,8 +21,6 @@ internal interface ContainerForComposable {
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates)
 
     fun removeTarget(tag: String)
-
-    fun processDownEvent(event: PointerInputChange)
 
     fun destroy()
 
@@ -193,15 +190,6 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
         _attachedLayers.clear()
         _containerLayoutCallbacks.clear()
         _targetLayoutCallbacks.clear()
-    }
-
-    override fun processDownEvent(event: PointerInputChange) {
-        if (destroyed) return
-        val layers = _attachedLayers.toTypedArray()
-        for (i in layers.lastIndex downTo 0) {
-            layers[i].processDownEvent(event)
-            if (event.isConsumed) break
-        }
     }
 
     @Composable

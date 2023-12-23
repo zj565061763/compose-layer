@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
@@ -128,7 +131,6 @@ class DialogBehavior {
 
     private var _cancelable = true
     private var _canceledOnTouchOutside = false
-    private var _consumeTouchOutside = true
 
     /**
      * 窗口行为是否开启，默认true
@@ -149,11 +151,6 @@ class DialogBehavior {
      * 触摸到非内容区域窗口是否取消，默认false
      */
     val canceledOnTouchOutside: Boolean get() = _canceledOnTouchOutside
-
-    /**
-     * 是否消费掉非内容区域的触摸事件，消费掉之后触摸事件不会透过窗口，默认true
-     */
-    val consumeTouchOutside: Boolean get() = _consumeTouchOutside
 
     /**
      * [enabledState]
@@ -184,13 +181,6 @@ class DialogBehavior {
             _cancelable = true
         }
         _canceledOnTouchOutside = value
-    }
-
-    /**
-     * [consumeTouchOutside]
-     */
-    fun setConsumeTouchOutside(value: Boolean) = apply {
-        _consumeTouchOutside = value
     }
 }
 
@@ -373,24 +363,6 @@ internal open class LayerImpl : Layer {
     }
 
     @Composable
-    internal fun BackgroundBox() {
-        val behavior = dialogBehavior
-        if (behavior.enabledState) {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(behavior.backgroundColorState)
-                )
-            }
-        }
-    }
-
-    @Composable
     internal fun ContentBox(
         modifier: Modifier = Modifier,
     ) {
@@ -418,24 +390,28 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    internal fun processDownEvent(event: PointerInputChange) {
+    @Composable
+    internal fun BackgroundBox() {
         val behavior = dialogBehavior
-        if (!behavior.enabledState) return
-
-        val layerLayout = _layerLayout ?: return
-        val contentLayout = _contentLayout ?: return
-
-        val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
-        if (contentRect.contains(event.position)) {
-            // 触摸到内容区域
-        } else {
-            if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                detach()
-            }
-            if (behavior.consumeTouchOutside) {
-                event.consume()
-            } else {
-                // 事件穿透
+        if (behavior.enabledState) {
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(behavior.backgroundColorState)
+                        .pointerInput(behavior) {
+                            awaitEachGesture {
+                                awaitFirstDown(pass = PointerEventPass.Initial)
+                                if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                                    detach()
+                                }
+                            }
+                        }
+                )
             }
         }
     }
