@@ -278,10 +278,13 @@ internal open class LayerImpl : Layer {
 
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
-        container.attachLayer(this)
 
+        container.attachLayer(this)
         onAttachInternal()
-        onAttach()
+
+        _attachCallbacks.toTypedArray().forEach {
+            it.invoke(this)
+        }
     }
 
     final override fun detach() {
@@ -298,13 +301,6 @@ internal open class LayerImpl : Layer {
 
     internal open fun onAttachInternal() {}
     internal open fun onDetachInternal() {}
-
-    private fun onAttach() {
-        val holder = _attachCallbacks.toTypedArray()
-        holder.forEach {
-            it.invoke(this)
-        }
-    }
 
     private fun onDetach() {
         val holder = _detachCallbacks.toTypedArray()
