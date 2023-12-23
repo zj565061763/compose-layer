@@ -273,11 +273,13 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun attach() {
-        val container = layerContainer ?: return
         if (_isAttached) return
+        val container = layerContainer ?: return
+
         logMsg(isDebug) { "${this@LayerImpl} attach" }
         _isAttached = true
         container.attachLayer(this)
+
         onAttachInternal()
         onAttach()
     }
