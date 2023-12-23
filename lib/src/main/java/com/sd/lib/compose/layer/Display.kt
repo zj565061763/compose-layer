@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }
 
 @Composable
-fun LayerDisplayScope.LayerAnimatedSlideUpDown() {
+fun LayerDisplayScope.DisplaySlideUpDown() {
     DisplayDefault(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
@@ -20,7 +20,7 @@ fun LayerDisplayScope.LayerAnimatedSlideUpDown() {
 }
 
 @Composable
-fun LayerDisplayScope.LayerAnimatedSlideDownUp() {
+fun LayerDisplayScope.DisplaySlideDownUp() {
     DisplayDefault(
         enter = slideInVertically { -it },
         exit = slideOutVertically { -it },

@@ -17,7 +17,7 @@ import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
 import com.sd.lib.compose.layer.Layer
-import com.sd.lib.compose.layer.LayerAnimatedSlideDownUp
+import com.sd.lib.compose.layer.DisplaySlideDownUp
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTarget
@@ -68,7 +68,7 @@ private fun layer(): TargetLayer {
             it.setClipBackgroundDirection(Directions.Top)
         },
         display = {
-            LayerAnimatedSlideDownUp()
+            DisplaySlideDownUp()
         }
     ) {
         VerticalList(count = 5)
