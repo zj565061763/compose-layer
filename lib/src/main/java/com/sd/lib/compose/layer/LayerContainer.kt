@@ -174,6 +174,8 @@ internal class LayerContainer {
         }
     }
 
+    //---------- container ----------
+
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         if (_destroyed) return
         _containerLayout = layoutCoordinates
@@ -194,6 +196,8 @@ internal class LayerContainer {
             callback(null)
         }
     }
+
+    //---------- target ----------
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
         if (_destroyed) return
