@@ -53,15 +53,14 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
         private set
 
     /** 容器的布局信息 */
-    protected var containerLayout: LayoutCoordinates? = null
-        private set
+    private var _containerLayout: LayoutCoordinates? = null
 
     /** 目标的布局信息 */
     private val _targetLayouts: MutableMap<String, LayoutCoordinates> = hashMapOf()
 
     final override fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         if (destroyed) return
-        containerLayout = layoutCoordinates
+        _containerLayout = layoutCoordinates
         onUpdateContainerLayout(layoutCoordinates)
     }
 
@@ -84,9 +83,11 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
     @CallSuper
     override fun destroy() {
         destroyed = true
-        containerLayout = null
+        _containerLayout = null
         _targetLayouts.clear()
     }
+
+    protected fun getContainerLayout(): LayoutCoordinates? = _containerLayout
 
     protected fun getTargetLayout(tag: String): LayoutCoordinates? = _targetLayouts[tag]
 
@@ -155,7 +156,7 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
     override fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
         if (destroyed) return
         if (_containerLayoutCallbacks.add(callback)) {
-            callback(containerLayout)
+            callback(getContainerLayout())
         }
     }
 
