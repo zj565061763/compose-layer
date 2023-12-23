@@ -3,15 +3,12 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.CallSuper
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.zIndex
 
 internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
 
@@ -102,9 +99,6 @@ private abstract class ComposableLayerContainer : ContainerApiForComposable {
 
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
-    private val _sortedLayers by derivedStateOf {
-        _attachedLayers.sortedBy { it.zIndexState ?: 0f }
-    }
 
     private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
     private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
@@ -203,7 +197,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
     override fun processDownEvent(event: PointerInputChange) {
         if (destroyed) return
-        val layers = _sortedLayers.toTypedArray()
+        val layers = _attachedLayers.toTypedArray()
         for (i in layers.lastIndex downTo 0) {
             val layer = layers[i]
             layer.processDownEvent(event)
@@ -213,17 +207,14 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
     @Composable
     override fun Layers() {
-        _sortedLayers.forEach { item ->
-            val zIndex = item.zIndexState ?: 0f
-            Box(modifier = Modifier.zIndex(zIndex)) {
-                item.Content()
-            }
+        _attachedLayers.forEach { layer ->
+            layer.Content()
 
-            val behavior = item.dialogBehavior
+            val behavior = layer.dialogBehavior
             if (behavior.enabledState) {
-                BackHandler(item.isVisibleState) {
+                BackHandler(layer.isVisibleState) {
                     if (behavior.cancelable) {
-                        item.detach()
+                        layer.detach()
                     }
                 }
             }

@@ -41,11 +41,6 @@ interface Layer {
     val dialogBehavior: DialogBehavior
 
     /**
-     * Z坐标
-     */
-    val zIndexState: Float?
-
-    /**
      * 设置对齐的位置，默认[Position.Center]
      */
     fun setPosition(position: Position)
@@ -54,11 +49,6 @@ interface Layer {
      * 是否裁剪内容区域，默认true
      */
     fun setClipToBounds(clipToBounds: Boolean)
-
-    /**
-     * 设置Z坐标
-     */
-    fun setZIndex(index: Float?)
 
     /**
      * 注册[attach]回调
@@ -233,7 +223,6 @@ internal open class LayerImpl : Layer {
 
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
-    private var _zIndexState by mutableStateOf<Float?>(null)
 
     private val _attachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
     private val _detachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
@@ -242,7 +231,6 @@ internal open class LayerImpl : Layer {
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
     final override val dialogBehavior: DialogBehavior = DialogBehavior()
-    final override val zIndexState: Float? get() = _zIndexState
 
     final override fun setPosition(position: Position) {
         _positionState = position
@@ -250,10 +238,6 @@ internal open class LayerImpl : Layer {
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
         _clipToBoundsState = clipToBounds
-    }
-
-    final override fun setZIndex(index: Float?) {
-        _zIndexState = index
     }
 
     final override fun registerAttachCallback(callback: (Layer) -> Unit) {

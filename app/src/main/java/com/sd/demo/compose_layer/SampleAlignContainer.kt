@@ -57,13 +57,12 @@ private fun layer1(): Layer {
     return rememberLayer(
         onCreate = {
             it.isDebug = true
-            it.setZIndex(1f)
             it.dialogBehavior.setCanceledOnTouchOutside(true)
             it.registerAttachCallback {
-                logMsg { "onAttach" }
+                logMsg { "callback onAttach" }
             }
             it.registerDetachCallback {
-                logMsg { "onDetach" }
+                logMsg { "callback onDetach" }
             }
         },
     ) {
