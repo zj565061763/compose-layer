@@ -118,18 +118,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
+    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
+    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
+
     private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
     }
     private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
-    }
-
-    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        _targetLayout = it
-    }
-    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        _containerLayout = it
     }
 
     override fun setTarget(target: String?) {
