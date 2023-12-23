@@ -289,7 +289,6 @@ internal open class LayerImpl : Layer {
 
     final override fun detach() {
         if (!_isAttached) return
-        if (layerContainer == null) return
 
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
