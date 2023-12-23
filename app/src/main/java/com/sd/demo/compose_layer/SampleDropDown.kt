@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.DisplaySlideDownUp
+import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTarget
@@ -64,6 +64,7 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setTarget("button")
+            it.dialogBehavior.setCanceledOnTouchOutside(true)
             it.setPosition(Layer.Position.Bottom)
             it.setClipBackgroundDirection(Directions.Top)
         },

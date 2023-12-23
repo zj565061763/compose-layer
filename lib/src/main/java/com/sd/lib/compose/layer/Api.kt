@@ -42,8 +42,8 @@ fun LayerContainer(
             LocalContainerForLayer provides container,
         ) {
             content()
+            container.Layers()
         }
-        container.Layers()
     }
 }
 
