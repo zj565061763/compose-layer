@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.compose.layer.Layer.Position
+import java.util.concurrent.atomic.AtomicLong
 
 interface Layer {
     var isDebug: Boolean
@@ -194,7 +195,11 @@ interface LayerDisplayScope : LayerContentScope {
 
 //---------- Impl ----------
 
+private val LayerID = AtomicLong(0L)
+
 internal open class LayerImpl : Layer {
+    internal val id: Any = LayerID.incrementAndGet()
+
     internal var layerContainer: ContainerForLayer? = null
         private set
 

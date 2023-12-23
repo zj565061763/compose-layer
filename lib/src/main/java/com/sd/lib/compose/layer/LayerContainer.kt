@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.layout.LayoutCoordinates
 
@@ -186,8 +187,9 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     @Composable
     override fun Layers() {
         _attachedLayers.forEach { layer ->
-            // TODO key
-            layer.Content()
+            key(layer.id) {
+                layer.Content()
+            }
 
             val behavior = layer.dialogBehavior
             if (behavior.enabledState) {
