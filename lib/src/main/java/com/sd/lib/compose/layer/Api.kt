@@ -32,15 +32,15 @@ fun LayerContainer(
 ) {
     val container = remember { LayerContainer() }
 
-    var pointerInputStarted by remember { mutableStateOf(false) }
-    val shouldPointerInput by remember {
-        derivedStateOf { container.hasAttachedLayer || pointerInputStarted }
-    }
-
     DisposableEffect(container) {
         onDispose {
             container.destroy()
         }
+    }
+
+    var pointerInputStarted by remember { mutableStateOf(false) }
+    val shouldPointerInput by remember {
+        derivedStateOf { container.hasAttachedLayer || pointerInputStarted }
     }
 
     Box(
