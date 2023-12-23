@@ -198,7 +198,7 @@ interface LayerContentScope {
     val layer: Layer
 }
 
-interface LayerContentWrapperScope : LayerContentScope {
+interface LayerDisplayScope : LayerContentScope {
     @Composable
     fun Content()
 }
@@ -212,9 +212,9 @@ internal open class LayerImpl : Layer {
     private var _isAttached = false
     private var _isVisibleState by mutableStateOf(false)
 
-    private val _contentScope = ContentWrapperScopeImpl()
+    private val _displayScope = LayerDisplayScopeImpl()
     private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
-    private val _contentWrapperState = mutableStateOf<(@Composable LayerContentWrapperScope.() -> Unit)>({
+    private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({
         Content()
     })
 
@@ -300,8 +300,8 @@ internal open class LayerImpl : Layer {
         _contentState.value = content
     }
 
-    internal fun setContentWrapper(content: @Composable LayerContentWrapperScope.() -> Unit) {
-        _contentWrapperState.value = content
+    internal fun setContentWrapper(content: @Composable LayerDisplayScope.() -> Unit) {
+        _displayState.value = content
     }
 
     internal fun destroy() {
@@ -418,7 +418,7 @@ internal open class LayerImpl : Layer {
                     }
                 }
         ) {
-            _contentWrapperState.value.invoke(_contentScope)
+            _displayState.value.invoke(_displayScope)
         }
     }
 
@@ -444,7 +444,7 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    private inner class ContentWrapperScopeImpl : LayerContentWrapperScope {
+    private inner class LayerDisplayScopeImpl : LayerDisplayScope {
         @Composable
         override fun Content() {
             _contentState.value?.invoke(this)

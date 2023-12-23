@@ -4,7 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.runtime.Composable
 
 @Composable
-fun LayerContentWrapperScope.LayerAnimatedSlideUpDown() {
+fun LayerDisplayScope.LayerAnimatedSlideUpDown() {
     LayerAnimatedDefault(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
@@ -12,7 +12,7 @@ fun LayerContentWrapperScope.LayerAnimatedSlideUpDown() {
 }
 
 @Composable
-fun LayerContentWrapperScope.LayerAnimatedSlideDownUp() {
+fun LayerDisplayScope.LayerAnimatedSlideDownUp() {
     LayerAnimatedDefault(
         enter = slideInVertically { -it },
         exit = slideOutVertically { -it },
@@ -20,7 +20,7 @@ fun LayerContentWrapperScope.LayerAnimatedSlideDownUp() {
 }
 
 @Composable
-fun LayerContentWrapperScope.LayerAnimatedDefault(
+fun LayerDisplayScope.LayerAnimatedDefault(
     enter: EnterTransition = fadeIn(),
     exit: ExitTransition = fadeOut(),
 ) {
