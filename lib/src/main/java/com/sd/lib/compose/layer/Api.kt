@@ -46,7 +46,9 @@ fun LayerContainer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .onGloballyPositioned { container.updateContainerLayout(it) }
+            .onGloballyPositioned {
+                container.updateContainerLayout(it)
+            }
             .let {
                 if (shouldPointerInput) {
                     it.pointerInput(Unit) {
