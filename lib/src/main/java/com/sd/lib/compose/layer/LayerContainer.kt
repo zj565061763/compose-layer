@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.layout.LayoutCoordinates
 
@@ -14,8 +12,6 @@ internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
 internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
 internal interface ContainerForComposable {
-    val hasAttachedLayer: Boolean
-
     fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates)
@@ -99,8 +95,6 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
     private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
     private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
-
-    override val hasAttachedLayer by derivedStateOf { _attachedLayers.isNotEmpty() }
 
     override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
         _containerLayoutCallbacks.toTypedArray().forEach {
