@@ -99,7 +99,7 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
 internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer {
     private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayers by derivedStateOf {
-        _attachedLayers.sortedByDescending { it.zIndexState ?: 0f }
+        _attachedLayers.sortedBy { it.zIndexState ?: 0f }
     }
 
     private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
@@ -199,7 +199,9 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
 
     override fun processDownEvent(event: PointerInputChange) {
         if (destroyed) return
-        for (layer in _sortedLayers.toTypedArray()) {
+        val layers = _sortedLayers.toTypedArray()
+        for (i in layers.lastIndex downTo 0) {
+            val layer = layers[i]
             layer.processDownEvent(event)
             if (event.isConsumed) break
         }
