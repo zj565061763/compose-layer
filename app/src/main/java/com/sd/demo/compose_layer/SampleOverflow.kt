@@ -3,8 +3,16 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,7 +22,13 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.*
+import com.sd.lib.compose.layer.Directions
+import com.sd.lib.compose.layer.DisplayDefault
+import com.sd.lib.compose.layer.Layer
+import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.TargetLayer
+import com.sd.lib.compose.layer.layerTarget
+import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleOverflow : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,13 +86,13 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun layer(): TargetLayer {
     return rememberTargetLayer(
         onCreate = {
             it.isDebug = true
             it.setPosition(Layer.Position.BottomCenter)
+            it.dialogBehavior.setCanceledOnTouchOutside(true)
         },
         display = {
             DisplayDefault(
