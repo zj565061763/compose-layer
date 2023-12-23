@@ -262,12 +262,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         LayerBox {
             OffsetBox(
                 uiState = uiState,
-                background = {
-                    BackgroundBox()
-                },
-                content = {
-                    ContentBox()
-                }
+                background = { BackgroundBox() },
+                content = { ContentBox() },
             )
         }
     }
