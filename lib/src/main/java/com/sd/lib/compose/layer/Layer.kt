@@ -293,21 +293,17 @@ internal open class LayerImpl : Layer {
 
         logMsg(isDebug) { "${this@LayerImpl} detach" }
         _isAttached = false
-        setContentVisible(false)
 
+        setContentVisible(false)
         onDetachInternal()
-        onDetach()
+
+        _detachCallbacks.toTypedArray().forEach {
+            it.invoke(this)
+        }
     }
 
     internal open fun onAttachInternal() {}
     internal open fun onDetachInternal() {}
-
-    private fun onDetach() {
-        val holder = _detachCallbacks.toTypedArray()
-        holder.forEach {
-            it.invoke(this)
-        }
-    }
 
     @Composable
     internal fun Init() {
