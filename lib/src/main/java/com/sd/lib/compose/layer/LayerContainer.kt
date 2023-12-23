@@ -80,6 +80,8 @@ fun LayerContainer(
 fun Modifier.layerTarget(
     tag: String,
 ) = composed {
+    if (tag.isEmpty()) error("tag is empty.")
+
     val layerContainer = checkNotNull(LocalLayerContainer.current) {
         "CompositionLocal LocalLayerContainer not present"
     }
@@ -201,7 +203,7 @@ internal class LayerContainer {
 
     fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
         if (_destroyed) return
-        if (tag.isEmpty()) return
+        if (tag.isEmpty()) error("tag is empty.")
 
         _targetLayoutHolder[tag]?.let { old ->
             check(old === layoutCoordinates) { "Tag:$tag has already specified." }
