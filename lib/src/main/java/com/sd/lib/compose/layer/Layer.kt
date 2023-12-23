@@ -347,9 +347,7 @@ internal open class LayerImpl : Layer {
 
     @Composable
     protected fun LayerBox(content: @Composable BoxScope.() -> Unit) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             content()
         }
     }
@@ -398,6 +396,7 @@ internal open class LayerImpl : Layer {
                             awaitEachGesture {
                                 awaitFirstDown(pass = PointerEventPass.Initial)
                                 if (behavior.cancelable && behavior.canceledOnTouchOutside) {
+                                    logMsg(isDebug) { "${this@LayerImpl} cancel touch outside." }
                                     detach()
                                 }
                             }
