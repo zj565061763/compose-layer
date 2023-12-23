@@ -285,8 +285,8 @@ internal open class LayerImpl : Layer {
         }
     }
 
-    internal open fun onAttach() {}
-    internal open fun onDetach() {}
+    protected open fun onAttach() {}
+    protected open fun onDetach() {}
 
     @Composable
     internal fun Init() {
@@ -330,7 +330,7 @@ internal open class LayerImpl : Layer {
     /**
      * 设置内容可见状态
      */
-    internal fun setContentVisible(visible: Boolean) {
+    protected fun setContentVisible(visible: Boolean) {
         val old = isVisibleState
 
         if (visible) {
@@ -362,9 +362,7 @@ internal open class LayerImpl : Layer {
     }
 
     @Composable
-    internal fun LayerBox(
-        content: @Composable BoxScope.() -> Unit,
-    ) {
+    protected fun LayerBox(content: @Composable BoxScope.() -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
