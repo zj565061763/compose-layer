@@ -178,7 +178,6 @@ internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer
     }
 
     override fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
-        if (tag.isEmpty()) return
         val holder = _targetLayoutCallbacks[tag] ?: return
         if (holder.remove(callback)) {
             callback(null)
