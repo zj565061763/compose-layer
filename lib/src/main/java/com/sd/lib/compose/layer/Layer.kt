@@ -235,8 +235,8 @@ internal open class LayerImpl : Layer {
     private var _clipToBoundsState by mutableStateOf(true)
     private var _zIndex by mutableStateOf<Float?>(null)
 
-    private val _attachCallbackHolder: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
-    private val _detachCallbackHolder: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
+    private val _attachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
+    private val _detachCallbacks: MutableSet<(Layer) -> Unit> by lazy { mutableSetOf() }
 
     final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _isVisibleState
@@ -257,19 +257,19 @@ internal open class LayerImpl : Layer {
     }
 
     final override fun registerAttachCallback(callback: (Layer) -> Unit) {
-        _attachCallbackHolder.add(callback)
+        _attachCallbacks.add(callback)
     }
 
     final override fun unregisterAttachCallback(callback: (Layer) -> Unit) {
-        _attachCallbackHolder.remove(callback)
+        _attachCallbacks.remove(callback)
     }
 
     final override fun registerDetachCallback(callback: (Layer) -> Unit) {
-        _detachCallbackHolder.add(callback)
+        _detachCallbacks.add(callback)
     }
 
     final override fun unregisterDetachCallback(callback: (Layer) -> Unit) {
-        _detachCallbackHolder.remove(callback)
+        _detachCallbacks.remove(callback)
     }
 
     final override fun attach() {
@@ -296,14 +296,14 @@ internal open class LayerImpl : Layer {
     internal open fun onDetachInternal() {}
 
     private fun onAttach() {
-        val holder = _attachCallbackHolder.toTypedArray()
+        val holder = _attachCallbacks.toTypedArray()
         holder.forEach {
             it.invoke(this)
         }
     }
 
     private fun onDetach() {
-        val holder = _detachCallbackHolder.toTypedArray()
+        val holder = _detachCallbacks.toTypedArray()
         holder.forEach {
             it.invoke(this)
         }
