@@ -410,7 +410,7 @@ internal open class LayerImpl : Layer {
     private inner class LayerDisplayScopeImpl : LayerDisplayScope {
         @Composable
         override fun Content() {
-            _contentState.value?.invoke(this)
+            _contentState.value?.invoke(this@LayerDisplayScopeImpl)
         }
 
         override val layer: Layer get() = this@LayerImpl
