@@ -274,11 +274,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         background: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
-        val state = remember {
-            OffsetBoxState(
-                background = background,
-                content = content,
-            )
+        val state = remember { OffsetBoxState() }.apply {
+            this.backgroundState = background
+            this.contentState = content
         }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
@@ -321,10 +319,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private inner class OffsetBoxState(
-        private val background: @Composable () -> Unit,
-        private val content: @Composable () -> Unit,
-    ) {
+    private inner class OffsetBoxState {
+
+        var backgroundState by mutableStateOf<@Composable () -> Unit>({})
+        var contentState by mutableStateOf<@Composable () -> Unit>({})
+
         private var _measureScope: SubcomposeMeasureScope? = null
         private var _visibleBackgroundInfo: PlaceInfo? = null
         private var _visibleContentInfo: PlaceInfo? = null
@@ -709,7 +708,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             constraints: Constraints,
             slotId: SlotId? = SlotId.Content,
         ): Placeable {
-            val measurable = measureScope.subcompose(slotId, content).let {
+            val measurable = measureScope.subcompose(slotId, contentState).let {
                 check(it.size == 1)
                 it.first()
             }
@@ -717,7 +716,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
 
         private fun measureBackground(constraints: Constraints): Placeable? {
-            val measurable = measureScope.subcompose(SlotId.Background, background).let {
+            val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
                 if (it.isNotEmpty()) check(it.size == 1)
                 it.firstOrNull()
             }
