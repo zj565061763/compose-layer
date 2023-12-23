@@ -68,7 +68,7 @@ private fun layer(): TargetLayer {
             it.setFixOverflowDirection(Directions.All)
         },
         wrapper = {
-            LayerAnimatedVisibility(
+            LayerAnimatedDefault(
                 enter = scaleIn(),
                 exit = scaleOut(),
             )

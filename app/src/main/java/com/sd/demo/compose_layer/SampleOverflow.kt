@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.*
-import java.util.*
 
 class SampleOverflow : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,7 +81,7 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.BottomCenter)
         },
         wrapper = {
-            LayerAnimatedVisibility(
+            LayerAnimatedDefault(
                 enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
                 exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
             )

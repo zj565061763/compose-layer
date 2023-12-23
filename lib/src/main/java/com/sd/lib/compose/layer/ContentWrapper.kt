@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun LayerContentWrapperScope.LayerAnimatedSlideUpDown() {
-    LayerAnimatedVisibility(
+    LayerAnimatedDefault(
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
     )
@@ -13,14 +13,14 @@ fun LayerContentWrapperScope.LayerAnimatedSlideUpDown() {
 
 @Composable
 fun LayerContentWrapperScope.LayerAnimatedSlideDownUp() {
-    LayerAnimatedVisibility(
+    LayerAnimatedDefault(
         enter = slideInVertically { -it },
         exit = slideOutVertically { -it },
     )
 }
 
 @Composable
-fun LayerContentWrapperScope.LayerAnimatedVisibility(
+fun LayerContentWrapperScope.LayerAnimatedDefault(
     enter: EnterTransition = fadeIn(),
     exit: ExitTransition = fadeOut(),
 ) {

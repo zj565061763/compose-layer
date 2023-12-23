@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 @Composable
 fun rememberLayer(
     onCreate: (Layer) -> Unit = {},
-    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
+    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedDefault() },
     content: @Composable LayerContentScope.() -> Unit
 ): Layer {
     val layer = remember {
@@ -28,7 +28,7 @@ fun rememberLayer(
 @Composable
 fun rememberTargetLayer(
     onCreate: (TargetLayer) -> Unit = {},
-    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedVisibility() },
+    wrapper: @Composable LayerContentWrapperScope.() -> Unit = { LayerAnimatedDefault() },
     content: @Composable LayerContentScope.() -> Unit
 ): TargetLayer {
     val layer = remember {
