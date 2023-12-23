@@ -118,18 +118,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private var _targetLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
     }
-    private var _containerLayoutCoordinates: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateUiState()
     }
 
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        _targetLayoutCoordinates = it
+        _targetLayout = it
     }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = {
-        _containerLayoutCoordinates = it
+        _containerLayout = it
     }
 
     override fun setTarget(target: String?) {
@@ -227,16 +227,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         } else {
             LayoutInfo(
-                size = _targetLayoutCoordinates.size(),
-                offset = _targetLayoutCoordinates.offset(),
-                isAttached = _targetLayoutCoordinates.isAttached(),
+                size = _targetLayout.size(),
+                offset = _targetLayout.offset(),
+                isAttached = _targetLayout.isAttached(),
             )
         }
 
         val containerLayout = LayoutInfo(
-            size = _containerLayoutCoordinates.size(),
-            offset = _containerLayoutCoordinates.offset(),
-            isAttached = _containerLayoutCoordinates.isAttached(),
+            size = _containerLayout.size(),
+            offset = _containerLayout.offset(),
+            isAttached = _containerLayout.isAttached(),
         )
 
         _uiState.value = UiState(
