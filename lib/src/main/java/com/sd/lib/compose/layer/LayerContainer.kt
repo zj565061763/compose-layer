@@ -199,8 +199,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
         if (destroyed) return
         val layers = _attachedLayers.toTypedArray()
         for (i in layers.lastIndex downTo 0) {
-            val layer = layers[i]
-            layer.processDownEvent(event)
+            layers[i].processDownEvent(event)
             if (event.isConsumed) break
         }
     }
