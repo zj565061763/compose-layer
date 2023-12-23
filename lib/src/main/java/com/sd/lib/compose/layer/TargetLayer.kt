@@ -94,6 +94,18 @@ sealed class Directions(direction: Int) {
 //---------- Impl ----------
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
+
+    private data class UiState(
+        val targetLayout: LayoutInfo,
+        val containerLayout: LayoutInfo,
+    )
+
+    private data class LayoutInfo(
+        val size: IntSize,
+        val offset: IntOffset,
+        val isAttached: Boolean,
+    )
+
     private val _uiState = MutableStateFlow(
         UiState(
             targetLayout = LayoutInfo(size = IntSize.Zero, offset = IntOffset.Zero, isAttached = false),
@@ -309,17 +321,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
     }
-
-    private data class UiState(
-        val targetLayout: LayoutInfo,
-        val containerLayout: LayoutInfo,
-    )
-
-    private data class LayoutInfo(
-        val size: IntSize,
-        val offset: IntOffset,
-        val isAttached: Boolean,
-    )
 
     private inner class OffsetBoxState(
         private val background: @Composable () -> Unit,
