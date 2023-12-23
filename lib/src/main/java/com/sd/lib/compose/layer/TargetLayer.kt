@@ -147,8 +147,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _clipBackgroundDirectionState = direction
     }
 
-    override fun onAttachInternal() {
-        super.onAttachInternal()
+    override fun onAttach() {
+        super.onAttach()
         layerContainer?.run {
             registerContainerLayoutCallback(_containerLayoutCallback)
             registerTargetLayoutCallback(_target, _targetLayoutCallback)
@@ -156,8 +156,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         updateUiState()
     }
 
-    override fun onDetachInternal() {
-        super.onDetachInternal()
+    override fun onDetach() {
+        super.onDetach()
         layerContainer?.run {
             unregisterContainerLayoutCallback(_containerLayoutCallback)
             unregisterTargetLayoutCallback(_target, _targetLayoutCallback)

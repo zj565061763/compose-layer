@@ -280,7 +280,7 @@ internal open class LayerImpl : Layer {
         _isAttached = true
 
         container.attachLayer(this)
-        onAttachInternal()
+        onAttach()
 
         _attachCallbacks.toTypedArray().forEach {
             it.invoke(this)
@@ -295,15 +295,15 @@ internal open class LayerImpl : Layer {
         _isAttached = false
 
         setContentVisible(false)
-        onDetachInternal()
+        onDetach()
 
         _detachCallbacks.toTypedArray().forEach {
             it.invoke(this)
         }
     }
 
-    internal open fun onAttachInternal() {}
-    internal open fun onDetachInternal() {}
+    internal open fun onAttach() {}
+    internal open fun onDetach() {}
 
     @Composable
     internal fun Init() {
