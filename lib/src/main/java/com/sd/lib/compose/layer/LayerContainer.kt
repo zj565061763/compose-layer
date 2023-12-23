@@ -2,123 +2,218 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.annotation.CallSuper
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.zIndex
 
-/**
- * 用来存放Layer的容器
- */
-@Composable
-fun LayerContainer(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val layerContainer = remember { LayerContainer() }
+internal interface ContainerApiForComposable {
+    val hasAttachedLayer: Boolean
 
-    var pointerInputStarted by remember { mutableStateOf(false) }
-    val shouldPointerInput by remember {
-        derivedStateOf { layerContainer.hasAttachedLayer || pointerInputStarted }
-    }
+    fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
 
-    DisposableEffect(layerContainer) {
-        onDispose {
-            layerContainer.destroy()
-        }
-    }
+    fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates)
 
-    CompositionLocalProvider(LocalLayerContainer provides layerContainer) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .onGloballyPositioned {
-                    layerContainer.updateContainerLayout(it)
-                }
-                .let {
-                    if (shouldPointerInput) {
-                        it.pointerInput(Unit) {
-                            pointerInputStarted = true
-                            awaitEachGesture {
-                                if (!layerContainer.hasAttachedLayer) pointerInputStarted = false
-                                val down = awaitFirstDown(pass = PointerEventPass.Initial)
-                                layerContainer.processDownEvent(down)
-                            }
-                        }
-                    } else {
-                        it
-                    }
-                },
-        ) {
-            content()
-            layerContainer.Layers()
-        }
-    }
+    fun removeTarget(tag: String)
+
+    fun processDownEvent(event: PointerInputChange)
+
+    fun destroy()
+
+    @Composable
+    fun Layers()
 }
 
-/**
- * 把当前元素设置为目标，并绑定容器作用域内唯一的[tag]
- */
-fun Modifier.layerTarget(
-    tag: String,
-) = composed {
-    if (tag.isEmpty()) error("tag is empty.")
+internal interface ContainerApiForLayer {
+    fun initLayer(layer: LayerImpl)
 
-    val layerContainer = checkNotNull(LocalLayerContainer.current) {
-        "CompositionLocal LocalLayerContainer not present"
+    fun attachLayer(layer: LayerImpl)
+
+    fun detachLayer(layer: LayerImpl): Boolean
+
+    fun destroyLayer(layer: LayerImpl)
+
+    fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
+
+    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
+
+    fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
+
+    fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
+}
+
+internal abstract class ComposableLayerContainer : ContainerApiForComposable {
+    protected var destroyed = false
+        private set
+
+    /** 容器的布局信息 */
+    protected var containerLayout: LayoutCoordinates? = null
+        private set
+
+    /** 目标的布局信息 */
+    private val _targetLayouts: MutableMap<String, LayoutCoordinates> = hashMapOf()
+
+    final override fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
+        if (destroyed) return
+        containerLayout = layoutCoordinates
+        onUpdateContainerLayout(layoutCoordinates)
     }
 
-    DisposableEffect(layerContainer, tag) {
-        onDispose {
-            layerContainer.removeTarget(tag)
+    final override fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+        if (destroyed) return
+        if (tag.isEmpty()) error("tag is empty.")
+
+        _targetLayouts.put(tag, layoutCoordinates)?.let { old ->
+            check(old === layoutCoordinates) { "Tag:$tag has already specified." }
+        }
+        onUpdateTargetLayout(tag, layoutCoordinates)
+    }
+
+    final override fun removeTarget(tag: String) {
+        if (_targetLayouts.remove(tag) != null) {
+            onUpdateTargetLayout(tag, null)
         }
     }
 
-    this.onGloballyPositioned {
-        layerContainer.addTarget(tag, it)
+
+    @CallSuper
+    override fun destroy() {
+        destroyed = true
+        containerLayout = null
+        _targetLayouts.clear()
     }
+
+
+    protected fun getTargetLayout(tag: String): LayoutCoordinates? {
+        return _targetLayouts[tag]
+    }
+
+    protected abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
+
+    protected abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
 }
 
-internal val LocalLayerContainer = staticCompositionLocalOf<LayerContainer?> { null }
-
-internal class LayerContainer {
-    private var _destroyed = false
-
+internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer {
     private val _attachedLayerHolder: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayerHolder by derivedStateOf {
         _attachedLayerHolder.sortedBy { it.zIndexState ?: 0f }
     }
 
-    /** 容器的布局信息 */
-    private var _containerLayout: LayoutCoordinates? = null
-    private val _containerLayoutCallbackHolder: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
+    private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
+    private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
 
-    /** 目标的布局信息 */
-    private val _targetLayoutHolder: MutableMap<String, LayoutCoordinates> = hashMapOf()
-    private val _targetLayoutCallbackHolder: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
+    override val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
 
-    val hasAttachedLayer by derivedStateOf { _attachedLayerHolder.isNotEmpty() }
+    override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
+        _containerLayoutCallbacks.toTypedArray().forEach {
+            it.invoke(layoutCoordinates)
+        }
+    }
+
+    override fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?) {
+        _targetLayoutCallbacks[tag]?.toTypedArray()?.forEach {
+            it.invoke(layoutCoordinates)
+        }
+    }
+
+    override fun initLayer(layer: LayerImpl) {
+        if (destroyed) return
+        if (layer.layerContainer === this) {
+            // 已经初始化过了
+            return
+        }
+        layer.destroy()
+        layer.onInit(this)
+        check(layer.layerContainer === this)
+    }
+
+    override fun attachLayer(layer: LayerImpl) {
+        if (destroyed) return
+        if (layer.layerContainer === this) {
+            if (!_attachedLayerHolder.contains(layer)) {
+                _attachedLayerHolder.add(layer)
+            }
+        }
+    }
+
+    override fun detachLayer(layer: LayerImpl): Boolean {
+        return _attachedLayerHolder.remove(layer)
+    }
+
+    override fun destroyLayer(layer: LayerImpl) {
+        if (layer.layerContainer === this) {
+            _attachedLayerHolder.remove(layer)
+            layer.onDestroy(this)
+            check(layer.layerContainer == null)
+        }
+    }
+
+    //---------- container ----------
+
+    override fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
+        if (destroyed) return
+        if (_containerLayoutCallbacks.add(callback)) {
+            callback(containerLayout)
+        }
+    }
+
+    override fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
+        if (_containerLayoutCallbacks.remove(callback)) {
+            callback(null)
+        }
+    }
+
+    //---------- target ----------
+
+    override fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
+        if (destroyed) return
+        if (tag.isEmpty()) return
+        val holder = _targetLayoutCallbacks.getOrPut(tag) { hashSetOf() }
+        if (holder.add(callback)) {
+            callback(getTargetLayout(tag))
+        }
+    }
+
+    override fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
+        if (tag.isEmpty()) return
+        val holder = _targetLayoutCallbacks[tag] ?: return
+        if (holder.remove(callback)) {
+            callback(null)
+            if (holder.isEmpty()) {
+                _targetLayoutCallbacks.remove(tag)
+            }
+        }
+    }
+
+    override fun destroy() {
+        super.destroy()
+        _attachedLayerHolder.toTypedArray().forEach {
+            destroyLayer(it)
+        }
+        _attachedLayerHolder.clear()
+        _containerLayoutCallbacks.clear()
+        _targetLayoutCallbacks.clear()
+    }
+
+    override fun processDownEvent(event: PointerInputChange) {
+        if (destroyed) return
+        val copyHolder = _sortedLayerHolder.toTypedArray()
+        for (index in copyHolder.lastIndex downTo 0) {
+            val layer = copyHolder[index]
+            layer.processDownEvent(event)
+            if (event.isConsumed) break
+        }
+    }
 
     @Composable
-    fun Layers() {
+    override fun Layers() {
         _sortedLayerHolder.forEach { item ->
             val zIndex = item.zIndexState ?: 0f
             Box(modifier = Modifier.zIndex(zIndex)) {
@@ -134,132 +229,6 @@ internal class LayerContainer {
                 }
             }
         }
-    }
-
-    fun initLayer(layer: LayerImpl) {
-        if (_destroyed) return
-        if (layer.layerContainer === this) return
-
-        layer.destroy()
-        layer.onInit(this)
-        check(layer.layerContainer === this)
-    }
-
-    fun destroyLayer(layer: LayerImpl) {
-        if (layer.layerContainer === this) {
-            _attachedLayerHolder.remove(layer)
-            layer.onDestroy(this)
-            check(layer.layerContainer == null)
-        }
-    }
-
-    fun attachLayer(layer: LayerImpl) {
-        if (_destroyed) return
-        if (layer.layerContainer === this) {
-            if (!_attachedLayerHolder.contains(layer)) {
-                _attachedLayerHolder.add(layer)
-            }
-        }
-    }
-
-    fun detachLayer(layer: LayerImpl): Boolean {
-        return _attachedLayerHolder.remove(layer)
-    }
-
-    fun processDownEvent(event: PointerInputChange) {
-        if (_destroyed) return
-        val copyHolder = _sortedLayerHolder.toTypedArray()
-        for (index in copyHolder.lastIndex downTo 0) {
-            val layer = copyHolder[index]
-            layer.processDownEvent(event)
-            if (event.isConsumed) break
-        }
-    }
-
-    //---------- container ----------
-
-    fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
-        if (_destroyed) return
-        _containerLayout = layoutCoordinates
-        _containerLayoutCallbackHolder.toTypedArray().forEach {
-            it.invoke(layoutCoordinates)
-        }
-    }
-
-    fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
-        if (_destroyed) return
-        if (_containerLayoutCallbackHolder.add(callback)) {
-            callback(_containerLayout)
-        }
-    }
-
-    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
-        if (_containerLayoutCallbackHolder.remove(callback)) {
-            callback(null)
-        }
-    }
-
-    //---------- target ----------
-
-    fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
-        if (_destroyed) return
-        if (tag.isEmpty()) error("tag is empty.")
-
-        _targetLayoutHolder[tag]?.let { old ->
-            check(old === layoutCoordinates) { "Tag:$tag has already specified." }
-        }
-
-        _targetLayoutHolder[tag] = layoutCoordinates
-        notifyTargetLayoutCallback(tag, layoutCoordinates)
-    }
-
-    fun removeTarget(tag: String) {
-        if (_targetLayoutHolder.remove(tag) != null) {
-            notifyTargetLayoutCallback(tag, null)
-        }
-    }
-
-    fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
-        if (_destroyed) return
-        if (tag.isEmpty()) return
-        val holder = _targetLayoutCallbackHolder[tag] ?: hashSetOf<(LayoutCoordinates?) -> Unit>().also {
-            _targetLayoutCallbackHolder[tag] = it
-        }
-        if (holder.add(callback)) {
-            callback(_targetLayoutHolder[tag])
-        }
-    }
-
-    fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
-        if (tag.isEmpty()) return
-        val holder = _targetLayoutCallbackHolder[tag] ?: return
-        if (holder.remove(callback)) {
-            callback(null)
-            if (holder.isEmpty()) {
-                _targetLayoutCallbackHolder.remove(tag)
-            }
-        }
-    }
-
-    private fun notifyTargetLayoutCallback(tag: String, layoutCoordinates: LayoutCoordinates?) {
-        _targetLayoutCallbackHolder[tag]?.toTypedArray()?.forEach {
-            it.invoke(layoutCoordinates)
-        }
-    }
-
-    fun destroy() {
-        _destroyed = true
-
-        _attachedLayerHolder.toTypedArray().forEach {
-            destroyLayer(it)
-        }
-        _attachedLayerHolder.clear()
-
-        _containerLayout = null
-        _containerLayoutCallbackHolder.clear()
-
-        _targetLayoutHolder.clear()
-        _targetLayoutCallbackHolder.clear()
     }
 }
 

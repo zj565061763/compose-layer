@@ -311,7 +311,7 @@ internal open class LayerImpl : Layer {
 
     @Composable
     internal fun Init() {
-        val layerContainer = checkNotNull(LocalLayerContainer.current) {
+        val layerContainer = checkNotNull(LocalContainerForLayer.current) {
             "CompositionLocal LocalLayerContainer not present"
         }
         layerContainer.initLayer(this)
