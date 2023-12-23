@@ -75,7 +75,7 @@ fun LayerContainer(
 }
 
 /**
- * 设置要对齐的目标并绑定[LayerContainer]作用域内唯一的[tag]
+ * 把当前元素设置为目标，并绑定容器作用域内唯一的[tag]
  */
 fun Modifier.layerTarget(
     tag: String,
