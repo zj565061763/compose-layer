@@ -228,8 +228,8 @@ internal open class LayerImpl : Layer {
         Content()
     })
 
-    private var _layerLayoutCoordinates: LayoutCoordinates? = null
-    private var _contentLayoutCoordinates: LayoutCoordinates? = null
+    private var _layerLayout: LayoutCoordinates? = null
+    private var _contentLayout: LayoutCoordinates? = null
 
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
@@ -390,7 +390,7 @@ internal open class LayerImpl : Layer {
             modifier = Modifier
                 .fillMaxSize()
                 .onGloballyPositioned {
-                    _layerLayoutCoordinates = it
+                    _layerLayout = it
                 }
         ) {
             content()
@@ -422,7 +422,7 @@ internal open class LayerImpl : Layer {
         Box(
             modifier = modifier
                 .onGloballyPositioned {
-                    _contentLayoutCoordinates = it
+                    _contentLayout = it
                     if (it.size == IntSize.Zero) {
                         logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
@@ -447,8 +447,8 @@ internal open class LayerImpl : Layer {
         val behavior = dialogBehavior
         if (!behavior.enabledState) return
 
-        val layerLayout = _layerLayoutCoordinates ?: return
-        val contentLayout = _contentLayoutCoordinates ?: return
+        val layerLayout = _layerLayout ?: return
+        val contentLayout = _contentLayout ?: return
 
         val contentRect = layerLayout.localBoundingBoxOf(contentLayout)
         if (contentRect.contains(event.position)) {
