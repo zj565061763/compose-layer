@@ -96,7 +96,7 @@ internal abstract class ComposableLayerContainer : ContainerApiForComposable {
     protected abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
 }
 
-internal class LayerContainer : ComposableLayerContainer(), ContainerApiForLayer {
+internal class LayerContainerImpl : ComposableLayerContainer(), ContainerApiForLayer {
     private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
     private val _sortedLayers by derivedStateOf {
         _attachedLayers.sortedBy { it.zIndexState ?: 0f }
