@@ -76,7 +76,6 @@ private fun layer(): TargetLayer {
             it.dialogBehavior
                 .setCanceledOnTouchOutside(true)
                 .setBackgroundColor(Color.Transparent)
-            it.setFixOverflow(true)
         },
         display = {
             DisplayDefault(

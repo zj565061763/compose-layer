@@ -36,7 +36,7 @@ interface TargetLayer : Layer {
     fun setOffsetTransform(transform: OffsetTransform?)
 
     /**
-     * 设置是否修复溢出，默认false
+     * 设置是否修复溢出，默认true
      */
     fun setFixOverflow(fixOverflow: Boolean)
 
@@ -119,7 +119,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
     private var _offsetTransform: OffsetTransform? = null
 
-    private var _fixOverflowState by mutableStateOf(false)
+    private var _fixOverflowState by mutableStateOf(true)
     private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
     private var _targetOffsetState by mutableStateOf<IntOffset?>(null)
 
