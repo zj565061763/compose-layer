@@ -247,11 +247,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             sourceHeight = contentSize.height,
         )
 
-        val result = _aligner.align(input)
-        return findBestPosition(result)
+        return _aligner.align(input)
     }
 
-    private fun findBestPosition(result: Aligner.Result): Aligner.Result {
+    private fun Aligner.Result.findBestPosition(): Aligner.Result {
+        val result = this
+
         val overflowDefault = result.sourceOverflow.totalOverflow()
         if (overflowDefault == 0) return result
 
