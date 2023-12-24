@@ -139,9 +139,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
     )
 
-    private var _targetOffset: IntOffset? = null
-    private var _targetOffsetX: TargetOffset? = null
-    private var _targetOffsetY: TargetOffset? = null
+    private var _targetOffset by Delegates.observable<IntOffset?>(null) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            updateTargetLayout()
+        }
+    }
+    private var _targetOffsetX by Delegates.observable<TargetOffset?>(null) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            updateTargetLayout()
+        }
+    }
+    private var _targetOffsetY by Delegates.observable<TargetOffset?>(null) { _, oldValue, newValue ->
+        if (oldValue != newValue) {
+            updateTargetLayout()
+        }
+    }
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -170,24 +182,15 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setTarget(offset: IntOffset?) {
-        if (_targetOffset != offset) {
-            _targetOffset = offset
-            updateTargetLayout()
-        }
+        _targetOffset = offset
     }
 
     override fun setTargetOffsetX(offset: TargetOffset?) {
-        if (_targetOffsetX != offset) {
-            _targetOffsetX = offset
-            updateTargetLayout()
-        }
+        _targetOffsetX = offset
     }
 
     override fun setTargetOffsetY(offset: TargetOffset?) {
-        if (_targetOffsetY != offset) {
-            _targetOffsetY = offset
-            updateTargetLayout()
-        }
+        _targetOffsetY = offset
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
