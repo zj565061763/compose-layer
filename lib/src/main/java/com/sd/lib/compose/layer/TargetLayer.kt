@@ -243,8 +243,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private fun findBestPosition(result: Aligner.Result, targetLayout: LayoutInfo): Aligner.Result {
         if (!_findBestPositionState) return result
 
-        val overflowSizeDefault = result.sourceOverflow.totalOverflow()
-        if (overflowSizeDefault == 0) return result
+        val overflowDefault = result.sourceOverflow.totalOverflow()
+        if (overflowDefault == 0) return result
 
         val preferPosition = mutableListOf(
             Aligner.Position.BottomEnd,
@@ -256,7 +256,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
 
         var bestResult = result
-        var minOverflow = overflowSizeDefault
+        var minOverflow = overflowDefault
         var bestPosition = result.input.position
 
         for (position in preferPosition) {
@@ -781,15 +781,6 @@ private fun LayoutCoordinates?.offset(): IntOffset {
 private fun LayoutCoordinates?.isAttached(): Boolean {
     if (this == null) return false
     return this.isAttached
-}
-
-private fun Aligner.Overflow.totalOverflow(): Int {
-    var size = 0
-    if (top > 0) size += top
-    if (bottom > 0) size += bottom
-    if (start > 0) size += start
-    if (end > 0) size += end
-    return size
 }
 
 private fun Layer.Position.isCenterVertical(): Boolean = when (this) {
