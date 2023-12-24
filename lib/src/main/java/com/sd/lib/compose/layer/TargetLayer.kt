@@ -136,10 +136,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
 
-    private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $newValue" }
         updateUiState()
     }
-    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
+    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+        logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
         updateUiState()
     }
 
@@ -169,7 +171,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             registerContainerLayoutCallback(_containerLayoutCallback)
             registerTargetLayoutCallback(_target, _targetLayoutCallback)
         }
-        updateUiState()
     }
 
     override fun onDetach() {
@@ -178,7 +179,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             unregisterContainerLayoutCallback(_containerLayoutCallback)
             unregisterTargetLayoutCallback(_target, _targetLayoutCallback)
         }
-        updateUiState()
     }
 
     private fun alignTarget(
