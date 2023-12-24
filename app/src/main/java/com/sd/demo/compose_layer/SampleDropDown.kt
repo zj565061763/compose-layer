@@ -71,9 +71,7 @@ private fun layer(): TargetLayer {
             it.setPosition(Layer.Position.BottomCenter)
             it.setClipBackgroundDirection(Directions.Top)
         },
-        display = {
-            DisplaySlideDownUp()
-        }
+        display = { DisplaySlideDownUp() }
     ) {
         VerticalList(
             count = 5,
