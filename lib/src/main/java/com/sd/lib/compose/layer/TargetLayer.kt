@@ -10,7 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.*
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.SubcomposeMeasureScope
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -99,27 +103,27 @@ sealed class Directions(direction: Int) {
 
 //---------- Impl ----------
 
+@Immutable
+private data class UIState(
+    val targetLayout: LayoutInfo,
+    val containerLayout: LayoutInfo,
+)
+
+@Immutable
+private data class LayoutInfo(
+    val size: IntSize,
+    val offset: IntOffset,
+    val isAttached: Boolean,
+)
+
+private val EmptyLayoutInfo = LayoutInfo(
+    size = IntSize.Zero,
+    offset = IntOffset.Zero,
+    isAttached = false,
+)
+
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
-
-    @Immutable
-    private data class UiState(
-        val targetLayout: LayoutInfo,
-        val containerLayout: LayoutInfo,
-    )
-
-    @Immutable
-    private data class LayoutInfo(
-        val size: IntSize,
-        val offset: IntOffset,
-        val isAttached: Boolean,
-    )
-
-    private val _uiState = MutableStateFlow(
-        UiState(
-            targetLayout = LayoutInfo(size = IntSize.Zero, offset = IntOffset.Zero, isAttached = false),
-            containerLayout = LayoutInfo(size = IntSize.Zero, offset = IntOffset.Zero, isAttached = false),
-        )
-    )
+    private val _uiState = MutableStateFlow(UIState(EmptyLayoutInfo, EmptyLayoutInfo))
 
     private val _aligner = FAligner()
 
@@ -336,7 +340,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             isAttached = _containerLayout.isAttached(),
         )
 
-        _uiState.value = UiState(
+        _uiState.value = UIState(
             targetLayout = targetLayout,
             containerLayout = containerLayout,
         )
@@ -356,7 +360,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     @Composable
     private fun OffsetBox(
-        uiState: UiState,
+        uiState: UIState,
         background: @Composable () -> Unit,
         content: @Composable () -> Unit,
     ) {
@@ -442,7 +446,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         fun layoutNoneOverflow(
             cs: Constraints,
-            uiState: UiState,
+            uiState: UIState,
         ): MeasureResult {
             val contentPlaceable = measureContent(cs)
             val result = alignTarget(
@@ -479,7 +483,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         fun layoutFixOverflow(
             cs: Constraints,
-            uiState: UiState,
+            uiState: UIState,
         ): MeasureResult {
             val originalPlaceable = measureContent(cs, slotId = null)
             val result = alignTarget(
