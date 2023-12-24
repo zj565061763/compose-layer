@@ -258,7 +258,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val isContainerReady = uiState.containerLayout.isAttached
             val isReady = isTargetReady && isContainerReady
 
-            logMsg { "layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
+            logMsg {
+                "layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}"
+            }
 
             if (!isVisibleState) {
                 return@SubcomposeLayout state.layoutLastVisible(cs).also {
@@ -277,15 +279,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             }
 
             if (_fixOverflow) {
-                state.layoutFixOverflow(
-                    cs = cs,
-                    uiState = uiState,
-                )
+                state.layoutFixOverflow(cs, uiState)
             } else {
-                state.layoutNoneOverflow(
-                    cs = cs,
-                    uiState = uiState,
-                )
+                state.layoutNoneOverflow(cs, uiState)
             }
         }
     }
