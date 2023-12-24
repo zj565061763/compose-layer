@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -45,6 +47,7 @@ private fun Content() {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(300.dp))
         Button(
@@ -65,13 +68,16 @@ private fun layer(): TargetLayer {
             it.isDebug = true
             it.setTarget("button")
             it.dialogBehavior.setCanceledOnTouchOutside(true)
-            it.setPosition(Layer.Position.Bottom)
+            it.setPosition(Layer.Position.BottomCenter)
             it.setClipBackgroundDirection(Directions.Top)
         },
         display = {
             DisplaySlideDownUp()
         }
     ) {
-        VerticalList(count = 5)
+        VerticalList(
+            count = 5,
+            modifier = Modifier.width(200.dp),
+        )
     }
 }
