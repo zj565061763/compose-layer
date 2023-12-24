@@ -130,7 +130,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
 
     private var _targetOffset: IntOffset? = null
-
     private var _targetOffsetX: TargetOffset? = null
     private var _targetOffsetY: TargetOffset? = null
 
