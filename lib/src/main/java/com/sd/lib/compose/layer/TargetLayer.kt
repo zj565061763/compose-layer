@@ -352,11 +352,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-        fun layoutFixOverflow(
-            cs: Constraints,
-            uiState: UIState,
-        ): MeasureResult {
+        fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
             val originalPlaceable = measureContent(cs, slotId = null)
+
             val result = alignTarget(
                 position = positionState,
                 target = uiState.targetLayout,
