@@ -298,14 +298,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         fun layoutLastVisible(cs: Constraints): MeasureResult {
             val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-            val backgroundPlaceable = measureBackground(
-                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-            )
+            val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
             val contentInfo = _visibleContentInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-            val contentPlaceable = measureContent(
-                constraints = cs.copy(maxWidth = contentInfo.width, maxHeight = contentInfo.height),
-            )
+            val contentPlaceable = measureContent(cs.newMax(contentInfo.width, contentInfo.height))
 
             return layoutFinally(
                 cs = cs,
@@ -624,6 +620,10 @@ private fun TargetOffset?.pxValue(targetSize: Int): Int {
             if (px.isInfinite()) 0 else px.roundToInt()
         }
     }
+}
+
+private fun Constraints.newMax(width: Int, height: Int): Constraints {
+    return this.copy(maxWidth = width, maxHeight = height)
 }
 
 private fun Aligner.Result.findBestPosition(
