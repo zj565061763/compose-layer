@@ -41,6 +41,11 @@ interface TargetLayer : Layer {
     fun setFixOverflow(fixOverflow: Boolean)
 
     /**
+     * 设置是否查找最佳的显示位置，默认false
+     */
+    fun setFindBestPosition(findBestPosition: Boolean)
+
+    /**
      * 设置要裁切背景的方向[Directions]
      */
     fun setClipBackgroundDirection(direction: Directions?)
@@ -120,6 +125,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _offsetTransform: OffsetTransform? = null
 
     private var _fixOverflowState by mutableStateOf(true)
+    private var _findBestPositionState by mutableStateOf(false)
+
     private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
     private var _targetOffsetState by mutableStateOf<IntOffset?>(null)
 
@@ -159,6 +166,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     override fun setFixOverflow(fixOverflow: Boolean) {
         _fixOverflowState = fixOverflow
+    }
+
+    override fun setFindBestPosition(findBestPosition: Boolean) {
+        _findBestPositionState = findBestPosition
     }
 
     override fun setClipBackgroundDirection(direction: Directions?) {
@@ -365,7 +376,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
             ).let {
-                findBestResult(it)
+                findBestPosition(result = it, targetLayout = uiState.targetLayout)
             }
 
             val x = result.x
@@ -404,23 +415,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
             ).let {
-                findBestResult(it)
+                findBestPosition(result = it, targetLayout = uiState.targetLayout)
             }
 
-            var x = result.x
-            var y = result.y
+            val fixOverFlow = fixOverFlow(result)
 
-            val (fixedConstraints, fixedResult) = checkOverflow(result, cs)
-            val contentPlaceable = if (fixedConstraints != null) {
-                measureContent(fixedConstraints).also { placeable ->
-                    logMsg(isDebug) {
-                        "${this@TargetLayerImpl} fix overflow size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${placeable.width}, ${placeable.height}) offset:($x, $y)->(${fixedResult.x}, ${fixedResult.y})"
-                    }
-                    x = fixedResult.x
-                    y = fixedResult.y
-                }
-            } else {
-                measureContent(cs)
+            val x = fixOverFlow.x
+            val y = fixOverFlow.y
+            val width = fixOverFlow.width
+            val height = fixOverFlow.height
+
+            val contentPlaceable = measureContent(cs.copy(maxWidth = width, maxHeight = height))
+
+            logMsg(isDebug) {
+                "${this@TargetLayerImpl} fixOverFlow \n" +
+                        "offset:(${result.x}, ${result.y})->(${x}, ${y}) \n" +
+                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${width}, ${height}) \n" +
+                        "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
             }
 
             val backgroundInfo = backgroundPlaceInfo(
@@ -433,7 +444,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow ($x, $y)" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow" }
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -532,13 +543,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-        private fun findBestResult(result: Aligner.Result): Aligner.Result {
-            val targetOffset = _targetOffsetState ?: return result
+        private fun findBestPosition(
+            result: Aligner.Result,
+            targetLayout: LayoutInfo,
+        ): Aligner.Result {
+            if (!_findBestPositionState) return result
 
             val overflowSizeDefault = result.sourceOverflow.totalOverflow()
-            if (overflowSizeDefault == 0) {
-                return result
-            }
+            if (overflowSizeDefault == 0) return result
 
             val preferPosition = mutableListOf(
                 Aligner.Position.BottomEnd,
@@ -557,10 +569,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 val newResult = _aligner.align(
                     result.input.copy(
                         position = position,
-                        targetX = targetOffset.x,
-                        targetY = targetOffset.y,
-                        targetWidth = 0,
-                        targetHeight = 0,
+                        targetX = targetLayout.offset.x,
+                        targetY = targetLayout.offset.y,
+                        targetWidth = targetLayout.size.width,
+                        targetHeight = targetLayout.size.height,
                     )
                 )
 
@@ -574,20 +586,17 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             }
 
             logMsg(isDebug) {
-                "${this@TargetLayerImpl} findBestResult position:$bestPosition (${bestResult.x}, ${bestResult.y})"
+                "${this@TargetLayerImpl} findBestPosition:$bestPosition"
             }
 
             return bestResult
         }
 
-        private fun checkOverflow(
-            result: Aligner.Result,
-            cs: Constraints,
-        ): Pair<Constraints?, Aligner.Result> {
-            var resultConstraints: Constraints? = null
-
-            var cs = cs
+        private fun fixOverFlow(result: Aligner.Result): FixOverFlow {
             var result = result
+
+            var resultWith = result.input.sourceWidth
+            var resultHeight = result.input.sourceHeight
 
             var count = 0
             while (true) {
@@ -627,9 +636,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                                 }
                             }
 
-                            val maxSize = (cs.maxHeight - overSize).coerceAtLeast(1)
-                            cs = cs.copy(maxHeight = maxSize).also {
-                                resultConstraints = it
+                            val oldHeight = resultHeight
+                            resultHeight = (oldHeight - overSize).coerceAtLeast(0)
+                            logMsg(isDebug) {
+                                "${this@TargetLayerImpl} height overflow:$overSize ($oldHeight) -> ($resultHeight)"
                             }
                         }
                     }
@@ -665,9 +675,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                                 }
                             }
 
-                            val maxSize = (cs.maxWidth - overSize).coerceAtLeast(1)
-                            cs = cs.copy(maxWidth = maxSize).also {
-                                resultConstraints = it
+                            val oldWidth = resultWith
+                            resultWith = (oldWidth - overSize).coerceAtLeast(0)
+                            logMsg(isDebug) {
+                                "${this@TargetLayerImpl} width overflow:$overSize ($oldWidth) -> ($resultWith)"
                             }
                         }
                     }
@@ -675,8 +686,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
                 if (hasOverflow) {
                     val newInput = result.input.copy(
-                        sourceWidth = cs.maxWidth,
-                        sourceHeight = cs.maxHeight,
+                        sourceWidth = resultWith,
+                        sourceHeight = resultHeight,
                     )
                     result = _aligner.align(newInput)
                 } else {
@@ -684,7 +695,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
             }
 
-            return Pair(resultConstraints, result)
+            return FixOverFlow(
+                x = result.x,
+                y = result.y,
+                width = resultWith,
+                height = resultHeight,
+            )
         }
 
         private fun measureContent(
@@ -718,6 +734,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         Content,
         Background,
     }
+
+    private data class FixOverFlow(
+        val x: Int,
+        val y: Int,
+        val width: Int,
+        val height: Int,
+    )
 }
 
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
