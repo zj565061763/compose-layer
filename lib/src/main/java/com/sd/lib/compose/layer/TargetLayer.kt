@@ -11,12 +11,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.*
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 interface TargetLayer : Layer {
@@ -31,9 +34,14 @@ interface TargetLayer : Layer {
     fun setTargetOffset(offset: IntOffset?)
 
     /**
-     * 设置坐标转换
+     * 设置坐标转换（X方向）
      */
-    fun setOffsetTransform(transform: OffsetTransform?)
+    fun setOffsetTransformX(transform: OffsetTransform?)
+
+    /**
+     * 设置坐标转换（Y方向）
+     */
+    fun setOffsetTransformY(transform: OffsetTransform?)
 
     /**
      * 设置是否修复溢出，默认true
@@ -51,20 +59,19 @@ interface TargetLayer : Layer {
     fun setClipBackgroundDirection(direction: Directions?)
 }
 
-fun interface OffsetTransform {
+enum class TransformOffsetType {
+    Target,
+    Content,
+}
 
-    fun transform(params: Params): IntOffset
+sealed interface TransformOffset {
+    data class PX(val value: Int) : TransformOffset
+    data class DP(val value: Int) : TransformOffset
+    data class Percent(val value: Float, val type: TransformOffsetType) : TransformOffset
+}
 
-    interface Params {
-        /** 坐标 */
-        val offset: IntOffset
-
-        /** 内容大小 */
-        val contentSize: IntSize
-
-        /** 目标大小 */
-        val targetSize: IntSize
-    }
+interface OffsetTransform {
+    fun transform(): TransformOffset?
 }
 
 sealed class Directions(direction: Int) {
@@ -122,7 +129,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     )
 
     private val _aligner = FAligner()
-    private var _offsetTransform: OffsetTransform? = null
+
+    private lateinit var _density: Density
+    private var _offsetTransformX: OffsetTransform? = null
+    private var _offsetTransformY: OffsetTransform? = null
 
     private var _fixOverflowState by mutableStateOf(true)
     private var _findBestPositionState by mutableStateOf(false)
@@ -160,8 +170,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _targetOffsetState = offset
     }
 
-    override fun setOffsetTransform(transform: OffsetTransform?) {
-        _offsetTransform = transform
+    override fun setOffsetTransformX(transform: OffsetTransform?) {
+        _offsetTransformX = transform
+    }
+
+    override fun setOffsetTransformY(transform: OffsetTransform?) {
+        _offsetTransformY = transform
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
@@ -225,19 +239,36 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private fun transformResult(result: Aligner.Result): Aligner.Result {
-        val transform = _offsetTransform ?: return result
-
-        val params = object : OffsetTransform.Params {
-            override val offset: IntOffset get() = IntOffset(result.x, result.y)
-            override val contentSize: IntSize get() = IntSize(result.input.sourceWidth, result.input.sourceHeight)
-            override val targetSize: IntSize get() = IntSize(result.input.targetWidth, result.input.targetHeight)
+        val offsetX = _offsetTransformX?.transform()
+        val offsetY = _offsetTransformY?.transform()
+        if (offsetX == null && offsetY == null) {
+            return result
         }
 
-        val offset = transform.transform(params)
-        return result.copy(
-            x = offset.x,
-            y = offset.y
+        val x = offsetX.pxValue(_density) { type ->
+            when (type) {
+                TransformOffsetType.Target -> result.input.targetWidth
+                TransformOffsetType.Content -> result.input.sourceWidth
+            }
+        }
+
+        val y = offsetY.pxValue(_density) { type ->
+            when (type) {
+                TransformOffsetType.Target -> result.input.targetHeight
+                TransformOffsetType.Content -> result.input.sourceHeight
+            }
+        }
+
+        if (x == 0 && y == 0) {
+            return result
+        }
+
+        val newInput = result.input.copy(
+            targetX = result.input.targetX + x,
+            targetY = result.input.targetY + y,
         )
+
+        return _aligner.align(newInput)
     }
 
     private fun findBestPosition(result: Aligner.Result, targetLayout: LayoutInfo): Aligner.Result {
@@ -316,6 +347,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     @Composable
     override fun Content() {
+        _density = LocalDensity.current
         val uiState by _uiState.collectAsState()
         LayerBox {
             OffsetBox(
@@ -799,4 +831,25 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
     -> true
 
     else -> false
+}
+
+private inline fun TransformOffset?.pxValue(
+    density: Density,
+    typeValue: (TransformOffsetType) -> Int,
+): Int {
+    return when (val offset = this) {
+        null -> 0
+        is TransformOffset.PX -> offset.value
+
+        is TransformOffset.DP -> {
+            val px = offset.value * density.density
+            if (px.isInfinite()) 0 else px.roundToInt()
+        }
+
+        is TransformOffset.Percent -> {
+            val typedValue = typeValue(offset.type)
+            val px = typedValue * offset.value
+            if (px.isInfinite()) 0 else px.roundToInt()
+        }
+    }
 }
