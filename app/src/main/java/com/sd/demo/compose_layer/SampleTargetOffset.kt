@@ -50,7 +50,7 @@ private fun Content() {
             .padding(horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(300.dp))
+        Spacer(modifier = Modifier.height(500.dp))
         Button(
             onClick = {
                 layer.attach()
