@@ -36,14 +36,14 @@ interface TargetLayer : Layer {
     fun setTarget(offset: IntOffset?)
 
     /**
-     * 设置坐标转换（X方向）
+     * 设置目标X方向偏移量
      */
-    fun setXOffset(offset: TransformOffset?)
+    fun setTargetOffsetX(offset: TargetOffset?)
 
     /**
-     * 设置坐标转换（Y方向）
+     * 设置目标Y方向偏移量
      */
-    fun setYOffset(offset: TransformOffset?)
+    fun setTargetOffsetY(offset: TargetOffset?)
 
     /**
      * 设置是否修复溢出，默认true
@@ -61,14 +61,16 @@ interface TargetLayer : Layer {
     fun setClipBackgroundDirection(direction: Directions?)
 }
 
-sealed interface TransformOffset {
-    data class PX(val value: Int) : TransformOffset
-    data class Percent(val value: Float, val type: Type) : TransformOffset
+sealed interface TargetOffset {
+    /**
+     * 偏移指定像素
+     */
+    data class PX(val value: Int) : TargetOffset
 
-    enum class Type {
-        Target,
-        Content,
-    }
+    /**
+     * 偏移目标大小的倍数，例如：1表示向正方向偏移1倍目标的大小，-1表示向负方向偏移1倍目标的大小
+     */
+    data class Percent(val value: Float) : TargetOffset
 }
 
 sealed class Directions(direction: Int) {
@@ -129,8 +131,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private var _targetOffset: IntOffset? = null
 
-    private var _xOffset: TransformOffset? = null
-    private var _yOffset: TransformOffset? = null
+    private var _targetOffsetX: TargetOffset? = null
+    private var _targetOffsetY: TargetOffset? = null
 
     private var _fixOverflowState by mutableStateOf(true)
     private var _findBestPositionState by mutableStateOf(false)
@@ -169,12 +171,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    override fun setXOffset(offset: TransformOffset?) {
-        _xOffset = offset
+    override fun setTargetOffsetX(offset: TargetOffset?) {
+        _targetOffsetX = offset
     }
 
-    override fun setYOffset(offset: TransformOffset?) {
-        _yOffset = offset
+    override fun setTargetOffsetY(offset: TargetOffset?) {
+        _targetOffsetY = offset
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
@@ -233,43 +235,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
 
         val result = _aligner.align(input)
-        val transformResult = transformResult(result)
-        return findBestPosition(transformResult, target)
-    }
-
-    private fun transformResult(result: Aligner.Result): Aligner.Result {
-        val xOffset = _xOffset
-        val yOffset = _yOffset
-        if (xOffset == null && yOffset == null) {
-            return result
-        }
-
-        val x = xOffset.pxValue { type ->
-            when (type) {
-                TransformOffset.Type.Target -> result.input.targetWidth
-                TransformOffset.Type.Content -> result.input.sourceWidth
-            }
-        }
-
-        val y = yOffset.pxValue { type ->
-            when (type) {
-                TransformOffset.Type.Target -> result.input.targetHeight
-                TransformOffset.Type.Content -> result.input.sourceHeight
-            }
-        }
-
-        if (x == 0 && y == 0) {
-            return result
-        }
-
-        val newInput = result.input.run {
-            copy(
-                targetX = this.targetX + x,
-                targetY = this.targetY + y,
-            )
-        }
-
-        return _aligner.align(newInput)
+        return findBestPosition(result, target)
     }
 
     private fun findBestPosition(result: Aligner.Result, targetLayout: LayoutInfo): Aligner.Result {
@@ -833,13 +799,12 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
     else -> false
 }
 
-private inline fun TransformOffset?.pxValue(typeValue: (TransformOffset.Type) -> Int): Int {
+private fun TargetOffset?.pxValue(targetSize: Int): Int {
     return when (val offset = this) {
         null -> 0
-        is TransformOffset.PX -> offset.value
-        is TransformOffset.Percent -> {
-            val typedValue = typeValue(offset.type)
-            val px = typedValue * offset.value
+        is TargetOffset.PX -> offset.value
+        is TargetOffset.Percent -> {
+            val px = targetSize * offset.value
             if (px.isInfinite()) 0 else px.roundToInt()
         }
     }
