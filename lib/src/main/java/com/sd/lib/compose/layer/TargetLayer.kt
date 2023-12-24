@@ -365,25 +365,22 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             }
 
             val fixOverFlow = result.fixOverFlow(this@TargetLayerImpl)
+            val fixOffset = IntOffset(fixOverFlow.x, fixOverFlow.y)
+            val fixSize = IntSize(fixOverFlow.width, fixOverFlow.height)
 
-            val x = fixOverFlow.x
-            val y = fixOverFlow.y
-            val width = fixOverFlow.width
-            val height = fixOverFlow.height
-
-            val contentPlaceable = measureContent(cs.newMax(width, height))
+            val contentPlaceable = measureContent(cs.newMax(fixSize.width, fixSize.height))
 
             logMsg {
                 "fixOverFlow \n" +
-                        "offset:(${result.x}, ${result.y})->(${x}, ${y}) \n" +
-                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${width}, ${height}) \n" +
+                        "offset:(${result.x}, ${result.y})->(${fixOffset.x}, ${fixOffset.y}) \n" +
+                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${fixSize.width}, ${fixSize.height}) \n" +
                         "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
             }
 
             val backgroundInfo = backgroundPlaceInfo(
                 cs = cs,
-                contentOffset = IntOffset(x, y),
-                contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
+                contentOffset = fixOffset,
+                contentSize = fixSize,
             )
             val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
@@ -394,8 +391,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 backgroundX = backgroundInfo.x,
                 backgroundY = backgroundInfo.y,
                 contentPlaceable = contentPlaceable,
-                contentX = x,
-                contentY = y,
+                contentX = fixOffset.x,
+                contentY = fixOffset.y,
             )
         }
 
