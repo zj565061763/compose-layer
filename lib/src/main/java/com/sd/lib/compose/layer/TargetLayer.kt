@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
 import com.sd.lib.aligner.FAligner
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -109,6 +110,7 @@ sealed class Directions(direction: Int) {
 private data class UIState(
     val targetLayout: LayoutInfo,
     val containerLayout: LayoutInfo,
+    val fixOverflow: Boolean,
 )
 
 @Immutable
@@ -125,7 +127,13 @@ private val EmptyLayoutInfo = LayoutInfo(
 )
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
-    private val _uiState = MutableStateFlow(UIState(EmptyLayoutInfo, EmptyLayoutInfo))
+    private val _uiState = MutableStateFlow(
+        UIState(
+            targetLayout = EmptyLayoutInfo,
+            containerLayout = EmptyLayoutInfo,
+            fixOverflow = true,
+        )
+    )
 
     private val _aligner = FAligner()
 
@@ -133,7 +141,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _targetOffsetX: TargetOffset? = null
     private var _targetOffsetY: TargetOffset? = null
 
-    private var _fixOverflowState by mutableStateOf(true)
     private var _findBestPositionState by mutableStateOf(false)
     private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
 
@@ -171,15 +178,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setTargetOffsetX(offset: TargetOffset?) {
-        _targetOffsetX = offset
+        if (_targetOffsetX != offset) {
+            _targetOffsetX = offset
+            updateUiState()
+        }
     }
 
     override fun setTargetOffsetY(offset: TargetOffset?) {
-        _targetOffsetY = offset
+        if (_targetOffsetY != offset) {
+            _targetOffsetY = offset
+            updateUiState()
+        }
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
-        _fixOverflowState = fixOverflow
+        _uiState.update { it.copy(fixOverflow = fixOverflow) }
     }
 
     override fun setFindBestPosition(findBestPosition: Boolean) {
@@ -305,10 +318,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             isAttached = _containerLayout.isAttached(),
         )
 
-        _uiState.value = UIState(
-            targetLayout = targetLayout,
-            containerLayout = containerLayout,
-        )
+        _uiState.update {
+            it.copy(
+                targetLayout = targetLayout,
+                containerLayout = containerLayout,
+            )
+        }
     }
 
     @Composable
@@ -360,7 +375,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
             }
 
-            if (_fixOverflowState) {
+            if (uiState.fixOverflow) {
                 state.layoutFixOverflow(
                     cs = cs,
                     uiState = uiState,
