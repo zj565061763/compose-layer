@@ -36,9 +36,9 @@ interface TargetLayer : Layer {
     fun setOffsetTransform(transform: OffsetTransform?)
 
     /**
-     * 设置修复溢出的方向[Directions]
+     * 设置是否修复溢出，默认false
      */
-    fun setFixOverflowDirection(direction: Directions?)
+    fun setFixOverflow(fixOverflow: Boolean)
 
     /**
      * 设置要裁切背景的方向[Directions]
@@ -119,7 +119,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
     private var _offsetTransform: OffsetTransform? = null
 
-    private var _fixOverflowDirectionState by mutableStateOf<Directions?>(null)
+    private var _fixOverflowState by mutableStateOf(false)
     private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
     private var _targetOffsetState by mutableStateOf<IntOffset?>(null)
 
@@ -157,8 +157,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _offsetTransform = transform
     }
 
-    override fun setFixOverflowDirection(direction: Directions?) {
-        _fixOverflowDirectionState = direction
+    override fun setFixOverflow(fixOverflow: Boolean) {
+        _fixOverflowState = fixOverflow
     }
 
     override fun setClipBackgroundDirection(direction: Directions?) {
@@ -305,17 +305,17 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
             }
 
-            val fixOverflowDirection = _fixOverflowDirectionState
-                ?: return@SubcomposeLayout state.layoutNoneOverflow(
+            if (_fixOverflowState) {
+                state.layoutFixOverflow(
                     cs = cs,
                     uiState = uiState,
                 )
-
-            state.layoutFixOverflow(
-                cs = cs,
-                uiState = uiState,
-                direction = fixOverflowDirection,
-            )
+            } else {
+                state.layoutNoneOverflow(
+                    cs = cs,
+                    uiState = uiState,
+                )
+            }
         }
     }
 
@@ -396,7 +396,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         fun layoutFixOverflow(
             cs: Constraints,
             uiState: UiState,
-            direction: Directions,
         ): MeasureResult {
             val originalPlaceable = measureContent(cs, slotId = null)
             val result = alignTarget(
@@ -411,7 +410,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             var x = result.x
             var y = result.y
 
-            val (fixedConstraints, fixedResult) = checkOverflow(result, cs, direction)
+            val (fixedConstraints, fixedResult) = checkOverflow(result, cs)
             val contentPlaceable = if (fixedConstraints != null) {
                 measureContent(fixedConstraints).also { placeable ->
                     logMsg(isDebug) {
@@ -584,7 +583,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         private fun checkOverflow(
             result: Aligner.Result,
             cs: Constraints,
-            direction: Directions,
         ): Pair<Constraints?, Aligner.Result> {
             var resultConstraints: Constraints? = null
 
@@ -604,20 +602,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         var isTopOverflow = false
                         var isBottomOverflow = false
 
-                        if (direction.hasTop()) {
-                            if (top > 0) {
-                                overSize += top
-                                isTopOverflow = true
-                                logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
-                            }
+                        if (top > 0) {
+                            overSize += top
+                            isTopOverflow = true
+                            logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
                         }
 
-                        if (direction.hasBottom()) {
-                            if (bottom > 0) {
-                                overSize += bottom
-                                isBottomOverflow = true
-                                logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
-                            }
+                        if (bottom > 0) {
+                            overSize += bottom
+                            isBottomOverflow = true
+                            logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
                         }
 
                         if (overSize > 0) {
@@ -646,20 +640,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         var isStartOverflow = false
                         var isEndOverflow = false
 
-                        if (direction.hasStart()) {
-                            if (start > 0) {
-                                overSize += start
-                                isStartOverflow = true
-                                logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
-                            }
+                        if (start > 0) {
+                            overSize += start
+                            isStartOverflow = true
+                            logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
                         }
 
-                        if (direction.hasEnd()) {
-                            if (end > 0) {
-                                overSize += end
-                                isEndOverflow = true
-                                logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
-                            }
+                        if (end > 0) {
+                            overSize += end
+                            isEndOverflow = true
+                            logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
                         }
 
                         if (overSize > 0) {

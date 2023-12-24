@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Directions
 import com.sd.lib.compose.layer.DisplayDefault
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.TargetLayer
@@ -77,7 +76,7 @@ private fun layer(): TargetLayer {
             it.dialogBehavior
                 .setCanceledOnTouchOutside(true)
                 .setBackgroundColor(Color.Transparent)
-            it.setFixOverflowDirection(Directions.All)
+            it.setFixOverflow(true)
         },
         display = {
             DisplayDefault(

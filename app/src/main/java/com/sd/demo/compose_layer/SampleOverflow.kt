@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Directions
 import com.sd.lib.compose.layer.DisplayDefault
 import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
@@ -62,7 +61,7 @@ private fun Content() {
             Button(
                 onClick = {
                     layer.setTarget("button1")
-                    layer.setFixOverflowDirection(null)
+                    layer.setFixOverflow(false)
                     layer.attach()
                 },
                 modifier = Modifier.layerTarget("button1")
@@ -73,9 +72,7 @@ private fun Content() {
             Button(
                 onClick = {
                     layer.setTarget("button2")
-                    layer.setFixOverflowDirection(
-                        Directions.Bottom + Directions.Start + Directions.End
-                    )
+                    layer.setFixOverflow(true)
                     layer.attach()
                 },
                 modifier = Modifier.layerTarget("button2")
