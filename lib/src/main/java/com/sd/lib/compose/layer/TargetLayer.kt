@@ -296,9 +296,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         private var _visibleBackgroundInfo: PlaceInfo? = null
         private var _visibleContentInfo: PlaceInfo? = null
 
-        fun layoutLastVisible(
-            cs: Constraints,
-        ): MeasureResult {
+        fun layoutLastVisible(cs: Constraints): MeasureResult {
             val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
