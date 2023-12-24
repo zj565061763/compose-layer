@@ -163,8 +163,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
+    private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
 
     private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateTargetLayout()
@@ -248,23 +248,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
      * 更新目标布局信息
      */
     private fun updateTargetLayout() {
-        val targetOffset = _targetOffset
-        val layout = if (targetOffset != null) {
-            LayoutInfo(
-                size = IntSize.Zero,
-                offset = targetOffset,
-                isAttached = true,
-            )
-        } else {
-            LayoutInfo(
-                size = _targetLayout.size(),
-                offset = _targetLayout.offset(),
-                isAttached = _targetLayout.isAttached(),
-            )
-        }
-        _uiState.update {
-            it.copy(targetLayout = layout)
-        }
+        val layout = _targetOffset?.toLayoutInfo() ?: _targetLayout.toLayoutInfo()
+        _uiState.update { it.copy(targetLayout = layout) }
     }
 
     /**
@@ -617,6 +602,23 @@ private fun Layer.Position.toAlignerPosition(): Aligner.Position {
 
         Layer.Position.Center -> Aligner.Position.Center
     }
+}
+
+private fun IntOffset?.toLayoutInfo(): LayoutInfo? {
+    if (this == null) return null
+    return LayoutInfo(
+        size = IntSize.Zero,
+        offset = this,
+        isAttached = true,
+    )
+}
+
+private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
+    return LayoutInfo(
+        size = size(),
+        offset = offset(),
+        isAttached = isAttached(),
+    )
 }
 
 private fun LayoutCoordinates?.size(): IntSize {
