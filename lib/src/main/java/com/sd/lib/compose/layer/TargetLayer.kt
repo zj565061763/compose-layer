@@ -770,20 +770,24 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
     )
 }
 
-private fun Aligner.Position.isCenterVertical(): Boolean = when (this) {
-    Aligner.Position.StartCenter,
-    Aligner.Position.EndCenter,
-    Aligner.Position.Center,
-    -> true
+private fun Aligner.Position.isCenterHorizontal(): Boolean {
+    return when (this) {
+        Aligner.Position.TopCenter,
+        Aligner.Position.BottomCenter,
+        Aligner.Position.Center,
+        -> true
 
-    else -> false
+        else -> false
+    }
 }
 
-private fun Aligner.Position.isCenterHorizontal(): Boolean = when (this) {
-    Aligner.Position.TopCenter,
-    Aligner.Position.BottomCenter,
-    Aligner.Position.Center,
-    -> true
+private fun Aligner.Position.isCenterVertical(): Boolean {
+    return when (this) {
+        Aligner.Position.StartCenter,
+        Aligner.Position.EndCenter,
+        Aligner.Position.Center,
+        -> true
 
-    else -> false
+        else -> false
+    }
 }
