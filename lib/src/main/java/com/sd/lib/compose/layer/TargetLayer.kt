@@ -224,8 +224,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         container: LayoutInfo,
         contentSize: IntSize,
     ): Aligner.Result {
-        if (!target.isAttached) error("target is not ready")
-        if (!container.isAttached) error("container is not ready")
+        check(target.isAttached)
+        check(container.isAttached)
         return Aligner.Input(
             position = position.toAlignerPosition(),
 
