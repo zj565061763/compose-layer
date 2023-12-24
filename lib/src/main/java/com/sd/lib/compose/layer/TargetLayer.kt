@@ -437,7 +437,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x, $y)" }
+            logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x,$y) (${contentPlaceable.width},${contentPlaceable.height})" }
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -630,7 +630,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                             }
 
                             val oldWidth = resultWith
-                            resultWith = (oldWidth - overSize).coerceAtLeast(0)
+                            resultWith = oldWidth - overSize
                             logMsg(isDebug) {
                                 val startLog = if (start > 0) " start:$start" else ""
                                 val endLog = if (end > 0) " end:$end" else ""
@@ -669,7 +669,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                             }
 
                             val oldHeight = resultHeight
-                            resultHeight = (oldHeight - overSize).coerceAtLeast(0)
+                            resultHeight = oldHeight - overSize
                             logMsg(isDebug) {
                                 val topLog = if (top > 0) " top:$top" else ""
                                 val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
@@ -680,6 +680,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
 
                 if (hasOverflow) {
+                    if (resultWith <= 0 || resultHeight <= 0) {
+                        break
+                    }
                     val newInput = result.input.copy(
                         sourceWidth = resultWith,
                         sourceHeight = resultHeight,
@@ -693,8 +696,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             return FixOverFlow(
                 x = result.x,
                 y = result.y,
-                width = resultWith,
-                height = resultHeight,
+                width = resultWith.coerceAtLeast(0),
+                height = resultHeight.coerceAtLeast(0),
             )
         }
 
