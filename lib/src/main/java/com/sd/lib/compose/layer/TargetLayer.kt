@@ -223,6 +223,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
      */
     private fun updateTargetLayout() {
         val layout = _targetOffset?.toLayoutInfo() ?: _targetLayout.toLayoutInfo()
+        // TODO target offset
         _uiState.update { it.copy(targetLayout = layout) }
     }
 
