@@ -73,9 +73,8 @@ private fun layer(): TargetLayer {
     return rememberTargetLayer(
         onCreate = {
             it.isDebug = true
-            it.dialogBehavior
-                .setCanceledOnTouchOutside(true)
-                .setBackgroundColor(Color.Transparent)
+            it.setBackgroundColor(Color.Transparent)
+            it.setCanceledOnTouchBackground(true)
             it.setFindBestPosition(true)
         },
         display = {

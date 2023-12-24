@@ -51,7 +51,7 @@ private fun layer(): Layer {
         onCreate = {
             it.isDebug = true
             it.setPosition(Layer.Position.StartCenter)
-            it.dialogBehavior.setCanceledOnTouchOutside(true)
+            it.setCanceledOnTouchBackground(true)
             it.registerAttachCallback {
                 logMsg { "callback onAttach" }
             }

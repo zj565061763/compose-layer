@@ -40,14 +40,39 @@ interface Layer {
     val positionState: Position
 
     /**
-     * 窗口行为
+     * 背景颜色
      */
-    val dialogBehavior: DialogBehavior
+    val backgroundColorState: Color
 
     /**
-     * 设置对齐的位置，默认[Position.Center]
+     * 是否可以取消，null表示不处理返回键取消逻辑，也不处理触摸背景取消逻辑，默认true
+     */
+    val isCancelableState: Boolean?
+
+    /**
+     * 触摸背景是否取消[detach]，默认false
+     */
+    val isCanceledOnTouchBackground: Boolean
+
+    /**
+     * 对齐的位置，默认[Position.Center]
      */
     fun setPosition(position: Position)
+
+    /**
+     * 背景颜色
+     */
+    fun setBackgroundColor(color: Color)
+
+    /**
+     * 是否可以取消，null表示不处理返回键取消逻辑，也不处理触摸背景取消逻辑，默认true
+     */
+    fun setCancelable(value: Boolean?)
+
+    /**
+     * 触摸背景是否取消[detach]，默认false
+     */
+    fun setCanceledOnTouchBackground(value: Boolean)
 
     /**
      * 是否裁剪内容区域，默认true
@@ -126,65 +151,6 @@ interface Layer {
     }
 }
 
-class DialogBehavior {
-    private var _enabledState by mutableStateOf(true)
-    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
-
-    private var _cancelable = true
-    private var _canceledOnTouchOutside = false
-
-    /**
-     * 窗口行为是否开启，默认true
-     */
-    val enabledState: Boolean get() = _enabledState
-
-    /**
-     * 背景颜色
-     */
-    val backgroundColorState: Color get() = _backgroundColorState
-
-    /**
-     * 窗口是否可以取消，例如按返回键，默认true
-     */
-    val cancelable: Boolean get() = _cancelable
-
-    /**
-     * 触摸到非内容区域窗口是否取消，默认false
-     */
-    val canceledOnTouchOutside: Boolean get() = _canceledOnTouchOutside
-
-    /**
-     * [enabledState]
-     */
-    fun setEnabled(value: Boolean) = apply {
-        _enabledState = value
-    }
-
-    /**
-     * [backgroundColorState]
-     */
-    fun setBackgroundColor(value: Color) = apply {
-        _backgroundColorState = value
-    }
-
-    /**
-     * [cancelable]
-     */
-    fun setCancelable(value: Boolean) = apply {
-        _cancelable = value
-    }
-
-    /**
-     * [canceledOnTouchOutside]
-     */
-    fun setCanceledOnTouchOutside(value: Boolean) = apply {
-        if (value && !_cancelable) {
-            _cancelable = true
-        }
-        _canceledOnTouchOutside = value
-    }
-}
-
 interface LayerContentScope {
     val layer: Layer
 }
@@ -214,16 +180,35 @@ internal open class LayerImpl : Layer {
     private var _positionState by mutableStateOf(Position.Center)
     private var _clipToBoundsState by mutableStateOf(true)
 
+    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+    private var _isCancelableState by mutableStateOf<Boolean?>(true)
+    private var _isCanceledOnTouchBackgroundState by mutableStateOf(false)
+
     private val _attachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
     private val _detachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
 
     final override var isDebug: Boolean = false
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
-    final override val dialogBehavior: DialogBehavior = DialogBehavior()
+    final override val backgroundColorState: Color get() = _backgroundColorState
+    final override val isCancelableState: Boolean? get() = _isCancelableState
+    final override val isCanceledOnTouchBackground: Boolean get() = _isCanceledOnTouchBackgroundState
 
     final override fun setPosition(position: Position) {
         _positionState = position
+    }
+
+    override fun setBackgroundColor(color: Color) {
+        _backgroundColorState = color
+    }
+
+    override fun setCancelable(value: Boolean?) {
+        _isCancelableState = value
+    }
+
+    override fun setCanceledOnTouchBackground(value: Boolean) {
+        if (value) _isCancelableState = true
+        _isCanceledOnTouchBackgroundState = value
     }
 
     final override fun setClipToBounds(clipToBounds: Boolean) {
@@ -383,27 +368,28 @@ internal open class LayerImpl : Layer {
 
     @Composable
     protected fun BackgroundBox() {
-        val behavior = dialogBehavior
-        if (behavior.enabledState) {
-            AnimatedVisibility(
-                visible = isVisibleState,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(behavior.backgroundColorState)
-                        .pointerInput(behavior) {
-                            awaitEachGesture {
-                                awaitFirstDown(pass = PointerEventPass.Initial)
-                                if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                                    logMsg { "cancel touch outside" }
-                                    detach()
+        Box {
+            isCancelableState?.let { isCancelable ->
+                AnimatedVisibility(
+                    visible = isVisibleState,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(backgroundColorState)
+                            .pointerInput(Unit) {
+                                awaitEachGesture {
+                                    awaitFirstDown(pass = PointerEventPass.Initial)
+                                    if (isCancelable && isCanceledOnTouchBackground) {
+                                        logMsg { "cancel touch outside" }
+                                        detach()
+                                    }
                                 }
                             }
-                        }
-                )
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
@@ -189,13 +188,11 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
         _attachedLayers.forEach { layer ->
             key(layer.id) {
                 layer.Content()
-            }
-
-            val behavior = layer.dialogBehavior
-            if (behavior.enabledState) {
-                BackHandler(layer.isVisibleState) {
-                    if (behavior.cancelable) {
-                        layer.detach()
+                layer.isCancelableState?.let { isCancelable ->
+                    BackHandler(layer.isVisibleState) {
+                        if (isCancelable) {
+                            layer.detach()
+                        }
                     }
                 }
             }

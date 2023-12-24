@@ -67,9 +67,9 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setTarget("button")
-            it.dialogBehavior.setCanceledOnTouchOutside(true)
             it.setPosition(Layer.Position.BottomCenter)
             it.setClipBackgroundDirection(Directions.Top)
+            it.setCanceledOnTouchBackground(true)
         },
         display = { DisplaySlideDownUp() }
     ) {

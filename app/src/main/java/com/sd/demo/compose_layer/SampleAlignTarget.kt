@@ -73,7 +73,7 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setTarget("hello")
-            it.dialogBehavior.setEnabled(false)
+            it.setCancelable(null)
         }
     ) {
         ColorBox(
