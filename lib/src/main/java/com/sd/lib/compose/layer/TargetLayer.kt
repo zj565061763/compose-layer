@@ -263,10 +263,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             return result
         }
 
-        val newInput = result.input.copy(
-            targetX = result.input.targetX + x,
-            targetY = result.input.targetY + y,
-        )
+        val newInput = result.input.run {
+            copy(
+                targetX = this.targetX + x,
+                targetY = this.targetY + y,
+            )
+        }
 
         return _aligner.align(newInput)
     }
