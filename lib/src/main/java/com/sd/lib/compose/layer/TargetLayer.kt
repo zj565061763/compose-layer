@@ -91,7 +91,6 @@ sealed class Directions(direction: Int) {
     data object Bottom : Directions(FlagBottom)
     data object Start : Directions(FlagStart)
     data object End : Directions(FlagEnd)
-    data object All : Directions(FlagAll)
 
     private class Combine(direction: Int) : Directions(direction)
 
@@ -100,7 +99,6 @@ sealed class Directions(direction: Int) {
         private const val FlagBottom = FlagTop shl 1
         private const val FlagStart = FlagTop shl 2
         private const val FlagEnd = FlagTop shl 3
-        private const val FlagAll = FlagTop or FlagBottom or FlagStart or FlagEnd
     }
 }
 
