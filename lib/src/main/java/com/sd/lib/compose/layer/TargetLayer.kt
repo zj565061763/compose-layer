@@ -27,7 +27,7 @@ interface TargetLayer : Layer {
     fun setTarget(target: String?)
 
     /**
-     * 设置目标坐标，如果不为null，则[setTarget]设置的目标无效。
+     * 设置目标坐标
      */
     fun setTarget(offset: IntOffset?)
 
