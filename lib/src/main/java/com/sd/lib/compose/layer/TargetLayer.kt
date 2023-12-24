@@ -324,7 +324,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
             ).let {
-                if (_findBestPosition) it.findBestPosition() else it
+                if (_findBestPosition) it.findBestPosition(this@TargetLayerImpl) else it
             }
 
             val offset = IntOffset(result.x, result.y)
@@ -361,7 +361,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
             ).let {
-                if (_findBestPosition) it.findBestPosition() else it
+                if (_findBestPosition) it.findBestPosition(this@TargetLayerImpl) else it
             }
 
             val fixOverFlow = result.fixOverFlow(this@TargetLayerImpl)
@@ -613,6 +613,7 @@ private fun Constraints.newMax(width: Int, height: Int): Constraints {
 }
 
 private fun Aligner.Result.findBestPosition(
+    layer: Layer,
     list: MutableList<Aligner.Position> = mutableListOf(
         Aligner.Position.BottomEnd,
         Aligner.Position.BottomStart,
@@ -638,6 +639,11 @@ private fun Aligner.Result.findBestPosition(
             if (newOverflow == 0) break
         }
     }
+
+    layer.logMsg {
+        "findBestPosition ${input.position} -> ${bestResult.input.position}"
+    }
+
     return bestResult
 }
 
