@@ -110,9 +110,6 @@ sealed class Directions(direction: Int) {
 private data class UIState(
     val targetLayout: LayoutInfo,
     val containerLayout: LayoutInfo,
-    val fixOverflow: Boolean,
-    val findBestPosition: Boolean,
-    val clipBackgroundDirection: Directions?,
 )
 
 @Immutable
@@ -133,11 +130,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         UIState(
             targetLayout = EmptyLayoutInfo,
             containerLayout = EmptyLayoutInfo,
-            fixOverflow = true,
-            findBestPosition = false,
-            clipBackgroundDirection = null,
         )
     )
+
+    private var _fixOverflow = true
+    private var _findBestPosition = false
+    private var _clipBackgroundDirection: Directions? = null
 
     private var _targetOffset by Delegates.observable<IntOffset?>(null) { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -192,15 +190,15 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
-        _uiState.update { it.copy(fixOverflow = fixOverflow) }
+        _fixOverflow = fixOverflow
     }
 
     override fun setFindBestPosition(findBestPosition: Boolean) {
-        _uiState.update { it.copy(findBestPosition = findBestPosition) }
+        _findBestPosition = findBestPosition
     }
 
     override fun setClipBackgroundDirection(direction: Directions?) {
-        _uiState.update { it.copy(clipBackgroundDirection = direction) }
+        _clipBackgroundDirection = direction
     }
 
     override fun onAttach() {
@@ -332,7 +330,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 }
             }
 
-            if (uiState.fixOverflow) {
+            if (_fixOverflow) {
                 state.layoutFixOverflow(
                     cs = cs,
                     uiState = uiState,
@@ -392,7 +390,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
             ).let {
-                if (uiState.findBestPosition) it.findBestPosition() else it
+                if (_findBestPosition) it.findBestPosition() else it
             }
 
             val x = result.x
@@ -402,7 +400,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = uiState.clipBackgroundDirection,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -432,7 +429,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 container = uiState.containerLayout,
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
             ).let {
-                if (uiState.findBestPosition) it.findBestPosition() else it
+                if (_findBestPosition) it.findBestPosition() else it
             }
 
             val fixOverFlow = result.fixOverFlow(this@TargetLayerImpl)
@@ -455,7 +452,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = uiState.clipBackgroundDirection,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -510,8 +506,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             cs: Constraints,
             contentOffset: IntOffset,
             contentSize: IntSize,
-            direction: Directions?,
         ): PlaceInfo {
+            val direction = _clipBackgroundDirection
             if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
                 return PlaceInfo(
                     x = 0,
