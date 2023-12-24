@@ -160,11 +160,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
         logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $newValue" }
-        updateLayoutState()
+        updateTargetLayout()
     }
     private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
         logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
-        updateLayoutState()
+        updateContainerLayoutState()
     }
 
     override fun setTarget(target: String?) {
@@ -174,21 +174,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     override fun setTarget(offset: IntOffset?) {
         if (_targetOffset != offset) {
             _targetOffset = offset
-            updateLayoutState()
+            updateTargetLayout()
         }
     }
 
     override fun setTargetOffsetX(offset: TargetOffset?) {
         if (_targetOffsetX != offset) {
             _targetOffsetX = offset
-            updateLayoutState()
+            updateTargetLayout()
         }
     }
 
     override fun setTargetOffsetY(offset: TargetOffset?) {
         if (_targetOffsetY != offset) {
             _targetOffsetY = offset
-            updateLayoutState()
+            updateTargetLayout()
         }
     }
 
@@ -290,7 +290,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         return bestResult
     }
 
-    private fun updateLayoutState() {
+    /**
+     * 更新目标布局信息
+     */
+    private fun updateTargetLayout() {
         val targetOffset = _targetOffset
         val targetLayout = if (targetOffset != null) {
             LayoutInfo(
@@ -305,18 +308,22 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 isAttached = _targetLayout.isAttached(),
             )
         }
+        _uiState.update {
+            it.copy(targetLayout = targetLayout)
+        }
+    }
 
+    /**
+     * 更新容器布局信息
+     */
+    private fun updateContainerLayoutState() {
         val containerLayout = LayoutInfo(
             size = _containerLayout.size(),
             offset = _containerLayout.offset(),
             isAttached = _containerLayout.isAttached(),
         )
-
         _uiState.update {
-            it.copy(
-                targetLayout = targetLayout,
-                containerLayout = containerLayout,
-            )
+            it.copy(containerLayout = containerLayout)
         }
     }
 
