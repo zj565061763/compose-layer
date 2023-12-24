@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
-import com.sd.lib.aligner.FAligner
+import com.sd.lib.aligner.toResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
@@ -137,8 +137,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
     )
 
-    private val _aligner = FAligner()
-
     private var _targetOffset: IntOffset? = null
     private var _targetOffsetX: TargetOffset? = null
     private var _targetOffsetY: TargetOffset? = null
@@ -247,48 +245,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             sourceHeight = contentSize.height,
         )
 
-        return _aligner.align(input)
+        return input.toResult()
     }
 
-    private fun Aligner.Result.findBestPosition(): Aligner.Result {
-        val result = this
-
-        val overflowDefault = result.sourceOverflow.totalOverflow()
-        if (overflowDefault == 0) return result
-
-        val preferPosition = mutableListOf(
-            Aligner.Position.BottomEnd,
-            Aligner.Position.BottomStart,
-            Aligner.Position.TopEnd,
-            Aligner.Position.TopStart,
-        ).apply {
-            remove(result.input.position)
-        }
-
-        var bestResult = result
-        var minOverflow = overflowDefault
-        var bestPosition = result.input.position
-
-        for (position in preferPosition) {
-            val newResult = _aligner.align(
-                result.input.copy(position = position)
-            )
-
-            val newOverflow = newResult.sourceOverflow.totalOverflow()
-            if (newOverflow < minOverflow) {
-                minOverflow = newOverflow
-                bestResult = newResult
-                bestPosition = position
-                if (newOverflow == 0) break
-            }
-        }
-
-        logMsg(isDebug) {
-            "${this@TargetLayerImpl} findBestPosition:$bestPosition"
-        }
-
-        return bestResult
-    }
 
     /**
      * 更新目标布局信息
@@ -637,6 +596,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                              */
                             if (positionState.isCenterHorizontal()) {
                                 if (isStartOverflow && isEndOverflow) {
+                                    // 正常流程
                                 } else {
                                     overSize *= 2
                                 }
@@ -676,6 +636,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                              */
                             if (positionState.isCenterVertical()) {
                                 if (isTopOverflow && isBottomOverflow) {
+                                    // 正常流程
                                 } else {
                                     overSize *= 2
                                 }
@@ -700,7 +661,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         sourceWidth = resultWith,
                         sourceHeight = resultHeight,
                     )
-                    result = _aligner.align(newInput)
+                    result = newInput.toResult()
                 } else {
                     break
                 }
@@ -823,4 +784,33 @@ private fun TargetOffset?.pxValue(targetSize: Int): Int {
             if (px.isInfinite()) 0 else px.roundToInt()
         }
     }
+}
+
+private fun Aligner.Result.findBestPosition(
+    list: MutableList<Aligner.Position> = mutableListOf(
+        Aligner.Position.BottomEnd,
+        Aligner.Position.BottomStart,
+        Aligner.Position.TopEnd,
+        Aligner.Position.TopStart,
+    ),
+): Aligner.Result {
+    val overflowDefault = sourceOverflow.totalOverflow()
+    if (overflowDefault == 0) return this
+
+    val listPosition = list.apply { remove(input.position) }
+    if (listPosition.isEmpty()) return this
+
+    var bestResult = this
+    var minOverflow = overflowDefault
+
+    for (position in listPosition) {
+        val newResult = input.copy(position = position).toResult()
+        val newOverflow = newResult.sourceOverflow.totalOverflow()
+        if (newOverflow < minOverflow) {
+            minOverflow = newOverflow
+            bestResult = newResult
+            if (newOverflow == 0) break
+        }
+    }
+    return bestResult
 }
