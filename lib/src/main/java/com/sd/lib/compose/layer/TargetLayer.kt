@@ -163,14 +163,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
-
     private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateTargetLayout()
-    }
-    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-        updateContainerLayout()
     }
 
     override fun setTarget(target: String?) {
@@ -217,6 +212,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
+    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { layout ->
+        _uiState.update {
+            it.copy(containerLayout = layout.toLayoutInfo())
+        }
+    }
+
     private fun alignTarget(
         position: Layer.Position,
         target: LayoutInfo,
@@ -243,27 +244,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         ).toResult()
     }
 
-
     /**
      * 更新目标布局信息
      */
     private fun updateTargetLayout() {
         val layout = _targetOffset?.toLayoutInfo() ?: _targetLayout.toLayoutInfo()
         _uiState.update { it.copy(targetLayout = layout) }
-    }
-
-    /**
-     * 更新容器布局信息
-     */
-    private fun updateContainerLayout() {
-        val layout = LayoutInfo(
-            size = _containerLayout.size(),
-            offset = _containerLayout.offset(),
-            isAttached = _containerLayout.isAttached(),
-        )
-        _uiState.update {
-            it.copy(containerLayout = layout)
-        }
     }
 
     @Composable
