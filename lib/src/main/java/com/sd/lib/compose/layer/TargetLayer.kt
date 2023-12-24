@@ -281,7 +281,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
             val cs = cs.copy(minWidth = 0, minHeight = 0)
-            state.bindMeasureScope(this)
+            state.measureScope = this
 
             val isTargetReady = uiState.targetLayout.isAttached
             val isContainerReady = uiState.containerLayout.isAttached
@@ -324,16 +324,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         var backgroundState by mutableStateOf<@Composable () -> Unit>({})
         var contentState by mutableStateOf<@Composable () -> Unit>({})
 
-        private var _measureScope: SubcomposeMeasureScope? = null
+        lateinit var measureScope: SubcomposeMeasureScope
+
         private var _visibleBackgroundInfo: PlaceInfo? = null
         private var _visibleContentInfo: PlaceInfo? = null
-
-        val measureScope: SubcomposeMeasureScope
-            get() = checkNotNull(_measureScope) { "bindMeasureScope() before this." }
-
-        fun bindMeasureScope(scope: SubcomposeMeasureScope) {
-            _measureScope = scope
-        }
 
         fun layoutLastVisible(
             cs: Constraints,
