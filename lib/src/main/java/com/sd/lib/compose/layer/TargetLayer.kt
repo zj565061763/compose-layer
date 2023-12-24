@@ -393,7 +393,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 target = uiState.targetLayout,
                 container = uiState.containerLayout,
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-            )
+            ).let {
+                if (uiState.findBestPosition) it.findBestPosition() else it
+            }
 
             val x = result.x
             val y = result.y
@@ -430,7 +432,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 target = uiState.targetLayout,
                 container = uiState.containerLayout,
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
-            )
+            ).let {
+                if (uiState.findBestPosition) it.findBestPosition() else it
+            }
 
             val fixOverFlow = fixOverFlow(result)
 
