@@ -254,7 +254,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
      */
     private fun updateTargetLayout() {
         val targetOffset = _targetOffset
-        val targetLayout = if (targetOffset != null) {
+        val layout = if (targetOffset != null) {
             LayoutInfo(
                 size = IntSize.Zero,
                 offset = targetOffset,
@@ -268,7 +268,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
         _uiState.update {
-            it.copy(targetLayout = targetLayout)
+            it.copy(targetLayout = layout)
         }
     }
 
@@ -276,13 +276,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
      * 更新容器布局信息
      */
     private fun updateContainerLayout() {
-        val containerLayout = LayoutInfo(
+        val layout = LayoutInfo(
             size = _containerLayout.size(),
             offset = _containerLayout.offset(),
             isAttached = _containerLayout.isAttached(),
         )
         _uiState.update {
-            it.copy(containerLayout = containerLayout)
+            it.copy(containerLayout = layout)
         }
     }
 
