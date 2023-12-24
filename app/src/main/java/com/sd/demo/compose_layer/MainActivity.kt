@@ -7,11 +7,15 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,7 +26,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                Content(this)
+                Content(
+                    listActivity = listOf(
+                        SampleAlignContainer::class.java,
+                        SampleAlignTarget::class.java,
+                        SampleDropDown::class.java,
+                        SampleOverflow::class.java,
+                        SampleListMenu::class.java,
+                    ),
+                    onClickActivity = {
+                        startActivity(Intent(this, it))
+                    },
+                )
             }
         }
     }
@@ -30,42 +45,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun Content(
-    activity: Activity,
-    modifier: Modifier = Modifier,
+    listActivity: List<Class<out Activity>>,
+    onClickActivity: (Class<out Activity>) -> Unit,
 ) {
-    Column(
-        modifier = modifier.fillMaxSize(),
+    val onClickActivityUpdated by rememberUpdatedState(onClickActivity)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Button(onClick = {
-            activity.startActivity(Intent(activity, SampleAlignContainer::class.java))
-        }) {
-            Text("Align container")
-        }
-
-        Button(onClick = {
-            activity.startActivity(Intent(activity, SampleAlignTarget::class.java))
-        }) {
-            Text("Align target")
-        }
-
-        Button(onClick = {
-            activity.startActivity(Intent(activity, SampleDropDown::class.java))
-        }) {
-            Text("Drop down")
-        }
-
-        Button(onClick = {
-            activity.startActivity(Intent(activity, SampleOverflow::class.java))
-        }) {
-            Text("Overflow")
-        }
-
-        Button(onClick = {
-            activity.startActivity(Intent(activity, SampleListMenu::class.java))
-        }) {
-            Text("List menu")
+        items(
+            listActivity,
+            key = { it },
+        ) { item ->
+            Button(
+                onClick = { onClickActivityUpdated(item) }
+            ) {
+                Text(text = item.simpleName)
+            }
         }
     }
 }
