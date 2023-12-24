@@ -229,26 +229,22 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     ): Aligner.Result {
         if (!target.isAttached) error("target is not ready")
         if (!container.isAttached) error("container is not ready")
-
-        val input = Aligner.Input(
+        return Aligner.Input(
             position = position.toAlignerPosition(),
+
             targetX = target.offset.x,
             targetY = target.offset.y,
-
-            containerX = container.offset.x,
-            containerY = container.offset.y,
-
             targetWidth = target.size.width,
             targetHeight = target.size.height,
 
+            containerX = container.offset.x,
+            containerY = container.offset.y,
             containerWidth = container.size.width,
             containerHeight = container.size.height,
 
             sourceWidth = contentSize.width,
             sourceHeight = contentSize.height,
-        )
-
-        return input.toResult()
+        ).toResult()
     }
 
 
