@@ -36,12 +36,12 @@ interface TargetLayer : Layer {
     /**
      * 设置坐标转换（X方向）
      */
-    fun setOffsetTransformX(transform: OffsetTransform?)
+    fun setXOffset(offset: TransformOffset?)
 
     /**
      * 设置坐标转换（Y方向）
      */
-    fun setOffsetTransformY(transform: OffsetTransform?)
+    fun setYOffset(offset: TransformOffset?)
 
     /**
      * 设置是否修复溢出，默认true
@@ -59,19 +59,15 @@ interface TargetLayer : Layer {
     fun setClipBackgroundDirection(direction: Directions?)
 }
 
-enum class TransformOffsetType {
-    Target,
-    Content,
-}
-
 sealed interface TransformOffset {
     data class PX(val value: Int) : TransformOffset
     data class DP(val value: Int) : TransformOffset
-    data class Percent(val value: Float, val type: TransformOffsetType) : TransformOffset
-}
+    data class Percent(val value: Float, val type: Type) : TransformOffset
 
-interface OffsetTransform {
-    fun transform(): TransformOffset?
+    enum class Type {
+        Target,
+        Content,
+    }
 }
 
 sealed class Directions(direction: Int) {
@@ -131,8 +127,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _aligner = FAligner()
 
     private lateinit var _density: Density
-    private var _offsetTransformX: OffsetTransform? = null
-    private var _offsetTransformY: OffsetTransform? = null
+    private var _xOffset: TransformOffset? = null
+    private var _yOffset: TransformOffset? = null
 
     private var _fixOverflowState by mutableStateOf(true)
     private var _findBestPositionState by mutableStateOf(false)
@@ -170,12 +166,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _targetOffsetState = offset
     }
 
-    override fun setOffsetTransformX(transform: OffsetTransform?) {
-        _offsetTransformX = transform
+    override fun setXOffset(offset: TransformOffset?) {
+        _xOffset = offset
     }
 
-    override fun setOffsetTransformY(transform: OffsetTransform?) {
-        _offsetTransformY = transform
+    override fun setYOffset(offset: TransformOffset?) {
+        _yOffset = offset
     }
 
     override fun setFixOverflow(fixOverflow: Boolean) {
@@ -239,23 +235,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private fun transformResult(result: Aligner.Result): Aligner.Result {
-        val offsetX = _offsetTransformX?.transform()
-        val offsetY = _offsetTransformY?.transform()
-        if (offsetX == null && offsetY == null) {
+        val xOffset = _xOffset
+        val yOffset = _yOffset
+        if (xOffset == null && yOffset == null) {
             return result
         }
 
-        val x = offsetX.pxValue(_density) { type ->
+        val x = xOffset.pxValue(_density) { type ->
             when (type) {
-                TransformOffsetType.Target -> result.input.targetWidth
-                TransformOffsetType.Content -> result.input.sourceWidth
+                TransformOffset.Type.Target -> result.input.targetWidth
+                TransformOffset.Type.Content -> result.input.sourceWidth
             }
         }
 
-        val y = offsetY.pxValue(_density) { type ->
+        val y = yOffset.pxValue(_density) { type ->
             when (type) {
-                TransformOffsetType.Target -> result.input.targetHeight
-                TransformOffsetType.Content -> result.input.sourceHeight
+                TransformOffset.Type.Target -> result.input.targetHeight
+                TransformOffset.Type.Content -> result.input.sourceHeight
             }
         }
 
@@ -837,7 +833,7 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
 
 private inline fun TransformOffset?.pxValue(
     density: Density,
-    typeValue: (TransformOffsetType) -> Int,
+    typeValue: (TransformOffset.Type) -> Int,
 ): Int {
     return when (val offset = this) {
         null -> 0
