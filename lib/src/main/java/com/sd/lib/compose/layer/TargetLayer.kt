@@ -482,10 +482,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-        private fun measureContent(
-            constraints: Constraints,
-            slotId: SlotId? = SlotId.Content,
-        ): Placeable {
+        private fun measureContent(constraints: Constraints, slotId: SlotId? = SlotId.Content): Placeable {
             val measurable = measureScope.subcompose(slotId, contentState).let {
                 check(it.size == 1)
                 it.first()
