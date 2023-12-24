@@ -220,7 +220,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
 
         val result = _aligner.align(input)
-        return transformResult(result)
+        val transformResult = transformResult(result)
+        return findBestPosition(transformResult, target)
     }
 
     private fun transformResult(result: Aligner.Result): Aligner.Result {
@@ -237,6 +238,52 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             x = offset.x,
             y = offset.y
         )
+    }
+
+    private fun findBestPosition(result: Aligner.Result, targetLayout: LayoutInfo): Aligner.Result {
+        if (!_findBestPositionState) return result
+
+        val overflowSizeDefault = result.sourceOverflow.totalOverflow()
+        if (overflowSizeDefault == 0) return result
+
+        val preferPosition = mutableListOf(
+            Aligner.Position.BottomEnd,
+            Aligner.Position.BottomStart,
+            Aligner.Position.TopEnd,
+            Aligner.Position.TopStart,
+        ).apply {
+            remove(result.input.position)
+        }
+
+        var bestResult = result
+        var minOverflow = overflowSizeDefault
+        var bestPosition = result.input.position
+
+        for (position in preferPosition) {
+            val newResult = _aligner.align(
+                result.input.copy(
+                    position = position,
+                    targetX = targetLayout.offset.x,
+                    targetY = targetLayout.offset.y,
+                    targetWidth = targetLayout.size.width,
+                    targetHeight = targetLayout.size.height,
+                )
+            )
+
+            val newOverflow = newResult.sourceOverflow.totalOverflow()
+            if (newOverflow < minOverflow) {
+                minOverflow = newOverflow
+                bestResult = newResult
+                bestPosition = position
+                if (newOverflow == 0) break
+            }
+        }
+
+        logMsg(isDebug) {
+            "${this@TargetLayerImpl} findBestPosition:$bestPosition"
+        }
+
+        return bestResult
     }
 
     private fun updateUiState() {
@@ -375,9 +422,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 target = uiState.targetLayout,
                 container = uiState.containerLayout,
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-            ).let {
-                findBestPosition(result = it, targetLayout = uiState.targetLayout)
-            }
+            )
 
             val x = result.x
             val y = result.y
@@ -414,9 +459,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 target = uiState.targetLayout,
                 container = uiState.containerLayout,
                 contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
-            ).let {
-                findBestPosition(result = it, targetLayout = uiState.targetLayout)
-            }
+            )
 
             val fixOverFlow = fixOverFlow(result)
 
@@ -543,54 +586,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-        private fun findBestPosition(
-            result: Aligner.Result,
-            targetLayout: LayoutInfo,
-        ): Aligner.Result {
-            if (!_findBestPositionState) return result
-
-            val overflowSizeDefault = result.sourceOverflow.totalOverflow()
-            if (overflowSizeDefault == 0) return result
-
-            val preferPosition = mutableListOf(
-                Aligner.Position.BottomEnd,
-                Aligner.Position.BottomStart,
-                Aligner.Position.TopEnd,
-                Aligner.Position.TopStart,
-            ).apply {
-                remove(result.input.position)
-            }
-
-            var bestResult = result
-            var minOverflow = overflowSizeDefault
-            var bestPosition = result.input.position
-
-            for (position in preferPosition) {
-                val newResult = _aligner.align(
-                    result.input.copy(
-                        position = position,
-                        targetX = targetLayout.offset.x,
-                        targetY = targetLayout.offset.y,
-                        targetWidth = targetLayout.size.width,
-                        targetHeight = targetLayout.size.height,
-                    )
-                )
-
-                val newOverflow = newResult.sourceOverflow.totalOverflow()
-                if (newOverflow < minOverflow) {
-                    minOverflow = newOverflow
-                    bestResult = newResult
-                    bestPosition = position
-                    if (newOverflow == 0) break
-                }
-            }
-
-            logMsg(isDebug) {
-                "${this@TargetLayerImpl} findBestPosition:$bestPosition"
-            }
-
-            return bestResult
-        }
 
         private fun fixOverFlow(result: Aligner.Result): FixOverFlow {
             var result = result
