@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -430,5 +431,11 @@ private fun Position.toAlignment(): Alignment {
         Position.BottomStart, Position.StartBottom -> Alignment.BottomStart
         Position.BottomCenter, Position.Bottom -> Alignment.BottomCenter
         Position.BottomEnd, Position.EndBottom -> Alignment.BottomEnd
+    }
+}
+
+internal inline fun Layer.logMsg(block: () -> String) {
+    if (isDebug) {
+        Log.i("FLayer", "$this ${block()}")
     }
 }
