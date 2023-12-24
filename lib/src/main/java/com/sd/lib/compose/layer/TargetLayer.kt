@@ -380,7 +380,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             logMsg {
                 "layout fix overflow \n" +
                         "offset:(${result.x}, ${result.y})->(${fixOffset.x}, ${fixOffset.y}) \n" +
-                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${fixSize.width}, ${fixSize.height}) \n" +
+                        "size:(${originalPlaceable.width},${originalPlaceable.height})->(${fixSize.width},${fixSize.height}) \n" +
                         "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
             }
 
