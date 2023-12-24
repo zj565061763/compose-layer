@@ -84,7 +84,7 @@ sealed class Directions(direction: Int) {
 
     operator fun plus(direction: Directions): Directions {
         val plusDirection = this._direction or direction._direction
-        return Plus(plusDirection)
+        return Combine(plusDirection)
     }
 
     data object Top : Directions(FlagTop)
@@ -93,7 +93,7 @@ sealed class Directions(direction: Int) {
     data object End : Directions(FlagEnd)
     data object All : Directions(FlagAll)
 
-    private class Plus(direction: Int) : Directions(direction)
+    private class Combine(direction: Int) : Directions(direction)
 
     companion object {
         private const val FlagTop = 1
