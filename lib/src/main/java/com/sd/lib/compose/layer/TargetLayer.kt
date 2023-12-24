@@ -218,31 +218,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-    private fun alignTarget(
-        position: Layer.Position,
-        target: LayoutInfo,
-        container: LayoutInfo,
-        contentSize: IntSize,
-    ): Aligner.Result {
-        check(target.isAttached)
-        check(container.isAttached)
-        return Aligner.Input(
-            position = position.toAlignerPosition(),
-
-            targetX = target.offset.x,
-            targetY = target.offset.y,
-            targetWidth = target.size.width,
-            targetHeight = target.size.height,
-
-            containerX = container.offset.x,
-            containerY = container.offset.y,
-            containerWidth = container.size.width,
-            containerHeight = container.size.height,
-
-            sourceWidth = contentSize.width,
-            sourceHeight = contentSize.height,
-        ).toResult()
-    }
 
     /**
      * 更新目标布局信息
@@ -560,8 +535,32 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         Content,
         Background,
     }
+}
 
+private fun alignTarget(
+    position: Layer.Position,
+    target: LayoutInfo,
+    container: LayoutInfo,
+    contentSize: IntSize,
+): Aligner.Result {
+    check(target.isAttached)
+    check(container.isAttached)
+    return Aligner.Input(
+        position = position.toAlignerPosition(),
 
+        targetX = target.offset.x,
+        targetY = target.offset.y,
+        targetWidth = target.size.width,
+        targetHeight = target.size.height,
+
+        containerX = container.offset.x,
+        containerY = container.offset.y,
+        containerWidth = container.size.width,
+        containerHeight = container.size.height,
+
+        sourceWidth = contentSize.width,
+        sourceHeight = contentSize.height,
+    ).toResult()
 }
 
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
