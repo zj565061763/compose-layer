@@ -218,7 +218,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
     }
 
-
     /**
      * 更新目标布局信息
      */
