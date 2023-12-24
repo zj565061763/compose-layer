@@ -27,9 +27,9 @@ interface TargetLayer : Layer {
     fun setTarget(target: String?)
 
     /**
-     * 设置一个目标坐标，如果不为null，则会显示在该坐标附近，此时[setTarget]设置的目标无效。
+     * 设置目标坐标，如果不为null，则[setTarget]设置的目标无效。
      */
-    fun setTargetOffset(offset: IntOffset?)
+    fun setTarget(offset: IntOffset?)
 
     /**
      * 设置坐标转换（X方向）
@@ -158,7 +158,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         _target = target ?: ""
     }
 
-    override fun setTargetOffset(offset: IntOffset?) {
+    override fun setTarget(offset: IntOffset?) {
         _targetOffsetState = offset
     }
 

@@ -60,8 +60,8 @@ private fun Content() {
         items(100) { index ->
             ListItem(
                 text = index.toString()
-            ) {
-                layer.setTargetOffset(it)
+            ) { offset ->
+                layer.setTarget(offset)
                 layer.attach()
             }
         }
