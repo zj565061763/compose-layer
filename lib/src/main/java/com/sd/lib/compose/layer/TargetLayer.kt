@@ -594,6 +594,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             var count = 0
             while (true) {
                 var hasOverflow = false
+                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
 
                 // 检查是否溢出
                 with(result.sourceOverflow) {
@@ -691,8 +692,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 } else {
                     break
                 }
-
-                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
             }
 
             return Pair(resultConstraints, result)
