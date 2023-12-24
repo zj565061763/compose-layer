@@ -596,49 +596,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             var count = 0
             while (true) {
                 var hasOverflow = false
-                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count}" }
+                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count} ($resultWith,$resultHeight)" }
 
                 // 检查是否溢出
                 with(result.sourceOverflow) {
-                    // Vertical
-                    kotlin.run {
-                        var overSize = 0
-                        var isTopOverflow = false
-                        var isBottomOverflow = false
-
-                        if (top > 0) {
-                            overSize += top
-                            isTopOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} top overflow:$top" }
-                        }
-
-                        if (bottom > 0) {
-                            overSize += bottom
-                            isBottomOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} bottom overflow:$bottom" }
-                        }
-
-                        if (overSize > 0) {
-                            hasOverflow = true
-
-                            /**
-                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-                             */
-                            if (positionState.isCenterVertical()) {
-                                if (isTopOverflow && isBottomOverflow) {
-                                } else {
-                                    overSize *= 2
-                                }
-                            }
-
-                            val oldHeight = resultHeight
-                            resultHeight = (oldHeight - overSize).coerceAtLeast(0)
-                            logMsg(isDebug) {
-                                "${this@TargetLayerImpl} height overflow:$overSize ($oldHeight) -> ($resultHeight)"
-                            }
-                        }
-                    }
-
                     // Horizontal
                     kotlin.run {
                         var overSize = 0
@@ -648,13 +609,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         if (start > 0) {
                             overSize += start
                             isStartOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} start overflow:$start" }
                         }
 
                         if (end > 0) {
                             overSize += end
                             isEndOverflow = true
-                            logMsg(isDebug) { "${this@TargetLayerImpl} end overflow:$end" }
                         }
 
                         if (overSize > 0) {
@@ -673,7 +632,48 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                             val oldWidth = resultWith
                             resultWith = (oldWidth - overSize).coerceAtLeast(0)
                             logMsg(isDebug) {
-                                "${this@TargetLayerImpl} width overflow:$overSize ($oldWidth) -> ($resultWith)"
+                                val startLog = if (start > 0) " start:$start" else ""
+                                val endLog = if (end > 0) " end:$end" else ""
+                                "${this@TargetLayerImpl} width overflow:${overSize}${startLog}${endLog} ($oldWidth) -> ($resultWith)"
+                            }
+                        }
+                    }
+
+                    // Vertical
+                    kotlin.run {
+                        var overSize = 0
+                        var isTopOverflow = false
+                        var isBottomOverflow = false
+
+                        if (top > 0) {
+                            overSize += top
+                            isTopOverflow = true
+                        }
+
+                        if (bottom > 0) {
+                            overSize += bottom
+                            isBottomOverflow = true
+                        }
+
+                        if (overSize > 0) {
+                            hasOverflow = true
+
+                            /**
+                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                             */
+                            if (positionState.isCenterVertical()) {
+                                if (isTopOverflow && isBottomOverflow) {
+                                } else {
+                                    overSize *= 2
+                                }
+                            }
+
+                            val oldHeight = resultHeight
+                            resultHeight = (oldHeight - overSize).coerceAtLeast(0)
+                            logMsg(isDebug) {
+                                val topLog = if (top > 0) " top:$top" else ""
+                                val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
+                                "${this@TargetLayerImpl} height overflow:${overSize}${topLog}${bottomLog} ($oldHeight) -> ($resultHeight)"
                             }
                         }
                     }
