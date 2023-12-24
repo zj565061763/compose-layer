@@ -370,13 +370,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             val contentPlaceable = measureContent(cs.newMax(fixSize.width, fixSize.height))
 
-            logMsg {
-                "fixOverFlow \n" +
-                        "offset:(${result.x}, ${result.y})->(${fixOffset.x}, ${fixOffset.y}) \n" +
-                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${fixSize.width}, ${fixSize.height}) \n" +
-                        "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
-            }
-
             val backgroundInfo = backgroundPlaceInfo(
                 cs = cs,
                 contentOffset = fixOffset,
@@ -384,7 +377,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
             val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
-            logMsg { "layout fix overflow" }
+            logMsg {
+                "layout fix overflow \n" +
+                        "offset:(${result.x}, ${result.y})->(${fixOffset.x}, ${fixOffset.y}) \n" +
+                        "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${fixSize.width}, ${fixSize.height}) \n" +
+                        "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
+            }
+
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
