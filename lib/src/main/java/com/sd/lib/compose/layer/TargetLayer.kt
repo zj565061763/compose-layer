@@ -164,7 +164,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
     private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
         logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
-        updateContainerLayoutState()
+        updateContainerLayout()
     }
 
     override fun setTarget(target: String?) {
@@ -316,7 +316,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     /**
      * 更新容器布局信息
      */
-    private fun updateContainerLayoutState() {
+    private fun updateContainerLayout() {
         val containerLayout = LayoutInfo(
             size = _containerLayout.size(),
             offset = _containerLayout.offset(),
