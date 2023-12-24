@@ -249,7 +249,7 @@ internal open class LayerImpl : Layer {
         if (_isAttached) return
         val container = layerContainer ?: return
 
-        logMsg(isDebug) { "${this@LayerImpl} attach" }
+        logMsg { "attach" }
         _isAttached = true
 
         container.attachLayer(this)
@@ -263,7 +263,7 @@ internal open class LayerImpl : Layer {
     final override fun detach() {
         if (!_isAttached) return
 
-        logMsg(isDebug) { "${this@LayerImpl} detach" }
+        logMsg { "detach" }
         _isAttached = false
 
         setContentVisible(false)
@@ -299,7 +299,7 @@ internal open class LayerImpl : Layer {
      * Layer被添加到[container]
      */
     internal fun onInit(container: ContainerForLayer) {
-        logMsg(isDebug) { "${this@LayerImpl} onInit $container" }
+        logMsg { "onInit $container" }
         check(layerContainer == null)
         layerContainer = container
     }
@@ -308,7 +308,7 @@ internal open class LayerImpl : Layer {
      * Layer从[container]上被移除
      */
     internal fun onDestroy(container: ContainerForLayer) {
-        logMsg(isDebug) { "${this@LayerImpl} onDestroy $container" }
+        logMsg { "onDestroy $container" }
         check(layerContainer === container)
         detach()
         layerContainer = null
@@ -329,7 +329,7 @@ internal open class LayerImpl : Layer {
         }
 
         if (old != isVisibleState) {
-            logMsg(isDebug) { "${this@LayerImpl} setContentVisible:$isVisibleState" }
+            logMsg { "setContentVisible:$isVisibleState" }
         }
     }
 
@@ -361,9 +361,9 @@ internal open class LayerImpl : Layer {
             modifier = modifier
                 .onGloballyPositioned {
                     if (it.size == IntSize.Zero) {
-                        logMsg(isDebug) { "${this@LayerImpl} ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
+                        logMsg { "ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
                         if (!_isAttached && !isVisibleState) {
-                            logMsg(isDebug) { "${this@LayerImpl} detachLayer" }
+                            logMsg { "detachLayer" }
                             layerContainer?.detachLayer(this@LayerImpl)
                         }
                     }
@@ -397,7 +397,7 @@ internal open class LayerImpl : Layer {
                             awaitEachGesture {
                                 awaitFirstDown(pass = PointerEventPass.Initial)
                                 if (behavior.cancelable && behavior.canceledOnTouchOutside) {
-                                    logMsg(isDebug) { "${this@LayerImpl} cancel touch outside." }
+                                    logMsg { "cancel touch outside" }
                                     detach()
                                 }
                             }

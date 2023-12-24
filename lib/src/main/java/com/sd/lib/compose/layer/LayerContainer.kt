@@ -203,8 +203,8 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     }
 }
 
-internal inline fun logMsg(isDebug: Boolean, block: () -> String) {
+internal inline fun Layer.logMsg(block: () -> String) {
     if (isDebug) {
-        Log.i("FLayer", block())
+        Log.i("FLayer", "$this ${block()}")
     }
 }

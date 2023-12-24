@@ -157,7 +157,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
-            logMsg(isDebug) { "${this@TargetLayerImpl} target changed ($oldValue) -> ($newValue)" }
+            logMsg { "target changed ($oldValue) -> ($newValue)" }
             layerContainer?.run {
                 unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
                 registerTargetLayoutCallback(newValue, _targetLayoutCallback)
@@ -169,11 +169,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
 
     private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        logMsg(isDebug) { "${this@TargetLayerImpl} target layout changed $newValue" }
         updateTargetLayout()
     }
     private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
-        logMsg(isDebug) { "${this@TargetLayerImpl} container layout changed $newValue" }
         updateContainerLayout()
     }
 
@@ -316,11 +314,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val isContainerReady = uiState.containerLayout.isAttached
             val isReady = isTargetReady && isContainerReady
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
+            logMsg { "layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}" }
 
             if (!isVisibleState) {
                 return@SubcomposeLayout state.layoutLastVisible(cs).also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} layout invisible" }
+                    logMsg { "layout invisible" }
                     if (isReady) {
                         setContentVisible(true)
                     }
@@ -329,7 +327,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             if (!isReady) {
                 return@SubcomposeLayout state.layoutLastVisible(cs).also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} layout not ready" }
+                    logMsg { "layout not ready" }
                     setContentVisible(false)
                 }
             }
@@ -410,7 +408,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout none overflow ($x,$y) (${contentPlaceable.width},${contentPlaceable.height})" }
+            logMsg { "layout none overflow ($x,$y) (${contentPlaceable.width},${contentPlaceable.height})" }
+
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -436,7 +435,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 if (uiState.findBestPosition) it.findBestPosition() else it
             }
 
-            val fixOverFlow = fixOverFlow(result)
+            val fixOverFlow = result.fixOverFlow(this@TargetLayerImpl)
 
             val x = fixOverFlow.x
             val y = fixOverFlow.y
@@ -445,8 +444,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             val contentPlaceable = measureContent(cs.copy(maxWidth = width, maxHeight = height))
 
-            logMsg(isDebug) {
-                "${this@TargetLayerImpl} fixOverFlow \n" +
+            logMsg {
+                "fixOverFlow \n" +
                         "offset:(${result.x}, ${result.y})->(${x}, ${y}) \n" +
                         "size:(${originalPlaceable.width}, ${originalPlaceable.height})->(${width}, ${height}) \n" +
                         "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
@@ -462,7 +461,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
             )
 
-            logMsg(isDebug) { "${this@TargetLayerImpl} layout fix overflow" }
+            logMsg { "layout fix overflow" }
+
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -531,25 +531,25 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
             if (direction.hasTop()) {
                 height -= contentY.also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background top:$it" }
+                    logMsg { "clip background top:$it" }
                 }
                 y = contentY
             }
             if (direction.hasBottom()) {
                 height -= (cs.maxHeight - contentY - contentSize.height).also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background bottom:$it" }
+                    logMsg { "clip background bottom:$it" }
                 }
             }
 
             if (direction.hasStart()) {
                 width -= contentX.also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background start:$it" }
+                    logMsg { "clip background start:$it" }
                 }
                 x = contentX
             }
             if (direction.hasEnd()) {
                 width -= (cs.maxWidth - contentX - contentSize.width).also {
-                    logMsg(isDebug) { "${this@TargetLayerImpl} clip background end:$it" }
+                    logMsg { "clip background end:$it" }
                 }
             }
 
@@ -558,123 +558,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 y = y,
                 width = width.coerceAtLeast(0),
                 height = height.coerceAtLeast(0),
-            )
-        }
-
-
-        private fun fixOverFlow(result: Aligner.Result): FixOverFlow {
-            var result = result
-
-            var resultWith = result.input.sourceWidth
-            var resultHeight = result.input.sourceHeight
-
-            var count = 0
-            while (true) {
-                var hasOverflow = false
-                logMsg(isDebug) { "${this@TargetLayerImpl} checkOverflow -----> ${++count} ($resultWith,$resultHeight)" }
-
-                // 检查是否溢出
-                with(result.sourceOverflow) {
-                    // Horizontal
-                    kotlin.run {
-                        var overSize = 0
-                        var isStartOverflow = false
-                        var isEndOverflow = false
-
-                        if (start > 0) {
-                            overSize += start
-                            isStartOverflow = true
-                        }
-
-                        if (end > 0) {
-                            overSize += end
-                            isEndOverflow = true
-                        }
-
-                        if (overSize > 0) {
-                            hasOverflow = true
-
-                            /**
-                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-                             */
-                            if (positionState.isCenterHorizontal()) {
-                                if (isStartOverflow && isEndOverflow) {
-                                    // 正常流程
-                                } else {
-                                    overSize *= 2
-                                }
-                            }
-
-                            val oldWidth = resultWith
-                            resultWith = oldWidth - overSize
-                            logMsg(isDebug) {
-                                val startLog = if (start > 0) " start:$start" else ""
-                                val endLog = if (end > 0) " end:$end" else ""
-                                "${this@TargetLayerImpl} width overflow:${overSize}${startLog}${endLog} ($oldWidth) -> ($resultWith)"
-                            }
-                        }
-                    }
-
-                    // Vertical
-                    kotlin.run {
-                        var overSize = 0
-                        var isTopOverflow = false
-                        var isBottomOverflow = false
-
-                        if (top > 0) {
-                            overSize += top
-                            isTopOverflow = true
-                        }
-
-                        if (bottom > 0) {
-                            overSize += bottom
-                            isBottomOverflow = true
-                        }
-
-                        if (overSize > 0) {
-                            hasOverflow = true
-
-                            /**
-                             * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-                             */
-                            if (positionState.isCenterVertical()) {
-                                if (isTopOverflow && isBottomOverflow) {
-                                    // 正常流程
-                                } else {
-                                    overSize *= 2
-                                }
-                            }
-
-                            val oldHeight = resultHeight
-                            resultHeight = oldHeight - overSize
-                            logMsg(isDebug) {
-                                val topLog = if (top > 0) " top:$top" else ""
-                                val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
-                                "${this@TargetLayerImpl} height overflow:${overSize}${topLog}${bottomLog} ($oldHeight) -> ($resultHeight)"
-                            }
-                        }
-                    }
-                }
-
-                if (hasOverflow) {
-                    if (resultWith <= 0 || resultHeight <= 0) {
-                        break
-                    }
-                    val newInput = result.input.copy(
-                        sourceWidth = resultWith,
-                        sourceHeight = resultHeight,
-                    )
-                    result = newInput.toResult()
-                } else {
-                    break
-                }
-            }
-
-            return FixOverFlow(
-                x = result.x,
-                y = result.y,
-                width = resultWith.coerceAtLeast(0),
-                height = resultHeight.coerceAtLeast(0),
             )
         }
 
@@ -710,12 +593,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         Background,
     }
 
-    private data class FixOverFlow(
-        val x: Int,
-        val y: Int,
-        val width: Int,
-        val height: Int,
-    )
+
 }
 
 private fun Layer.Position.toAlignerPosition(): Aligner.Position {
@@ -760,24 +638,6 @@ private fun LayoutCoordinates?.isAttached(): Boolean {
     return this.isAttached
 }
 
-private fun Layer.Position.isCenterVertical(): Boolean = when (this) {
-    Layer.Position.StartCenter,
-    Layer.Position.EndCenter,
-    Layer.Position.Center,
-    -> true
-
-    else -> false
-}
-
-private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
-    Layer.Position.TopCenter,
-    Layer.Position.BottomCenter,
-    Layer.Position.Center,
-    -> true
-
-    else -> false
-}
-
 private fun TargetOffset?.pxValue(targetSize: Int): Int {
     return when (val offset = this) {
         null -> 0
@@ -816,4 +676,151 @@ private fun Aligner.Result.findBestPosition(
         }
     }
     return bestResult
+}
+
+private data class FixOverFlow(
+    val x: Int,
+    val y: Int,
+    val width: Int,
+    val height: Int,
+)
+
+private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
+    val position = input.position
+    var result = this
+
+    var resultWith = result.input.sourceWidth
+    var resultHeight = result.input.sourceHeight
+
+    var count = 0
+    while (true) {
+        layer.logMsg {
+            "checkOverflow -----> ${++count} ($resultWith,$resultHeight)"
+        }
+
+        var hasOverflow = false
+
+        // 检查是否溢出
+        with(result.sourceOverflow) {
+            // Horizontal
+            kotlin.run {
+                var overSize = 0
+                var isStartOverflow = false
+                var isEndOverflow = false
+
+                if (start > 0) {
+                    overSize += start
+                    isStartOverflow = true
+                }
+
+                if (end > 0) {
+                    overSize += end
+                    isEndOverflow = true
+                }
+
+                if (overSize > 0) {
+                    hasOverflow = true
+
+                    /**
+                     * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                     */
+                    if (position.isCenterHorizontal()) {
+                        if (isStartOverflow && isEndOverflow) {
+                            // 正常流程
+                        } else {
+                            overSize *= 2
+                        }
+                    }
+
+                    val oldWidth = resultWith
+                    resultWith = oldWidth - overSize
+
+                    layer.logMsg {
+                        val startLog = if (start > 0) " start:$start" else ""
+                        val endLog = if (end > 0) " end:$end" else ""
+                        "width overflow:${overSize}${startLog}${endLog} ($oldWidth) -> ($resultWith)"
+                    }
+                }
+            }
+
+            // Vertical
+            kotlin.run {
+                var overSize = 0
+                var isTopOverflow = false
+                var isBottomOverflow = false
+
+                if (top > 0) {
+                    overSize += top
+                    isTopOverflow = true
+                }
+
+                if (bottom > 0) {
+                    overSize += bottom
+                    isBottomOverflow = true
+                }
+
+                if (overSize > 0) {
+                    hasOverflow = true
+
+                    /**
+                     * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
+                     */
+                    if (position.isCenterVertical()) {
+                        if (isTopOverflow && isBottomOverflow) {
+                            // 正常流程
+                        } else {
+                            overSize *= 2
+                        }
+                    }
+
+                    val oldHeight = resultHeight
+                    resultHeight = oldHeight - overSize
+
+                    layer.logMsg {
+                        val topLog = if (top > 0) " top:$top" else ""
+                        val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
+                        "height overflow:${overSize}${topLog}${bottomLog} ($oldHeight) -> ($resultHeight)"
+                    }
+                }
+            }
+        }
+
+        if (hasOverflow) {
+            if (resultWith <= 0 || resultHeight <= 0) {
+                break
+            }
+            val newInput = result.input.copy(
+                sourceWidth = resultWith,
+                sourceHeight = resultHeight,
+            )
+            result = newInput.toResult()
+        } else {
+            break
+        }
+    }
+
+    return FixOverFlow(
+        x = result.x,
+        y = result.y,
+        width = resultWith.coerceAtLeast(0),
+        height = resultHeight.coerceAtLeast(0),
+    )
+}
+
+private fun Aligner.Position.isCenterVertical(): Boolean = when (this) {
+    Aligner.Position.StartCenter,
+    Aligner.Position.EndCenter,
+    Aligner.Position.Center,
+    -> true
+
+    else -> false
+}
+
+private fun Aligner.Position.isCenterHorizontal(): Boolean = when (this) {
+    Aligner.Position.TopCenter,
+    Aligner.Position.BottomCenter,
+    Aligner.Position.Center,
+    -> true
+
+    else -> false
 }
