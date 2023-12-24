@@ -111,6 +111,7 @@ private data class UIState(
     val targetLayout: LayoutInfo,
     val containerLayout: LayoutInfo,
     val fixOverflow: Boolean,
+    val findBestPosition: Boolean,
     val clipBackgroundDirection: Directions?,
 )
 
@@ -133,6 +134,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             targetLayout = EmptyLayoutInfo,
             containerLayout = EmptyLayoutInfo,
             fixOverflow = true,
+            findBestPosition = false,
             clipBackgroundDirection = null,
         )
     )
@@ -140,8 +142,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _targetOffset: IntOffset? = null
     private var _targetOffsetX: TargetOffset? = null
     private var _targetOffsetY: TargetOffset? = null
-
-    private var _findBestPositionState by mutableStateOf(false)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -195,7 +195,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setFindBestPosition(findBestPosition: Boolean) {
-        _findBestPositionState = findBestPosition
+        _uiState.update { it.copy(findBestPosition = findBestPosition) }
     }
 
     override fun setClipBackgroundDirection(direction: Directions?) {
