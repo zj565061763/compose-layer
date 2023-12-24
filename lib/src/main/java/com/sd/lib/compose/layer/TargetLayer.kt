@@ -248,12 +248,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
 
         val result = _aligner.align(input)
-        return findBestPosition(result, target)
+        return findBestPosition(result)
     }
 
-    private fun findBestPosition(result: Aligner.Result, targetLayout: LayoutInfo): Aligner.Result {
-        if (!_findBestPositionState) return result
-
+    private fun findBestPosition(result: Aligner.Result): Aligner.Result {
         val overflowDefault = result.sourceOverflow.totalOverflow()
         if (overflowDefault == 0) return result
 
@@ -272,13 +270,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         for (position in preferPosition) {
             val newResult = _aligner.align(
-                result.input.copy(
-                    position = position,
-                    targetX = targetLayout.offset.x,
-                    targetY = targetLayout.offset.y,
-                    targetWidth = targetLayout.size.width,
-                    targetHeight = targetLayout.size.height,
-                )
+                result.input.copy(position = position)
             )
 
             val newOverflow = newResult.sourceOverflow.totalOverflow()
