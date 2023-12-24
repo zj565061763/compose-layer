@@ -701,7 +701,7 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
                     layer.logMsg {
                         val startLog = if (start > 0) " start:$start" else ""
                         val endLog = if (end > 0) " end:$end" else ""
-                        "width overflow:${overSize}${startLog}${endLog} ($oldWidth) -> ($resultWith)"
+                        "width overflow:${overSize}${startLog}${endLog} ($oldWidth)->($resultWith)"
                     }
                 }
             }
@@ -742,7 +742,7 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
                     layer.logMsg {
                         val topLog = if (top > 0) " top:$top" else ""
                         val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
-                        "height overflow:${overSize}${topLog}${bottomLog} ($oldHeight) -> ($resultHeight)"
+                        "height overflow:${overSize}${topLog}${bottomLog} ($oldHeight)->($resultHeight)"
                     }
                 }
             }
