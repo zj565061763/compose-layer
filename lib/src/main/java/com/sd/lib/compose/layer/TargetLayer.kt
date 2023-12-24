@@ -123,14 +123,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private val _aligner = FAligner()
 
+    private var _targetOffset: IntOffset? = null
+
     private var _xOffset: TransformOffset? = null
     private var _yOffset: TransformOffset? = null
 
     private var _fixOverflowState by mutableStateOf(true)
     private var _findBestPositionState by mutableStateOf(false)
-
     private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
-    private var _targetOffsetState by mutableStateOf<IntOffset?>(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -159,7 +159,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setTarget(offset: IntOffset?) {
-        _targetOffsetState = offset
+        if (_targetOffset != offset) {
+            _targetOffset = offset
+            updateUiState()
+        }
     }
 
     override fun setXOffset(offset: TransformOffset?) {
@@ -312,7 +315,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     private fun updateUiState() {
-        val targetOffset = _targetOffsetState
+        val targetOffset = _targetOffset
         val targetLayout = if (targetOffset != null) {
             LayoutInfo(
                 size = IntSize.Zero,
