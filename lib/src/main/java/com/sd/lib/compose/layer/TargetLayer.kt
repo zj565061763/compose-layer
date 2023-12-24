@@ -11,9 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.*
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.sd.lib.aligner.Aligner
@@ -61,7 +59,6 @@ interface TargetLayer : Layer {
 
 sealed interface TransformOffset {
     data class PX(val value: Int) : TransformOffset
-    data class DP(val value: Int) : TransformOffset
     data class Percent(val value: Float, val type: Type) : TransformOffset
 
     enum class Type {
@@ -126,7 +123,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     private val _aligner = FAligner()
 
-    private lateinit var _density: Density
     private var _xOffset: TransformOffset? = null
     private var _yOffset: TransformOffset? = null
 
@@ -241,14 +237,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             return result
         }
 
-        val x = xOffset.pxValue(_density) { type ->
+        val x = xOffset.pxValue { type ->
             when (type) {
                 TransformOffset.Type.Target -> result.input.targetWidth
                 TransformOffset.Type.Content -> result.input.sourceWidth
             }
         }
 
-        val y = yOffset.pxValue(_density) { type ->
+        val y = yOffset.pxValue { type ->
             when (type) {
                 TransformOffset.Type.Target -> result.input.targetHeight
                 TransformOffset.Type.Content -> result.input.sourceHeight
@@ -345,7 +341,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
     @Composable
     override fun Content() {
-        _density = LocalDensity.current
         val uiState by _uiState.collectAsState()
         LayerBox {
             OffsetBox(
@@ -831,19 +826,10 @@ private fun Layer.Position.isCenterHorizontal(): Boolean = when (this) {
     else -> false
 }
 
-private inline fun TransformOffset?.pxValue(
-    density: Density,
-    typeValue: (TransformOffset.Type) -> Int,
-): Int {
+private inline fun TransformOffset?.pxValue(typeValue: (TransformOffset.Type) -> Int): Int {
     return when (val offset = this) {
         null -> 0
         is TransformOffset.PX -> offset.value
-
-        is TransformOffset.DP -> {
-            val px = offset.value * density.density
-            if (px.isInfinite()) 0 else px.roundToInt()
-        }
-
         is TransformOffset.Percent -> {
             val typedValue = typeValue(offset.type)
             val px = typedValue * offset.value
