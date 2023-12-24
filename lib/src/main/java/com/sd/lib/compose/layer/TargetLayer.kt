@@ -111,6 +111,7 @@ private data class UIState(
     val targetLayout: LayoutInfo,
     val containerLayout: LayoutInfo,
     val fixOverflow: Boolean,
+    val clipBackgroundDirection: Directions?,
 )
 
 @Immutable
@@ -132,6 +133,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             targetLayout = EmptyLayoutInfo,
             containerLayout = EmptyLayoutInfo,
             fixOverflow = true,
+            clipBackgroundDirection = null,
         )
     )
 
@@ -142,7 +144,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _targetOffsetY: TargetOffset? = null
 
     private var _findBestPositionState by mutableStateOf(false)
-    private var _clipBackgroundDirectionState by mutableStateOf<Directions?>(null)
 
     private var _target by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue) {
@@ -200,7 +201,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     override fun setClipBackgroundDirection(direction: Directions?) {
-        _clipBackgroundDirectionState = direction
+        _uiState.update { it.copy(clipBackgroundDirection = direction) }
     }
 
     override fun onAttach() {
@@ -443,7 +444,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = _clipBackgroundDirectionState,
+                direction = uiState.clipBackgroundDirection,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
@@ -493,7 +494,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 cs = cs,
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
-                direction = _clipBackgroundDirectionState,
+                direction = uiState.clipBackgroundDirection,
             )
             val backgroundPlaceable = measureBackground(
                 constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
