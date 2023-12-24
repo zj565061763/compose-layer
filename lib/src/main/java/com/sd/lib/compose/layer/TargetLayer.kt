@@ -315,11 +315,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             )
         }
 
-        fun layoutNoneOverflow(
-            cs: Constraints,
-            uiState: UIState,
-        ): MeasureResult {
+        fun layoutNoneOverflow(cs: Constraints, uiState: UIState): MeasureResult {
             val contentPlaceable = measureContent(cs)
+
             val result = alignTarget(
                 position = positionState,
                 target = uiState.targetLayout,
@@ -329,25 +327,28 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 if (_findBestPosition) it.findBestPosition() else it
             }
 
-            val x = result.x
-            val y = result.y
+            val offset = IntOffset(result.x, result.y)
+            val size = IntSize(contentPlaceable.width, contentPlaceable.height)
 
             val backgroundInfo = backgroundPlaceInfo(
                 cs = cs,
-                contentOffset = IntOffset(x, y),
-                contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
+                contentOffset = offset,
+                contentSize = size,
             )
             val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
-            logMsg { "layout none overflow ($x,$y) (${contentPlaceable.width},${contentPlaceable.height})" }
+            logMsg {
+                "layout none overflow (${offset.x},${offset.y}) (${size.width},${size.height})"
+            }
+
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
                 backgroundX = backgroundInfo.x,
                 backgroundY = backgroundInfo.y,
                 contentPlaceable = contentPlaceable,
-                contentX = x,
-                contentY = y,
+                contentX = offset.x,
+                contentY = offset.y,
             )
         }
 
