@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
                         SampleDropDown::class.java,
                         SampleOverflow::class.java,
                         SampleListMenu::class.java,
+                        SampleTargetOffset::class.java,
                     ),
                     onClickActivity = {
                         startActivity(Intent(this, it))

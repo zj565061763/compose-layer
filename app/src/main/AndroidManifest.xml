@@ -28,6 +28,7 @@
         <activity android:name=".SampleDropDown" />
         <activity android:name=".SampleOverflow" />
         <activity android:name=".SampleListMenu" />
+        <activity android:name=".SampleTargetOffset" />
 
     </application>
 
