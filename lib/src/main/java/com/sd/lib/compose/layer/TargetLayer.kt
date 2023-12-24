@@ -315,7 +315,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentPlaceable = contentPlaceable,
                 contentX = contentInfo.x,
                 contentY = contentInfo.y,
-                saveVisibleInfo = false,
+                saveInfo = false,
             )
         }
 
@@ -418,10 +418,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             contentPlaceable: Placeable,
             contentX: Int,
             contentY: Int,
-            saveVisibleInfo: Boolean = true,
+            saveInfo: Boolean = true,
         ): MeasureResult {
             return measureScope.layout(cs.maxWidth, cs.maxHeight) {
-                if (saveVisibleInfo) {
+                if (saveInfo) {
                     _visibleBackgroundInfo = backgroundPlaceable?.let {
                         PlaceInfo(
                             x = backgroundX,
