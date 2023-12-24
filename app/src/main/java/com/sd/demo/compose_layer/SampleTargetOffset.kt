@@ -70,7 +70,7 @@ private fun layer(): TargetLayer {
             it.setTarget("button")
             it.dialogBehavior.setCanceledOnTouchOutside(true)
             it.setPosition(Layer.Position.TopCenter)
-            it.setClipBackgroundDirection(Directions.Bottom)
+            it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
             it.setTargetOffsetY(TargetOffset.Percent(-1f))
         },
         display = { DisplaySlideUpDown() }
