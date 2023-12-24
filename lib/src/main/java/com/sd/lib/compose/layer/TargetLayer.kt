@@ -337,12 +337,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
             )
-            val backgroundPlaceable = measureBackground(
-                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-            )
+            val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
             logMsg { "layout none overflow ($x,$y) (${contentPlaceable.width},${contentPlaceable.height})" }
-
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
@@ -375,7 +372,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val width = fixOverFlow.width
             val height = fixOverFlow.height
 
-            val contentPlaceable = measureContent(cs.copy(maxWidth = width, maxHeight = height))
+            val contentPlaceable = measureContent(cs.newMax(width, height))
 
             logMsg {
                 "fixOverFlow \n" +
@@ -389,12 +386,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                 contentOffset = IntOffset(x, y),
                 contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
             )
-            val backgroundPlaceable = measureBackground(
-                constraints = cs.copy(maxWidth = backgroundInfo.width, maxHeight = backgroundInfo.height),
-            )
+            val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
 
             logMsg { "layout fix overflow" }
-
             return layoutFinally(
                 cs = cs,
                 backgroundPlaceable = backgroundPlaceable,
