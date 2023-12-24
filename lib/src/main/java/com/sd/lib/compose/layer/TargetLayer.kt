@@ -166,10 +166,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
     private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { _containerLayout = it }
 
-    private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+    private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateTargetLayout()
     }
-    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, newValue ->
+    private var _containerLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
         updateContainerLayout()
     }
 
@@ -305,6 +305,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         }
 
         SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
+            @Suppress("NAME_SHADOWING")
             val cs = cs.copy(minWidth = 0, minHeight = 0)
             state.measureScope = this
 
