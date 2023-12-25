@@ -73,7 +73,9 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setTarget("hello")
+            it.setBackgroundColor(Color.Transparent)
             it.setCancelable(null)
+            it.setCanceledOnTouchBackground(null)
         }
     ) {
         ColorBox(

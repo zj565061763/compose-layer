@@ -50,9 +50,9 @@ interface Layer {
     val isCancelableState: Boolean?
 
     /**
-     * 触摸背景是否取消[detach]，默认false
+     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false
      */
-    val isCanceledOnTouchBackground: Boolean
+    val isCanceledOnTouchBackgroundState: Boolean?
 
     /**
      * 对齐的位置，默认[Position.Center]
@@ -70,9 +70,9 @@ interface Layer {
     fun setCancelable(value: Boolean?)
 
     /**
-     * 触摸背景是否取消[detach]，默认false
+     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false
      */
-    fun setCanceledOnTouchBackground(value: Boolean)
+    fun setCanceledOnTouchBackground(value: Boolean?)
 
     /**
      * 是否裁剪内容区域，默认true
@@ -182,7 +182,7 @@ internal open class LayerImpl : Layer {
 
     private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
     private var _isCancelableState by mutableStateOf<Boolean?>(true)
-    private var _isCanceledOnTouchBackgroundState by mutableStateOf(false)
+    private var _isCanceledOnTouchBackgroundState by mutableStateOf<Boolean?>(false)
 
     private val _attachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
     private val _detachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
@@ -192,7 +192,7 @@ internal open class LayerImpl : Layer {
     final override val positionState: Position get() = _positionState
     final override val backgroundColorState: Color get() = _backgroundColorState
     final override val isCancelableState: Boolean? get() = _isCancelableState
-    final override val isCanceledOnTouchBackground: Boolean get() = _isCanceledOnTouchBackgroundState
+    final override val isCanceledOnTouchBackgroundState: Boolean? get() = _isCanceledOnTouchBackgroundState
 
     final override fun setPosition(position: Position) {
         _positionState = position
@@ -206,8 +206,7 @@ internal open class LayerImpl : Layer {
         _isCancelableState = value
     }
 
-    override fun setCanceledOnTouchBackground(value: Boolean) {
-        if (value) _isCancelableState = true
+    override fun setCanceledOnTouchBackground(value: Boolean?) {
         _isCanceledOnTouchBackgroundState = value
     }
 
@@ -369,27 +368,31 @@ internal open class LayerImpl : Layer {
     @Composable
     protected fun BackgroundBox() {
         Box {
-            isCancelableState?.let { isCancelable ->
-                AnimatedVisibility(
-                    visible = isVisibleState,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(backgroundColorState)
-                            .pointerInput(Unit) {
-                                awaitEachGesture {
-                                    awaitFirstDown(pass = PointerEventPass.Initial)
-                                    if (isCancelable && isCanceledOnTouchBackground) {
-                                        logMsg { "cancel touch outside" }
-                                        detach()
+            AnimatedVisibility(
+                visible = isVisibleState,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(backgroundColorState)
+                        .let {
+                            if (isCanceledOnTouchBackgroundState != null) {
+                                it.pointerInput(Unit) {
+                                    awaitEachGesture {
+                                        awaitFirstDown(pass = PointerEventPass.Initial)
+                                        if (isCanceledOnTouchBackgroundState == true) {
+                                            logMsg { "cancel touch outside" }
+                                            detach()
+                                        }
                                     }
                                 }
+                            } else {
+                                it
                             }
-                    )
-                }
+                        }
+                )
             }
         }
     }
