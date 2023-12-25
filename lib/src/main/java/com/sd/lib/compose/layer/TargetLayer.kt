@@ -224,7 +224,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         val targetOffsetX = _targetOffsetX
         val targetOffsetY = _targetOffsetY
-
         val finalLayout = if (targetOffsetX != null || targetOffsetY != null) {
             val offsetX = targetOffsetX.pxValue(layout.size.width)
             val offsetY = targetOffsetY.pxValue(layout.size.height)
