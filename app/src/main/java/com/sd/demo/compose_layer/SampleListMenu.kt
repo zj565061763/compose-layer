@@ -86,7 +86,8 @@ private fun layer(): TargetLayer {
     ) {
         VerticalList(
             count = 5,
-            modifier = Modifier.width(200.dp)
+            modifier = Modifier.width(200.dp),
+            onClick = { layer.detach() }
         )
     }
 }
