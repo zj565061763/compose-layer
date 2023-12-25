@@ -409,7 +409,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
         private fun layoutFinally(
             cs: Constraints,
-            backgroundPlaceable: Placeable?,
+            backgroundPlaceable: Placeable,
             backgroundX: Int,
             backgroundY: Int,
             contentPlaceable: Placeable,
@@ -419,14 +419,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         ): MeasureResult {
             return measureScope.layout(cs.maxWidth, cs.maxHeight) {
                 if (saveInfo) {
-                    _visibleBackgroundInfo = backgroundPlaceable?.let {
-                        PlaceInfo(
-                            x = backgroundX,
-                            y = backgroundY,
-                            width = it.width,
-                            height = it.height,
-                        )
-                    }
+                    _visibleBackgroundInfo = PlaceInfo(
+                        x = backgroundX,
+                        y = backgroundY,
+                        width = backgroundPlaceable.width,
+                        height = backgroundPlaceable.height,
+                    )
                     _visibleContentInfo = PlaceInfo(
                         x = contentX,
                         y = contentY,
@@ -434,7 +432,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                         height = contentPlaceable.height,
                     )
                 }
-                backgroundPlaceable?.placeRelative(backgroundX, backgroundY, -1f)
+                backgroundPlaceable.placeRelative(backgroundX, backgroundY, -1f)
                 contentPlaceable.placeRelative(contentX, contentY)
             }
         }
@@ -502,12 +500,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             return measurable.measure(constraints)
         }
 
-        private fun measureBackground(constraints: Constraints): Placeable? {
+        private fun measureBackground(constraints: Constraints): Placeable {
             val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
-                if (it.isNotEmpty()) check(it.size == 1)
-                it.firstOrNull()
+                check(it.size == 1)
+                it.first()
             }
-            return measurable?.measure(constraints)
+            return measurable.measure(constraints)
         }
     }
 
