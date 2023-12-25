@@ -33,7 +33,7 @@ junit = "junit:junit:4.13.2"
 androidx-test-ext-junit = "androidx.test.ext:junit:1.1.5"
 androidx-test-espresso-core = "androidx.test.espresso:espresso-core:3.5.1"
 
-sd-aligner = "com.github.zj565061763:aligner:a2a571d0b4"
+sd-aligner = "com.github.zj565061763:aligner:1.1.0"
 
 [plugins]
 

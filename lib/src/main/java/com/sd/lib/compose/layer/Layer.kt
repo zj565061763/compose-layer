@@ -386,7 +386,7 @@ internal open class LayerImpl : Layer {
                                     awaitEachGesture {
                                         awaitFirstDown(pass = PointerEventPass.Initial)
                                         if (isCanceledOnTouchBackgroundState == true) {
-                                            logMsg { "cancel touch outside" }
+                                            logMsg { "cancel touch background" }
                                             detach()
                                         }
                                     }
