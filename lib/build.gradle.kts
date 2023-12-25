@@ -6,7 +6,7 @@ plugins {
 
 val libGroupId = "com.sd.lib.android"
 val libArtifactId = "compose-layer"
-val libVersionName = "1.0.0-beta02"
+val libVersionName = "1.0.0-beta03"
 
 android {
     namespace = "com.sd.lib.compose.layer"
