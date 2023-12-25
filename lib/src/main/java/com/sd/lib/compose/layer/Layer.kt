@@ -45,12 +45,12 @@ interface Layer {
     val backgroundColorState: Color
 
     /**
-     * 是否可以取消，null表示不处理返回键取消逻辑，也不处理触摸背景取消逻辑，默认true
+     * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
      */
-    val isCancelableState: Boolean?
+    val isCanceledOnBackPressedState: Boolean?
 
     /**
-     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false
+     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
      */
     val isCanceledOnTouchBackgroundState: Boolean?
 
@@ -65,12 +65,12 @@ interface Layer {
     fun setBackgroundColor(color: Color)
 
     /**
-     * 是否可以取消，null表示不处理返回键取消逻辑，也不处理触摸背景取消逻辑，默认true
+     * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
      */
-    fun setCancelable(value: Boolean?)
+    fun setCanceledOnBackPressed(value: Boolean?)
 
     /**
-     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false
+     * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
      */
     fun setCanceledOnTouchBackground(value: Boolean?)
 
@@ -191,7 +191,7 @@ internal open class LayerImpl : Layer {
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
     final override val backgroundColorState: Color get() = _backgroundColorState
-    final override val isCancelableState: Boolean? get() = _isCancelableState
+    final override val isCanceledOnBackPressedState: Boolean? get() = _isCancelableState
     final override val isCanceledOnTouchBackgroundState: Boolean? get() = _isCanceledOnTouchBackgroundState
 
     final override fun setPosition(position: Position) {
@@ -202,7 +202,7 @@ internal open class LayerImpl : Layer {
         _backgroundColorState = color
     }
 
-    override fun setCancelable(value: Boolean?) {
+    override fun setCanceledOnBackPressed(value: Boolean?) {
         _isCancelableState = value
     }
 

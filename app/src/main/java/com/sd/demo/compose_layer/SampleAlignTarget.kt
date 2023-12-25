@@ -74,7 +74,7 @@ private fun layer(): TargetLayer {
             it.isDebug = true
             it.setTarget("hello")
             it.setBackgroundColor(Color.Transparent)
-            it.setCancelable(null)
+            it.setCanceledOnBackPressed(null)
             it.setCanceledOnTouchBackground(null)
         }
     ) {

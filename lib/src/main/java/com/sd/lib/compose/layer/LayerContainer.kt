@@ -188,9 +188,9 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
         _attachedLayers.forEach { layer ->
             key(layer.id) {
                 layer.Content()
-                layer.isCancelableState?.let { isCancelable ->
+                layer.isCanceledOnBackPressedState?.let { cancelable ->
                     BackHandler(layer.isVisibleState) {
-                        if (isCancelable) {
+                        if (cancelable) {
                             layer.detach()
                         }
                     }
