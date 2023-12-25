@@ -1,6 +1,5 @@
 package com.sd.demo.compose_layer
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,11 +53,9 @@ fun ColorBox(
 fun VerticalList(
     modifier: Modifier = Modifier,
     count: Int,
-    context: Context = LocalContext.current,
-    onClick: (Int) -> Unit = { index ->
-        Toast.makeText(context, index.toString(), Toast.LENGTH_SHORT).show()
-    },
+    onClick: (Int) -> Unit = { },
 ) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -70,7 +67,12 @@ fun VerticalList(
                     .fillMaxWidth()
                     .height(50.dp)
                     .background(Color.Red)
-                    .clickable { onClick(index) },
+                    .clickable {
+                        Toast
+                            .makeText(context, index.toString(), Toast.LENGTH_SHORT)
+                            .show()
+                        onClick(index)
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(

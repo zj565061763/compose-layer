@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
+import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.rememberTargetLayer
@@ -50,13 +52,14 @@ private fun Content() {
     val layer = layer()
 
     LazyColumn(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding(),
     ) {
         items(100) { index ->
             ListItem(
-                text = index.toString()
+                text = index.toString(),
+                layer = layer,
             ) { offset ->
                 layer.setTarget(offset)
                 layer.attach()
@@ -71,7 +74,7 @@ private fun layer(): TargetLayer {
         onCreate = {
             it.isDebug = true
             it.setBackgroundColor(Color.Transparent)
-            it.setCanceledOnTouchBackground(true)
+            it.setCanceledOnTouchBackground(null)
             it.setFindBestPosition(true)
         },
     ) {
@@ -85,10 +88,13 @@ private fun layer(): TargetLayer {
 
 @Composable
 private fun ListItem(
-    text: String,
     modifier: Modifier = Modifier,
+    text: String,
+    layer: Layer,
     onClick: (IntOffset) -> Unit,
 ) {
+    val onClickUpdated by rememberUpdatedState(newValue = onClick)
+
     val context = LocalContext.current
     var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
     Box(
@@ -98,8 +104,11 @@ private fun ListItem(
             .onGloballyPositioned {
                 layoutCoordinates = it
             }
-            .pointerInput(Unit) {
+            .pointerInput(layer, context) {
                 detectTapGestures(
+                    onPress = {
+                        layer.detach()
+                    },
                     onTap = {
                         Toast
                             .makeText(context, "try long click", Toast.LENGTH_SHORT)
@@ -109,7 +118,7 @@ private fun ListItem(
                         val layout = layoutCoordinates
                         if (layout?.isAttached == true) {
                             val offset = layout.localToWindow(it)
-                            onClick(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                            onClickUpdated(IntOffset(offset.x.toInt(), offset.y.toInt()))
                         }
                     }
                 )
