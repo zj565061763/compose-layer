@@ -27,6 +27,9 @@ import com.sd.lib.compose.layer.Layer.Position
 import java.util.concurrent.atomic.AtomicLong
 
 interface Layer {
+    /**
+     * 是否调试模式，tag:FLayer
+     */
     var isDebug: Boolean
 
     /**
