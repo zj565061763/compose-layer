@@ -71,7 +71,7 @@ private fun layer(): TargetLayer {
             it.setCanceledOnTouchBackground(true)
             it.setPosition(Layer.Position.TopCenter)
             it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
-            it.setTargetOffsetY(TargetOffset.Percent(-1f))
+            it.setTargetOffsetY(TargetOffset.Percent(1f))
         },
         display = { DisplaySlideUpDown() }
     ) {
