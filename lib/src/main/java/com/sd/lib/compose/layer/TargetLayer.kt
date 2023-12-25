@@ -221,8 +221,22 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
      */
     private fun updateTargetLayout() {
         val layout = _targetOffset?.toLayoutInfo() ?: _targetLayout.toLayoutInfo()
-        // TODO target offset
-        _uiState.update { it.copy(targetLayout = layout) }
+
+        val targetOffsetX = _targetOffsetX
+        val targetOffsetY = _targetOffsetY
+
+        val finalLayout = if (targetOffsetX != null || targetOffsetY != null) {
+            val offsetX = targetOffsetX.pxValue(layout.size.width)
+            val offsetY = targetOffsetY.pxValue(layout.size.height)
+            val newOffset = IntOffset(layout.offset.x + offsetX, layout.offset.y + offsetY)
+            layout.copy(offset = newOffset)
+        } else {
+            layout
+        }
+
+        _uiState.update {
+            it.copy(targetLayout = finalLayout)
+        }
     }
 
     @Composable
