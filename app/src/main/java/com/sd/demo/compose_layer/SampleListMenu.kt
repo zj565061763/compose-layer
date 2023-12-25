@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.DisplayDefault
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.rememberTargetLayer
@@ -77,12 +74,6 @@ private fun layer(): TargetLayer {
             it.setCanceledOnTouchBackground(true)
             it.setFindBestPosition(true)
         },
-        display = {
-            DisplayDefault(
-                enter = scaleIn(),
-                exit = scaleOut(),
-            )
-        }
     ) {
         VerticalList(
             count = 5,
