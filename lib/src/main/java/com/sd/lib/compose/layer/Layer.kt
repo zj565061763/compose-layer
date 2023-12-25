@@ -184,7 +184,7 @@ internal open class LayerImpl : Layer {
     private var _clipToBoundsState by mutableStateOf(true)
 
     private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
-    private var _isCancelableState by mutableStateOf<Boolean?>(true)
+    private var _isCanceledOnBackPressedState by mutableStateOf<Boolean?>(true)
     private var _isCanceledOnTouchBackgroundState by mutableStateOf<Boolean?>(false)
 
     private val _attachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
@@ -194,7 +194,7 @@ internal open class LayerImpl : Layer {
     final override val isVisibleState: Boolean get() = _isVisibleState
     final override val positionState: Position get() = _positionState
     final override val backgroundColorState: Color get() = _backgroundColorState
-    final override val isCanceledOnBackPressedState: Boolean? get() = _isCancelableState
+    final override val isCanceledOnBackPressedState: Boolean? get() = _isCanceledOnBackPressedState
     final override val isCanceledOnTouchBackgroundState: Boolean? get() = _isCanceledOnTouchBackgroundState
 
     final override fun setPosition(position: Position) {
@@ -206,7 +206,7 @@ internal open class LayerImpl : Layer {
     }
 
     override fun setCanceledOnBackPressed(value: Boolean?) {
-        _isCancelableState = value
+        _isCanceledOnBackPressedState = value
     }
 
     override fun setCanceledOnTouchBackground(value: Boolean?) {
