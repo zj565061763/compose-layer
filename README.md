@@ -12,37 +12,49 @@
 # 普通Layer
 
 ```kotlin
- // 创建一个普通的Layer
-val layer = rememberLayer(
-    onCreate = {
-        // 设置在容器中的位置
-        it.setPosition(Layer.Position.StartCenter)
-        // 设置触摸背景消失
-        it.setCanceledOnTouchBackground(true)
-        it.registerAttachCallback {
-            // layer 添加回调
-        }
-        it.registerDetachCallback {
-            // layer 移除回调
-        }
-    },
-    display = {
-        // 设置layer显示隐藏动画，默认为透明度变化
-        DisplaySlideUpDown()
-    },
-) {
-    // laye r内容
-    ColorBox(
-        color = Color.Red,
-        text = "Box",
-    )
+AppTheme {
+    // 添加layer容器
+    LayerContainer {
+        Content()
+    }
 }
+```
 
-LaunchedEffect(layer) {
-    // 显示layer
-    layer.attach()
+```kotlin
+ @Composable
+private fun Content() {
+    // 创建一个普通的Layer
+    val layer = rememberLayer(
+        onCreate = {
+            // 设置在容器中的位置
+            it.setPosition(Layer.Position.StartCenter)
+            // 设置触摸背景消失
+            it.setCanceledOnTouchBackground(true)
+            it.registerAttachCallback {
+                // layer 添加回调
+            }
+            it.registerDetachCallback {
+                // layer 移除回调
+            }
+        },
+        display = {
+            // 设置layer显示隐藏动画，默认为透明度变化
+            DisplaySlideUpDown()
+        },
+    ) {
+        // layer内容
+        ColorBox(
+            color = Color.Red,
+            text = "Box",
+        )
+    }
 
-    // 移除layer
-    layer.detach()
+    LaunchedEffect(layer) {
+        // 显示layer
+        layer.attach()
+
+        // 移除layer
+        layer.detach()
+    }
 }
 ```
