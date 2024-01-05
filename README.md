@@ -58,3 +58,51 @@ private fun Content() {
     }
 }
 ```
+
+# 目标Layer
+
+```kotlin
+AppTheme {
+    // 添加layer容器
+    LayerContainer {
+        Content()
+    }
+}
+```
+
+```kotlin
+@Composable
+private fun layer(): TargetLayer {
+    // 创建跟踪目标的Layer
+    return rememberTargetLayer(
+        onCreate = {
+            // 设置目标
+            it.setTarget("hello")
+            /** 设置对齐目标的位置 */
+            it.setPosition(Layer.Position.Center)
+            // 设置背景透明
+            it.setBackgroundColor(Color.Transparent)
+            // 不处理返回事件
+            it.setCanceledOnBackPressed(null)
+            // 不处理触摸背景事件
+            it.setCanceledOnTouchBackground(null)
+        }
+    ) {
+        // 设置要显示的内容
+        ColorBox(
+            color = Color.Red,
+            text = "Box",
+        )
+    }
+}
+```
+
+```kotlin
+Button(
+    onClick = { layer.attach() },
+    // 将当前Button设置为目标
+    modifier = Modifier.layerTarget("button")
+) {
+    Text("Click")
+}
+```
