@@ -1,10 +1,8 @@
+[![](https://jitpack.io/v/zj565061763/compose-layer.svg)](https://jitpack.io/#zj565061763/compose-layer)
+
 # About
 
 实现类似窗口的效果（Layer），支持设置目标，可以让Layer显示在目标的指定位置。
-
-# Gradle
-
-[![](https://jitpack.io/v/zj565061763/compose-layer.svg)](https://jitpack.io/#zj565061763/compose-layer)
 
 # Demo
 
