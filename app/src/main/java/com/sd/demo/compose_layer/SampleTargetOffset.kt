@@ -57,7 +57,7 @@ private fun Content() {
    ) {
       Spacer(modifier = Modifier.height(500.dp))
       Button(
-         onClick = { attach = false },
+         onClick = { attach = true },
          modifier = Modifier.layerTag(tag)
       ) {
          Text("Click")
