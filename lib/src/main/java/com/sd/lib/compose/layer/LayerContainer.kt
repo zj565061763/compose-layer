@@ -57,7 +57,7 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
       if (destroyed) return
       require(tag.isNotEmpty()) { "tag is empty." }
       _targetLayouts.put(tag, layoutCoordinates)?.let { old ->
-         if (old !== layoutCoordinates) error("Tag:$tag already exist.")
+         check(layoutCoordinates === old) { "Tag:$tag already exist." }
       }
       onUpdateTargetLayout(tag, layoutCoordinates)
    }
