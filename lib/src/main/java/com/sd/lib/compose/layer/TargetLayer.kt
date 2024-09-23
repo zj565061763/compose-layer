@@ -409,6 +409,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
+      /**
+       * 不检查溢出
+       */
       fun layoutOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val contentPlaceable = measureContent(cs)
          val contentSize = contentPlaceable.intSize()
@@ -444,6 +447,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
+      /**
+       * 检查溢出
+       */
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val originalPlaceable = measureContent(cs, slotId = null)
          val originalSize = originalPlaceable.intSize()
@@ -563,6 +569,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
+      /**
+       * 测量内容
+       */
       private fun measureContent(constraints: Constraints, slotId: SlotId? = SlotId.Content): Placeable {
          val measurable = measureScope.subcompose(slotId, contentState).let {
             check(it.size == 1)
@@ -571,6 +580,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          return measurable.measure(constraints)
       }
 
+      /**
+       * 测量背景
+       */
       private fun measureBackground(constraints: Constraints): Placeable {
          val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
             check(it.size == 1)
