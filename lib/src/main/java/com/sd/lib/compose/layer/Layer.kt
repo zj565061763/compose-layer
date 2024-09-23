@@ -133,7 +133,9 @@ internal abstract class LayerImpl : Layer {
 
    final override fun attach() {
       if (_isAttached) return
-      val container = layerContainer ?: return
+      val container = checkNotNull(layerContainer) {
+         "LayerContainer is null when attach"
+      }
 
       logMsg { "attach" }
       _isAttached = true
@@ -144,7 +146,9 @@ internal abstract class LayerImpl : Layer {
 
    final override fun detach() {
       if (!_isAttached) return
-      val container = layerContainer ?: return
+      val container = checkNotNull(layerContainer) {
+         "LayerContainer is null when detach"
+      }
 
       logMsg { "detach" }
       _isAttached = false
