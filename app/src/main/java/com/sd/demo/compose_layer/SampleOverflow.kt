@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.DisplayDefault
 import com.sd.lib.compose.layer.LayerContainer
@@ -36,7 +35,6 @@ import com.sd.lib.compose.layer.layerTag
 class SampleOverflow : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
-      WindowCompat.setDecorFitsSystemWindows(window, false)
       setContent {
          AppTheme {
             LayerContainer {
