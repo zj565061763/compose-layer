@@ -378,7 +378,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    private inner class OffsetBoxState {
-
       var backgroundState by mutableStateOf<@Composable () -> Unit>({})
       var contentState by mutableStateOf<@Composable () -> Unit>({})
 
