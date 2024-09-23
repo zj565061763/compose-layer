@@ -48,7 +48,7 @@ fun LayerContainer(
  * 把当前元素设置为目标，并绑定容器作用域内唯一的[tag]
  */
 fun Modifier.layerTarget(tag: String): Modifier = composed {
-   if (tag.isEmpty()) error("tag is empty.")
+   require(tag.isNotEmpty()) { "tag is empty." }
 
    val container = checkNotNull(LocalContainerForComposable.current) {
       "Not in LayerContainer scope."
