@@ -594,8 +594,6 @@ private fun alignTarget(
    container: LayoutInfo,
    contentSize: IntSize,
 ): Aligner.Result {
-   check(target.isAttached)
-   check(container.isAttached)
    return Aligner.Input(
       position = alignment.toAlignerPosition(),
 
