@@ -301,7 +301,6 @@ internal abstract class LayerImpl : Layer {
 
 internal inline fun Layer.logMsg(block: () -> String) {
    if (debug) {
-      val layer = "${javaClass.simpleName}@${hashCode().toString(16)}"
-      Log.d("FLayer", "$layer ${block()}")
+      Log.d("FLayer", block())
    }
 }

@@ -346,13 +346,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val cs = cs.copy(minWidth = 0, minHeight = 0)
          state.measureScope = this
 
-         val isTargetReady = uiState.targetLayout.isAttached
-         val isContainerReady = uiState.containerLayout.isAttached
-         val isReady = isTargetReady && isContainerReady
-
          logMsg {
-            "layout start isVisible:$isVisibleState isTargetReady:${isTargetReady} isContainerReady:${isContainerReady}"
+            """
+               layout start ----->
+               isVisible:$isVisibleState alignment:${uiState.alignment}
+               target:${uiState.targetLayout}
+               container:${uiState.containerLayout}
+               cs:$cs
+            """.trimIndent()
          }
+
+         val isReady = uiState.targetLayout.isAttached
+            && uiState.containerLayout.isAttached
 
          if (!isVisibleState) {
             return@SubcomposeLayout state.layoutLastVisible(cs).also {
@@ -730,7 +735,7 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
    var count = 0
    while (true) {
       layer.logMsg {
-         "checkOverflow -----> ${++count} ($resultWith,$resultHeight)"
+         "checkOverflow ${++count} ($resultWith,$resultHeight)"
       }
 
       var hasOverflow = false
