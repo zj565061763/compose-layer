@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -320,17 +319,17 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    @Composable
    override fun LayerContent() {
       val uiState by _uiState.collectAsState()
-      Box(modifier = Modifier.fillMaxSize()) {
-         OffsetBox(
-            uiState = uiState,
-            background = { BackgroundBox() },
-            content = { ContentBox() },
-         )
-      }
+      OffsetBox(
+         modifier = Modifier.fillMaxSize(),
+         uiState = uiState,
+         background = { BackgroundBox() },
+         content = { ContentBox() },
+      )
    }
 
    @Composable
    private fun OffsetBox(
+      modifier: Modifier = Modifier,
       uiState: UIState,
       background: @Composable () -> Unit,
       content: @Composable () -> Unit,
@@ -340,7 +339,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          this.contentState = content
       }
 
-      SubcomposeLayout(Modifier.fillMaxSize()) { cs ->
+      SubcomposeLayout(modifier) { cs ->
          @Suppress("NAME_SHADOWING")
          val cs = cs.copy(minWidth = 0, minHeight = 0)
          state.measureScope = this
