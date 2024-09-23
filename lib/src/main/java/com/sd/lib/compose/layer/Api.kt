@@ -73,8 +73,8 @@ fun Layer(
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { NormalLayerImpl() }.apply {
-      this.Init(content = content, display = display)
       this.debug = debug
+      this.Init(content = content, display = display)
       this.setDetachRequestCallback(onDetachRequest)
       this.setDetachOnBackPress(detachOnBackPress)
       this.setDetachOnTouchOutside(detachOnTouchOutside)
@@ -135,8 +135,8 @@ fun TargetLayer(
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { TargetLayerImpl() }.apply {
-      this.Init(content = content, display = display)
       this.debug = debug
+      this.Init(content = content, display = display)
       this.setDetachRequestCallback(onDetachRequest)
       this.setDetachOnBackPress(detachOnBackPress)
       this.setDetachOnTouchOutside(detachOnTouchOutside)
