@@ -36,10 +36,10 @@ fun LayerContainer(
    ) {
       Box(
          modifier = modifier
-             .fillMaxSize()
-             .onGloballyPositioned {
-                 container.updateContainerLayout(it)
-             },
+            .fillMaxSize()
+            .onGloballyPositioned {
+               container.updateContainerLayout(it)
+            },
       ) {
          content()
          container.Layers()
@@ -70,9 +70,9 @@ fun Modifier.layerTarget(tag: String): Modifier = composed {
 
 @Composable
 fun rememberLayer(
-    onCreate: ((Layer) -> Unit)? = null,
-    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
-    content: @Composable LayerContentScope.() -> Unit,
+   onCreate: ((Layer) -> Unit)? = null,
+   display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
+   content: @Composable LayerContentScope.() -> Unit,
 ): Layer {
    val layer = remember {
       LayerImpl().also { onCreate?.invoke(it) }
@@ -89,9 +89,9 @@ fun rememberLayer(
 
 @Composable
 fun rememberTargetLayer(
-    onCreate: ((TargetLayer) -> Unit)? = null,
-    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
-    content: @Composable LayerContentScope.() -> Unit,
+   onCreate: ((TargetLayer) -> Unit)? = null,
+   display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
+   content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayer {
    val layer = remember {
       TargetLayerImpl().also { onCreate?.invoke(it) }
