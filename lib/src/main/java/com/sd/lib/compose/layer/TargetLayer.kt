@@ -288,8 +288,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private fun updateTargetLayout() {
       var layout = when (val target = _target) {
          is LayerTarget.Tag -> {
-            val targetLayout = _tagTargetLayout ?: return
-            targetLayout.toLayoutInfo()
+            if (target.tag.isNullOrEmpty()) return
+            _tagTargetLayout.toLayoutInfo()
          }
          is LayerTarget.Offset -> {
             val offset = target.offset ?: return

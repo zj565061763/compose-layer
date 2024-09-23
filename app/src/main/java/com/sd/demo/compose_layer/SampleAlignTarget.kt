@@ -59,7 +59,10 @@ private fun Content() {
       TargetView(tag = tag)
       ButtonsView(
          onClickDetach = { attach = false },
-         onClick = { alignment = it },
+         onClick = {
+            alignment = it
+            attach = true
+         },
       )
    }
 
@@ -97,11 +100,9 @@ private fun TargetView(
       Box(modifier = Modifier.height(400.dp))
 
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
-         Button(
-            onClick = {
-               showTarget = !showTarget
-            },
-         ) {
+         Button(onClick = {
+            showTarget = !showTarget
+         }) {
             Text(if (showTarget) "Hide Target" else "Show Target")
          }
 
