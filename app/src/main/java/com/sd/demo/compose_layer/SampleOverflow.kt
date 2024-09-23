@@ -94,6 +94,7 @@ private fun Content() {
       onDetachRequest = { attach = false },
       alignment = TargetAlignment.BottomCenter,
       detachOnTouchOutside = true,
+      fixOverflow = fixOverflow,
       display = {
          DisplayDefault(
             enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
