@@ -29,9 +29,9 @@ class MainActivity : ComponentActivity() {
                   SampleAlignContainer::class.java,
                   SampleAlignTarget::class.java,
                   SampleDropDown::class.java,
+                  SampleTargetOffset::class.java,
                   SampleOverflow::class.java,
                   SampleListMenu::class.java,
-                  SampleTargetOffset::class.java,
                ),
                onClickActivity = {
                   startActivity(Intent(this, it))

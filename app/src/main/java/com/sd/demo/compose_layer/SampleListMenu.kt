@@ -79,6 +79,7 @@ private fun Content() {
       backgroundColor = Color.Transparent,
       detachOnTouchOutside = null,
       findBestPosition = true,
+      debug = true,
    ) {
       VerticalList(
          count = 5,

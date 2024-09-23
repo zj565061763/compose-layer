@@ -208,7 +208,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       unregisterTagTargetLayoutCallback(oldTarget)
 
       _target = target
+
       registerTagTargetLayoutCallback(target)
+      updateTargetLayout()
    }
 
    private fun registerTagTargetLayoutCallback(target: LayerTarget?) {
