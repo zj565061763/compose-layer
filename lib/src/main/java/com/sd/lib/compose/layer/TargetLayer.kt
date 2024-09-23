@@ -349,10 +349,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          logMsg {
             """
                layout start ----->
-               isVisible:$isVisibleState alignment:${uiState.alignment}
-               target:${uiState.targetLayout}
-               container:${uiState.containerLayout}
-               cs:$cs
+                  isVisible:$isVisibleState alignment:${uiState.alignment}
+                  target:${uiState.targetLayout}
+                  container:${uiState.containerLayout}
+                  cs:$cs
             """.trimIndent()
          }
 
