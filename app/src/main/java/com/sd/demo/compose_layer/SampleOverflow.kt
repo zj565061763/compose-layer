@@ -89,7 +89,7 @@ private fun layer(): TargetLayer {
       onCreate = {
          it.isDebug = true
          it.setPosition(Layer.Position.BottomCenter)
-         it.setCanceledOnTouchBackground(true)
+         it.setDismissOnTouchOutside(true)
       },
       display = {
          DisplayDefault(

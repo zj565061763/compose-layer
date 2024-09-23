@@ -74,8 +74,8 @@ private fun layer(): TargetLayer {
          it.isDebug = true
          it.setTarget("hello")
          it.setBackgroundColor(Color.Transparent)
-         it.setCanceledOnBackPressed(null)
-         it.setCanceledOnTouchBackground(null)
+         it.setDismissOnBackPress(null)
+         it.setDismissOnTouchOutside(null)
       }
    ) {
       ColorBox(

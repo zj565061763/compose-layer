@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
-import com.sd.lib.compose.layer.rememberLayer
 
 class SampleAlignContainer : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,34 +34,24 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   val layer = layer()
+   var showLayer by remember { mutableStateOf(false) }
 
    Column(
       modifier = Modifier.fillMaxSize(),
       horizontalAlignment = Alignment.CenterHorizontally,
    ) {
-      Button(
-         onClick = { layer.attach() }
-      ) {
+      Button(onClick = {
+         showLayer = true
+      }) {
          Text(text = "Attach")
       }
    }
-}
 
-@Composable
-private fun layer(): Layer {
-   return rememberLayer(
-      onCreate = {
-         it.isDebug = true
-         it.setPosition(Layer.Position.StartCenter)
-         it.setCanceledOnTouchBackground(true)
-         it.registerAttachCallback {
-            logMsg { "callback onAttach" }
-         }
-         it.registerDetachCallback {
-            logMsg { "callback onDetach" }
-         }
-      },
+   Layer(
+      visible = showLayer,
+      onDismissRequest = { showLayer = false },
+      position = Layer.Position.BottomCenter,
+      dismissOnTouchOutside = true,
    ) {
       ColorBox(
          color = Color.Red,

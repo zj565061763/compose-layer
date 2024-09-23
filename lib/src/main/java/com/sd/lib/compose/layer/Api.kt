@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 
 /**
@@ -40,6 +42,46 @@ fun LayerContainer(
       ) {
          content()
          container.Layers()
+      }
+   }
+}
+
+/**
+ * 添加Layer
+ *
+ * @param visible 是否显示Layer
+ * @param onDismissRequest 由[dismissOnBackPress]或者[dismissOnTouchOutside]触发的移除回调
+ * @param dismissOnBackPress 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true
+ * @param dismissOnTouchOutside 触摸非内容区域是否移除Layer，true-移除，false-不移除，null-不处理，事件会透过背景，默认-false
+ * @param position 显示位置
+ * @param backgroundColor 背景颜色
+ */
+@Composable
+fun Layer(
+   visible: Boolean,
+   onDismissRequest: () -> Unit,
+   dismissOnBackPress: Boolean? = true,
+   dismissOnTouchOutside: Boolean? = false,
+   position: Layer.Position = Layer.Position.Center,
+   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
+   content: @Composable LayerContentScope.() -> Unit,
+) {
+   val layer = rememberLayer(
+      display = display,
+      content = content,
+   ).apply {
+      setDismissOnBackPress(dismissOnBackPress)
+      setDismissOnTouchOutside(dismissOnTouchOutside)
+      setPosition(position)
+      setBackgroundColor(backgroundColor)
+   }
+
+   LaunchedEffect(layer, visible) {
+      if (visible) {
+         layer.attach()
+      } else {
+         layer.detach()
       }
    }
 }
@@ -105,4 +147,7 @@ fun rememberTargetLayer(
 
 internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
 internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer?> { null }
-internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }
+
+internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = {
+   DisplayDefault()
+}

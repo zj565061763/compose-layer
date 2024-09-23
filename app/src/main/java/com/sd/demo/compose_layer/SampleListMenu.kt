@@ -74,7 +74,7 @@ private fun layer(): TargetLayer {
       onCreate = {
          it.isDebug = true
          it.setBackgroundColor(Color.Transparent)
-         it.setCanceledOnTouchBackground(null)
+         it.setDismissOnTouchOutside(null)
          it.setFindBestPosition(true)
       },
    ) {

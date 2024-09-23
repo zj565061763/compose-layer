@@ -69,7 +69,7 @@ private fun layer(): TargetLayer {
          it.setTarget("button")
          it.setPosition(Layer.Position.BottomCenter)
          it.setClipBackgroundDirection(Directions.Top)
-         it.setCanceledOnTouchBackground(true)
+         it.setDismissOnTouchOutside(true)
       },
       display = { DisplaySlideDownUp() }
    ) {

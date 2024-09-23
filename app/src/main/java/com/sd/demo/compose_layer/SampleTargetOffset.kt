@@ -68,7 +68,7 @@ private fun layer(): TargetLayer {
       onCreate = {
          it.isDebug = true
          it.setTarget("button")
-         it.setCanceledOnTouchBackground(true)
+         it.setDismissOnTouchOutside(true)
          it.setPosition(Layer.Position.TopCenter)
          it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
 

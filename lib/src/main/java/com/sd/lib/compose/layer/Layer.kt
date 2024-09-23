@@ -27,80 +27,48 @@ import com.sd.lib.compose.layer.Layer.Position
 import java.util.concurrent.atomic.AtomicLong
 
 interface Layer {
-   /**
-    * 是否调试模式，tag:FLayer
-    */
+   /** 是否调试模式，tag:FLayer */
    var isDebug: Boolean
 
-   /**
-    * 当前Layer是否可见
-    */
+   /** 当前Layer是否可见 */
    val isVisibleState: Boolean
 
-   /**
-    * 位置
-    */
+   /** 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true */
+   val dismissOnBackPressState: Boolean?
+
+   /** 触摸非内容区域是否移除Layer，true-移除，false-不移除，null-不处理，事件会透过背景，默认-false */
+   val dismissOnTouchOutsideState: Boolean?
+
+   /** 显示位置 */
    val positionState: Position
 
-   /**
-    * 背景颜色
-    */
+   /** 背景颜色 */
    val backgroundColorState: Color
 
    /**
-    * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
+    * [dismissOnBackPressState]
     */
-   val isCanceledOnBackPressedState: Boolean?
+   fun setDismissOnBackPress(value: Boolean?)
 
    /**
-    * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
+    * [dismissOnTouchOutsideState]
     */
-   val isCanceledOnTouchBackgroundState: Boolean?
+   fun setDismissOnTouchOutside(value: Boolean?)
 
    /**
-    * 对齐的位置，默认[Position.Center]
+    * [position]
     */
    fun setPosition(position: Position)
 
    /**
-    * 背景颜色
+    * [backgroundColorState]
     */
    fun setBackgroundColor(color: Color)
-
-   /**
-    * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
-    */
-   fun setCanceledOnBackPressed(value: Boolean?)
-
-   /**
-    * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
-    */
-   fun setCanceledOnTouchBackground(value: Boolean?)
 
    /**
     * 是否裁剪内容区域，默认true
     */
    fun setClipToBounds(clipToBounds: Boolean)
-
-   /**
-    * 注册[attach]回调
-    */
-   fun registerAttachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 取消注册
-    */
-   fun unregisterAttachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 注册[detach]回调
-    */
-   fun registerDetachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 取消注册
-    */
-   fun unregisterDetachCallback(callback: (Layer) -> Unit)
 
    /**
     * 添加到容器
@@ -180,22 +148,19 @@ internal open class LayerImpl : Layer {
    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
    private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({ Content() })
 
+   private var _dismissOnBackPressState by mutableStateOf<Boolean?>(true)
+   private var _dismissOnTouchOutsideState by mutableStateOf<Boolean?>(false)
+
    private var _positionState by mutableStateOf(Position.Center)
-   private var _clipToBoundsState by mutableStateOf(true)
-
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
-   private var _isCanceledOnBackPressedState by mutableStateOf<Boolean?>(true)
-   private var _isCanceledOnTouchBackgroundState by mutableStateOf<Boolean?>(false)
-
-   private val _attachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
-   private val _detachCallbacks: MutableSet<(Layer) -> Unit> = hashSetOf()
+   private var _clipToBoundsState by mutableStateOf(true)
 
    final override var isDebug: Boolean = false
    final override val isVisibleState: Boolean get() = _isVisibleState
+   final override val dismissOnBackPressState: Boolean? get() = _dismissOnBackPressState
+   final override val dismissOnTouchOutsideState: Boolean? get() = _dismissOnTouchOutsideState
    final override val positionState: Position get() = _positionState
    final override val backgroundColorState: Color get() = _backgroundColorState
-   final override val isCanceledOnBackPressedState: Boolean? get() = _isCanceledOnBackPressedState
-   final override val isCanceledOnTouchBackgroundState: Boolean? get() = _isCanceledOnTouchBackgroundState
 
    final override fun setPosition(position: Position) {
       _positionState = position
@@ -205,32 +170,16 @@ internal open class LayerImpl : Layer {
       _backgroundColorState = color
    }
 
-   override fun setCanceledOnBackPressed(value: Boolean?) {
-      _isCanceledOnBackPressedState = value
+   override fun setDismissOnBackPress(value: Boolean?) {
+      _dismissOnBackPressState = value
    }
 
-   override fun setCanceledOnTouchBackground(value: Boolean?) {
-      _isCanceledOnTouchBackgroundState = value
+   override fun setDismissOnTouchOutside(value: Boolean?) {
+      _dismissOnTouchOutsideState = value
    }
 
    final override fun setClipToBounds(clipToBounds: Boolean) {
       _clipToBoundsState = clipToBounds
-   }
-
-   final override fun registerAttachCallback(callback: (Layer) -> Unit) {
-      _attachCallbacks.add(callback)
-   }
-
-   final override fun unregisterAttachCallback(callback: (Layer) -> Unit) {
-      _attachCallbacks.remove(callback)
-   }
-
-   final override fun registerDetachCallback(callback: (Layer) -> Unit) {
-      _detachCallbacks.add(callback)
-   }
-
-   final override fun unregisterDetachCallback(callback: (Layer) -> Unit) {
-      _detachCallbacks.remove(callback)
    }
 
    final override fun attach() {
@@ -242,10 +191,6 @@ internal open class LayerImpl : Layer {
 
       container.attachLayer(this)
       onAttach()
-
-      _attachCallbacks.toTypedArray().forEach {
-         it.invoke(this)
-      }
    }
 
    final override fun detach() {
@@ -256,10 +201,6 @@ internal open class LayerImpl : Layer {
 
       setContentVisible(false)
       onDetach()
-
-      _detachCallbacks.toTypedArray().forEach {
-         it.invoke(this)
-      }
    }
 
    protected open fun onAttach() {}
@@ -381,11 +322,11 @@ internal open class LayerImpl : Layer {
                   .fillMaxSize()
                   .background(backgroundColorState)
                   .let {
-                     if (isCanceledOnTouchBackgroundState != null) {
+                     if (dismissOnTouchOutsideState != null) {
                         it.pointerInput(Unit) {
                            awaitEachGesture {
                               awaitFirstDown(pass = PointerEventPass.Initial)
-                              if (isCanceledOnTouchBackgroundState == true) {
+                              if (dismissOnTouchOutsideState == true) {
                                  logMsg { "cancel touch background" }
                                  detach()
                               }
