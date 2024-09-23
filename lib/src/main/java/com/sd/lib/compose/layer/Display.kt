@@ -8,25 +8,18 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 
 @Composable
-fun LayerDisplayScope.DisplaySlideUpDown(
-   modifier: Modifier = Modifier,
-) {
+fun LayerDisplayScope.DisplaySlideUpDown() {
    DisplayDefault(
-      modifier = modifier,
       enter = slideInVertically { it },
       exit = slideOutVertically { it },
    )
 }
 
 @Composable
-fun LayerDisplayScope.DisplaySlideDownUp(
-   modifier: Modifier = Modifier,
-) {
+fun LayerDisplayScope.DisplaySlideDownUp() {
    DisplayDefault(
-      modifier = modifier,
       enter = slideInVertically { -it },
       exit = slideOutVertically { -it },
    )
@@ -34,12 +27,10 @@ fun LayerDisplayScope.DisplaySlideDownUp(
 
 @Composable
 fun LayerDisplayScope.DisplayDefault(
-   modifier: Modifier = Modifier,
    enter: EnterTransition = fadeIn(),
    exit: ExitTransition = fadeOut(),
 ) {
    AnimatedVisibility(
-      modifier = modifier,
       visible = isVisibleState,
       enter = enter,
       exit = exit,
