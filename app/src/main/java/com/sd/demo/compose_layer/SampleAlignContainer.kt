@@ -52,6 +52,7 @@ private fun Content() {
       onDismissRequest = { showLayer = false },
       position = Layer.Position.BottomCenter,
       dismissOnTouchOutside = true,
+      debug = true,
    ) {
       ColorBox(
          color = Color.Red,

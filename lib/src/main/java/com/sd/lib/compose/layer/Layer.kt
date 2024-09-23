@@ -38,9 +38,6 @@ interface Layer {
    /** [setPosition] */
    val positionState: Position
 
-   /** [setBackgroundColor] */
-   val backgroundColorState: Color
-
    /**
     * 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true
     */
@@ -169,7 +166,6 @@ internal open class LayerImpl : Layer {
    final override var debug: Boolean = false
    final override val isVisibleState: Boolean get() = _isVisibleState
    final override val positionState: Position get() = _positionState
-   final override val backgroundColorState: Color get() = _backgroundColorState
 
    final override fun setPosition(position: Position) {
       _positionState = position
@@ -283,7 +279,7 @@ internal open class LayerImpl : Layer {
       if (isVisibleState && _dismissOnBackPressState != null) {
          BackHandler {
             if (_dismissOnBackPressState == true) {
-               logMsg { "cancel OnBackPress" }
+               logMsg { "OnBackPress" }
                _dismissRequestCallback?.invoke(Dismiss.OnBackPress)
             }
          }
@@ -348,14 +344,14 @@ internal open class LayerImpl : Layer {
             Box(
                modifier = Modifier
                   .fillMaxSize()
-                  .background(backgroundColorState)
+                  .background(_backgroundColorState)
                   .let { m ->
                      if (_dismissOnTouchOutsideState != null) {
                         m.pointerInput(Unit) {
                            awaitEachGesture {
                               awaitFirstDown(pass = PointerEventPass.Initial)
                               if (_dismissOnTouchOutsideState == true) {
-                                 logMsg { "cancel OnTouchOutside" }
+                                 logMsg { "OnTouchOutside" }
                                  _dismissRequestCallback?.invoke(Dismiss.OnTouchOutside)
                               }
                            }
@@ -397,6 +393,7 @@ private fun Position.toAlignment(): Alignment {
 
 internal inline fun Layer.logMsg(block: () -> String) {
    if (debug) {
-      Log.d("FLayer", "$this ${block()}")
+      val layer = "${javaClass.simpleName}@${hashCode().toString(16)}"
+      Log.d("FLayer", "$layer ${block()}")
    }
 }
