@@ -19,89 +19,89 @@ internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer
  */
 @Composable
 fun LayerContainer(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+   modifier: Modifier = Modifier,
+   content: @Composable () -> Unit,
 ) {
-    val container = remember { newLayerContainer() }
+   val container = remember { newLayerContainer() }
 
-    DisposableEffect(container) {
-        onDispose {
-            container.destroy()
-        }
-    }
+   DisposableEffect(container) {
+      onDispose {
+         container.destroy()
+      }
+   }
 
-    CompositionLocalProvider(
-        LocalContainerForComposable provides container,
-        LocalContainerForLayer provides container,
-    ) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .onGloballyPositioned {
-                    container.updateContainerLayout(it)
-                },
-        ) {
-            content()
-            container.Layers()
-        }
-    }
+   CompositionLocalProvider(
+      LocalContainerForComposable provides container,
+      LocalContainerForLayer provides container,
+   ) {
+      Box(
+         modifier = modifier
+             .fillMaxSize()
+             .onGloballyPositioned {
+                 container.updateContainerLayout(it)
+             },
+      ) {
+         content()
+         container.Layers()
+      }
+   }
 }
 
 /**
  * 把当前元素设置为目标，并绑定容器作用域内唯一的[tag]
  */
 fun Modifier.layerTarget(tag: String): Modifier = composed {
-    if (tag.isEmpty()) error("tag is empty.")
+   if (tag.isEmpty()) error("tag is empty.")
 
-    val container = checkNotNull(LocalContainerForComposable.current) {
-        "Not in LayerContainer scope."
-    }
+   val container = checkNotNull(LocalContainerForComposable.current) {
+      "Not in LayerContainer scope."
+   }
 
-    DisposableEffect(container, tag) {
-        onDispose {
-            container.removeTarget(tag)
-        }
-    }
+   DisposableEffect(container, tag) {
+      onDispose {
+         container.removeTarget(tag)
+      }
+   }
 
-    this.onGloballyPositioned {
-        container.addTarget(tag, it)
-    }
+   this.onGloballyPositioned {
+      container.addTarget(tag, it)
+   }
 }
 
 @Composable
 fun rememberLayer(
     onCreate: ((Layer) -> Unit)? = null,
     display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
-    content: @Composable LayerContentScope.() -> Unit
+    content: @Composable LayerContentScope.() -> Unit,
 ): Layer {
-    val layer = remember {
-        LayerImpl().also { onCreate?.invoke(it) }
-    }.apply {
-        this.Init(content = content, display = display)
-    }
-    DisposableEffect(layer) {
-        onDispose {
-            layer.destroy()
-        }
-    }
-    return layer
+   val layer = remember {
+      LayerImpl().also { onCreate?.invoke(it) }
+   }.apply {
+      this.Init(content = content, display = display)
+   }
+   DisposableEffect(layer) {
+      onDispose {
+         layer.destroy()
+      }
+   }
+   return layer
 }
 
 @Composable
 fun rememberTargetLayer(
     onCreate: ((TargetLayer) -> Unit)? = null,
     display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
-    content: @Composable LayerContentScope.() -> Unit
+    content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayer {
-    val layer = remember {
-        TargetLayerImpl().also { onCreate?.invoke(it) }
-    }.apply {
-        this.Init(content = content, display = display)
-    }
-    DisposableEffect(layer) {
-        onDispose {
-            layer.destroy()
-        }
-    }
-    return layer
+   val layer = remember {
+      TargetLayerImpl().also { onCreate?.invoke(it) }
+   }.apply {
+      this.Init(content = content, display = display)
+   }
+   DisposableEffect(layer) {
+      onDispose {
+         layer.destroy()
+      }
+   }
+   return layer
 }

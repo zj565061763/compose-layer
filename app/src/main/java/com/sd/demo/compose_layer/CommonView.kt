@@ -23,71 +23,71 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ColorBox(
-    color: Color,
-    text: String,
-    modifier: Modifier = Modifier,
+   color: Color,
+   text: String,
+   modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    Box(
-        modifier = modifier
-            .clickable {
-                Toast
-                    .makeText(context, text, Toast.LENGTH_SHORT)
-                    .show()
-            }
-            .widthIn(50.dp)
-            .heightIn(50.dp)
-            .background(color)
-            .padding(5.dp)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.align(Alignment.Center),
-            color = Color.White,
-            fontSize = 16.sp
-        )
-    }
+   val context = LocalContext.current
+   Box(
+      modifier = modifier
+         .clickable {
+            Toast
+               .makeText(context, text, Toast.LENGTH_SHORT)
+               .show()
+         }
+         .widthIn(50.dp)
+         .heightIn(50.dp)
+         .background(color)
+         .padding(5.dp)
+   ) {
+      Text(
+         text = text,
+         modifier = Modifier.align(Alignment.Center),
+         color = Color.White,
+         fontSize = 16.sp
+      )
+   }
 }
 
 @Composable
 fun VerticalList(
-    modifier: Modifier = Modifier,
-    count: Int,
-    onClick: (Int) -> Unit = { },
+   modifier: Modifier = Modifier,
+   count: Int,
+   onClick: (Int) -> Unit = { },
 ) {
-    val context = LocalContext.current
-    LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Green)
-    ) {
-        items(count) { index ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(Color.Red)
-                    .clickable {
-                        Toast
-                            .makeText(context, index.toString(), Toast.LENGTH_SHORT)
-                            .show()
-                        onClick(index)
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "start",
-                )
-                Text(
-                    text = index.toString(),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = "end",
-                )
-            }
+   val context = LocalContext.current
+   LazyColumn(
+      modifier = modifier
+         .fillMaxWidth()
+         .background(Color.Green)
+   ) {
+      items(count) { index ->
+         Row(
+            modifier = Modifier
+               .fillMaxWidth()
+               .height(50.dp)
+               .background(Color.Red)
+               .clickable {
+                  Toast
+                     .makeText(context, index.toString(), Toast.LENGTH_SHORT)
+                     .show()
+                  onClick(index)
+               },
+            verticalAlignment = Alignment.CenterVertically,
+         ) {
+            Text(
+               text = "start",
+            )
+            Text(
+               text = index.toString(),
+               modifier = Modifier.weight(1f),
+               textAlign = TextAlign.Center,
+            )
+            Text(
+               text = "end",
+            )
+         }
 
-        }
-    }
+      }
+   }
 }

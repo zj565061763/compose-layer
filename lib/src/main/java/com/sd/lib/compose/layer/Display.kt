@@ -14,38 +14,38 @@ internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { Displa
 
 @Composable
 fun LayerDisplayScope.DisplaySlideUpDown(
-    modifier: Modifier = Modifier,
+   modifier: Modifier = Modifier,
 ) {
-    DisplayDefault(
-        modifier = modifier,
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-    )
+   DisplayDefault(
+      modifier = modifier,
+      enter = slideInVertically { it },
+      exit = slideOutVertically { it },
+   )
 }
 
 @Composable
 fun LayerDisplayScope.DisplaySlideDownUp(
-    modifier: Modifier = Modifier,
+   modifier: Modifier = Modifier,
 ) {
-    DisplayDefault(
-        modifier = modifier,
-        enter = slideInVertically { -it },
-        exit = slideOutVertically { -it },
-    )
+   DisplayDefault(
+      modifier = modifier,
+      enter = slideInVertically { -it },
+      exit = slideOutVertically { -it },
+   )
 }
 
 @Composable
 fun LayerDisplayScope.DisplayDefault(
-    modifier: Modifier = Modifier,
-    enter: EnterTransition = fadeIn(),
-    exit: ExitTransition = fadeOut(),
+   modifier: Modifier = Modifier,
+   enter: EnterTransition = fadeIn(),
+   exit: ExitTransition = fadeOut(),
 ) {
-    AnimatedVisibility(
-        modifier = modifier,
-        visible = layer.isVisibleState,
-        enter = enter,
-        exit = exit,
-    ) {
-        Content()
-    }
+   AnimatedVisibility(
+      modifier = modifier,
+      visible = layer.isVisibleState,
+      enter = enter,
+      exit = exit,
+   ) {
+      Content()
+   }
 }

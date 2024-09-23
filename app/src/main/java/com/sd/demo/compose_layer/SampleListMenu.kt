@@ -35,101 +35,101 @@ import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleListMenu : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            AppTheme {
-                LayerContainer {
-                    Content()
-                }
+   override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      setContent {
+         AppTheme {
+            LayerContainer {
+               Content()
             }
-        }
-    }
+         }
+      }
+   }
 }
 
 @Composable
 private fun Content() {
-    val layer = layer()
+   val layer = layer()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-    ) {
-        items(100) { index ->
-            ListItem(
-                text = index.toString(),
-                layer = layer,
-            ) { offset ->
-                layer.setTarget(offset)
-                layer.attach()
-            }
-        }
-    }
+   LazyColumn(
+      modifier = Modifier
+         .fillMaxSize()
+         .navigationBarsPadding(),
+   ) {
+      items(100) { index ->
+         ListItem(
+            text = index.toString(),
+            layer = layer,
+         ) { offset ->
+            layer.setTarget(offset)
+            layer.attach()
+         }
+      }
+   }
 }
 
 @Composable
 private fun layer(): TargetLayer {
-    return rememberTargetLayer(
-        onCreate = {
-            it.isDebug = true
-            it.setBackgroundColor(Color.Transparent)
-            it.setCanceledOnTouchBackground(null)
-            it.setFindBestPosition(true)
-        },
-    ) {
-        VerticalList(
-            count = 5,
-            modifier = Modifier.width(200.dp),
-            onClick = { layer.detach() }
-        )
-    }
+   return rememberTargetLayer(
+      onCreate = {
+         it.isDebug = true
+         it.setBackgroundColor(Color.Transparent)
+         it.setCanceledOnTouchBackground(null)
+         it.setFindBestPosition(true)
+      },
+   ) {
+      VerticalList(
+         count = 5,
+         modifier = Modifier.width(200.dp),
+         onClick = { layer.detach() }
+      )
+   }
 }
 
 @Composable
 private fun ListItem(
-    modifier: Modifier = Modifier,
-    text: String,
-    layer: Layer,
-    onClick: (IntOffset) -> Unit,
+   modifier: Modifier = Modifier,
+   text: String,
+   layer: Layer,
+   onClick: (IntOffset) -> Unit,
 ) {
-    val onClickUpdated by rememberUpdatedState(newValue = onClick)
+   val onClickUpdated by rememberUpdatedState(newValue = onClick)
 
-    val context = LocalContext.current
-    var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .height(50.dp)
-            .onGloballyPositioned {
-                layoutCoordinates = it
-            }
-            .pointerInput(layer, context) {
-                detectTapGestures(
-                    onPress = {
-                        layer.detach()
-                    },
-                    onTap = {
-                        Toast
-                            .makeText(context, "try long click", Toast.LENGTH_SHORT)
-                            .show()
-                    },
-                    onLongPress = {
-                        val layout = layoutCoordinates
-                        if (layout?.isAttached == true) {
-                            val offset = layout.localToWindow(it)
-                            onClickUpdated(IntOffset(offset.x.toInt(), offset.y.toInt()))
-                        }
-                    }
-                )
-            }
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.align(Alignment.Center),
-        )
-        Divider(
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
+   val context = LocalContext.current
+   var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
+   Box(
+      modifier = modifier
+         .fillMaxSize()
+         .height(50.dp)
+         .onGloballyPositioned {
+            layoutCoordinates = it
+         }
+         .pointerInput(layer, context) {
+            detectTapGestures(
+               onPress = {
+                  layer.detach()
+               },
+               onTap = {
+                  Toast
+                     .makeText(context, "try long click", Toast.LENGTH_SHORT)
+                     .show()
+               },
+               onLongPress = {
+                  val layout = layoutCoordinates
+                  if (layout?.isAttached == true) {
+                     val offset = layout.localToWindow(it)
+                     onClickUpdated(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                  }
+               }
+            )
+         }
+   ) {
+      Text(
+         text = text,
+         modifier = Modifier.align(Alignment.Center),
+      )
+      Divider(
+         modifier = Modifier.align(Alignment.BottomCenter)
+      )
+   }
 }

@@ -27,60 +27,60 @@ import com.sd.lib.compose.layer.layerTarget
 import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleTargetOffset : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        setContent {
-            AppTheme {
-                LayerContainer {
-                    Content()
-                }
+   override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      WindowCompat.setDecorFitsSystemWindows(window, false)
+      setContent {
+         AppTheme {
+            LayerContainer {
+               Content()
             }
-        }
-    }
+         }
+      }
+   }
 }
 
 @Composable
 private fun Content() {
-    val layer = layer()
+   val layer = layer()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(modifier = Modifier.height(500.dp))
-        Button(
-            onClick = {
-                layer.attach()
-            },
-            modifier = Modifier.layerTarget("button")
-        ) {
-            Text("Click")
-        }
-    }
+   Column(
+      modifier = Modifier
+         .fillMaxSize()
+         .padding(horizontal = 10.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+   ) {
+      Spacer(modifier = Modifier.height(500.dp))
+      Button(
+         onClick = {
+            layer.attach()
+         },
+         modifier = Modifier.layerTarget("button")
+      ) {
+         Text("Click")
+      }
+   }
 }
 
 @Composable
 private fun layer(): TargetLayer {
-    return rememberTargetLayer(
-        onCreate = {
-            it.isDebug = true
-            it.setTarget("button")
-            it.setCanceledOnTouchBackground(true)
-            it.setPosition(Layer.Position.TopCenter)
-            it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
+   return rememberTargetLayer(
+      onCreate = {
+         it.isDebug = true
+         it.setTarget("button")
+         it.setCanceledOnTouchBackground(true)
+         it.setPosition(Layer.Position.TopCenter)
+         it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
 
-            // 偏移
-            it.setTargetOffsetY(TargetOffset.Percent(0.5f))
-            it.setTargetOffsetX(TargetOffset.PX(100))
-        },
-        display = { DisplaySlideUpDown() }
-    ) {
-        VerticalList(
-            count = 5,
-            modifier = Modifier.width(200.dp),
-        )
-    }
+         // 偏移
+         it.setTargetOffsetY(TargetOffset.Percent(0.5f))
+         it.setTargetOffsetX(TargetOffset.PX(100))
+      },
+      display = { DisplaySlideUpDown() }
+   ) {
+      VerticalList(
+         count = 5,
+         modifier = Modifier.width(200.dp),
+      )
+   }
 }

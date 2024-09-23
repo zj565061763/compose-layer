@@ -30,77 +30,77 @@ import com.sd.lib.compose.layer.layerTarget
 import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleOverflow : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        setContent {
-            AppTheme {
-                LayerContainer {
-                    Content()
-                }
+   override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      WindowCompat.setDecorFitsSystemWindows(window, false)
+      setContent {
+         AppTheme {
+            LayerContainer {
+               Content()
             }
-        }
-    }
+         }
+      }
+   }
 }
 
 @Composable
 private fun Content() {
-    val layer = layer()
+   val layer = layer()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(modifier = Modifier.height(300.dp))
+   Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+   ) {
+      Spacer(modifier = Modifier.height(300.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Button(
-                onClick = {
-                    layer.setTarget("button1")
-                    layer.setFixOverflow(false)
-                    layer.attach()
-                },
-                modifier = Modifier.layerTarget("button1")
-            ) {
-                Text("Overflow")
-            }
+      Row(
+         modifier = Modifier.fillMaxWidth(),
+         verticalAlignment = Alignment.CenterVertically,
+         horizontalArrangement = Arrangement.SpaceEvenly,
+      ) {
+         Button(
+            onClick = {
+               layer.setTarget("button1")
+               layer.setFixOverflow(false)
+               layer.attach()
+            },
+            modifier = Modifier.layerTarget("button1")
+         ) {
+            Text("Overflow")
+         }
 
-            Button(
-                onClick = {
-                    layer.setTarget("button2")
-                    layer.setFixOverflow(true)
-                    layer.attach()
-                },
-                modifier = Modifier.layerTarget("button2")
-            ) {
-                Text("Fix overflow")
-            }
-        }
-    }
+         Button(
+            onClick = {
+               layer.setTarget("button2")
+               layer.setFixOverflow(true)
+               layer.attach()
+            },
+            modifier = Modifier.layerTarget("button2")
+         ) {
+            Text("Fix overflow")
+         }
+      }
+   }
 }
 
 @Composable
 private fun layer(): TargetLayer {
-    return rememberTargetLayer(
-        onCreate = {
-            it.isDebug = true
-            it.setPosition(Layer.Position.BottomCenter)
-            it.setCanceledOnTouchBackground(true)
-        },
-        display = {
-            DisplayDefault(
-                enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-                exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-            )
-        }
-    ) {
-        VerticalList(
-            count = 50,
-            modifier = Modifier.navigationBarsPadding(),
-        )
-    }
+   return rememberTargetLayer(
+      onCreate = {
+         it.isDebug = true
+         it.setPosition(Layer.Position.BottomCenter)
+         it.setCanceledOnTouchBackground(true)
+      },
+      display = {
+         DisplayDefault(
+            enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+            exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+         )
+      }
+   ) {
+      VerticalList(
+         count = 50,
+         modifier = Modifier.navigationBarsPadding(),
+      )
+   }
 }
