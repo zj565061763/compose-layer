@@ -378,7 +378,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          if (_fixOverflow) {
             state.layoutFixOverflow(cs, uiState)
          } else {
-            state.layoutNoneOverflow(cs, uiState)
+            state.layoutOverflow(cs, uiState)
          }
       }
    }
@@ -409,7 +409,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
-      fun layoutNoneOverflow(cs: Constraints, uiState: UIState): MeasureResult {
+      fun layoutOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val contentPlaceable = measureContent(cs)
          val contentSize = contentPlaceable.intSize()
 
@@ -432,7 +432,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
          logMsg {
-            "layout none overflow offset:$contentOffset size:$contentSize"
+            "layout overflow offset:$contentOffset size:$contentSize"
          }
 
          return layoutFinally(
@@ -446,12 +446,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val originalPlaceable = measureContent(cs, slotId = null)
+         val originalSize = originalPlaceable.intSize()
 
          val result = alignTarget(
             alignment = uiState.alignment,
             target = uiState.targetLayout,
             container = uiState.containerLayout,
-            contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
+            contentSize = originalSize,
          ).let {
             if (_findBestPosition) it.findBestPosition(this@TargetLayerImpl) else it
          }
@@ -470,10 +471,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
          logMsg {
-            "layout fix overflow \n" +
-               "offset:(${result.x}, ${result.y})->(${fixOffset.x}, ${fixOffset.y}) \n" +
-               "size:(${originalPlaceable.width},${originalPlaceable.height})->(${fixSize.width},${fixSize.height}) \n" +
-               "realSize:(${contentPlaceable.width},${contentPlaceable.height})"
+            """
+               layout fix overflow
+                  offset:(${result.x}, ${result.y}) -> $fixOffset
+                  size:$originalSize -> $fixSize
+                  realSize:${contentPlaceable.intSize()}
+            """.trimIndent()
          }
 
          return layoutFinally(
