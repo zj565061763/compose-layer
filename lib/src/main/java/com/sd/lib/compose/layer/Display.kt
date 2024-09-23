@@ -40,7 +40,7 @@ fun LayerDisplayScope.DisplayDefault(
 ) {
    AnimatedVisibility(
       modifier = modifier,
-      visible = layer.isVisibleState,
+      visible = isVisibleState,
       enter = enter,
       exit = exit,
    ) {

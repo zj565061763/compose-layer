@@ -129,7 +129,8 @@ interface Layer {
 }
 
 interface LayerContentScope {
-   val layer: Layer
+   /** 当前Layer是否可见 */
+   val isVisibleState: Boolean
 }
 
 interface LayerDisplayScope : LayerContentScope {
@@ -150,7 +151,7 @@ internal open class LayerImpl : Layer {
    private var _isAttached = false
    private var _isVisibleState by mutableStateOf(false)
 
-   private val _displayScope = LayerDisplayScopeImpl()
+   private val _layerScope = LayerScopeImpl()
    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)?>(null)
    private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({ Content() })
 
@@ -256,7 +257,7 @@ internal open class LayerImpl : Layer {
     * 设置内容可见状态
     */
    protected fun setContentVisible(visible: Boolean) {
-      val old = isVisibleState
+      val oldVisible = _isVisibleState
 
       if (visible) {
          if (_isAttached) {
@@ -266,8 +267,8 @@ internal open class LayerImpl : Layer {
          _isVisibleState = false
       }
 
-      if (old != isVisibleState) {
-         logMsg { "setContentVisible:$isVisibleState" }
+      if (oldVisible != _isVisibleState) {
+         logMsg { "setContentVisible:$_isVisibleState" }
       }
    }
 
@@ -276,7 +277,7 @@ internal open class LayerImpl : Layer {
     */
    @Composable
    internal fun HandleBack() {
-      if (isVisibleState && _dismissOnBackPressState != null) {
+      if (_isVisibleState && _dismissOnBackPressState != null) {
          BackHandler {
             if (_dismissOnBackPressState == true) {
                logMsg { "OnBackPress" }
@@ -297,7 +298,7 @@ internal open class LayerImpl : Layer {
 
       LayerBox {
          BackgroundBox()
-         ContentBox(modifier = Modifier.align(positionState.toAlignment()))
+         ContentBox(Modifier.align(_positionState.toAlignment()))
       }
    }
 
@@ -314,8 +315,8 @@ internal open class LayerImpl : Layer {
          modifier = modifier
             .onGloballyPositioned {
                if (it.size == IntSize.Zero) {
-                  logMsg { "ContentBox zero size isAttached:$_isAttached isVisible:$isVisibleState" }
-                  if (!_isAttached && !isVisibleState) {
+                  logMsg { "ContentBox zero size isAttached:$_isAttached isVisible:$_isVisibleState" }
+                  if (!_isAttached && !_isVisibleState) {
                      logMsg { "detachLayer" }
                      layerContainer?.detachLayer(this@LayerImpl)
                   }
@@ -329,7 +330,7 @@ internal open class LayerImpl : Layer {
                }
             }
       ) {
-         _displayState.value.invoke(_displayScope)
+         _displayState.value.invoke(_layerScope)
       }
    }
 
@@ -337,7 +338,7 @@ internal open class LayerImpl : Layer {
    protected fun BackgroundBox() {
       Box {
          AnimatedVisibility(
-            visible = isVisibleState,
+            visible = _isVisibleState,
             enter = fadeIn(),
             exit = fadeOut(),
          ) {
@@ -365,13 +366,14 @@ internal open class LayerImpl : Layer {
       }
    }
 
-   private inner class LayerDisplayScopeImpl : LayerDisplayScope {
+   private inner class LayerScopeImpl : LayerDisplayScope {
+      override val isVisibleState: Boolean
+         get() = this@LayerImpl._isVisibleState
+
       @Composable
       override fun Content() {
-         _contentState.value?.invoke(this@LayerDisplayScopeImpl)
+         _contentState.value?.invoke(this@LayerScopeImpl)
       }
-
-      override val layer: Layer get() = this@LayerImpl
    }
 }
 
