@@ -386,20 +386,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       private var _visibleContentInfo: PlaceInfo? = null
 
       fun layoutLastVisible(cs: Constraints): MeasureResult {
-         val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
+         val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
-         val contentInfo = _visibleContentInfo ?: PlaceInfo(0, 0, cs.maxWidth, cs.maxHeight)
-         val contentPlaceable = measureContent(cs.newMax(contentInfo.width, contentInfo.height))
+         val contentInfo = _visibleContentInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val contentPlaceable = measureContent(cs.newMax(contentInfo.size))
 
          return layoutFinally(
             cs = cs,
             backgroundPlaceable = backgroundPlaceable,
-            backgroundX = backgroundInfo.x,
-            backgroundY = backgroundInfo.y,
+            backgroundOffset = backgroundInfo.offset,
             contentPlaceable = contentPlaceable,
-            contentX = contentInfo.x,
-            contentY = contentInfo.y,
+            contentOffset = contentInfo.offset,
             saveInfo = false,
          )
       }
@@ -424,7 +422,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             contentOffset = offset,
             contentSize = size,
          )
-         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
+         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
          logMsg {
             "layout none overflow (${offset.x},${offset.y}) (${size.width},${size.height})"
@@ -433,11 +431,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          return layoutFinally(
             cs = cs,
             backgroundPlaceable = backgroundPlaceable,
-            backgroundX = backgroundInfo.x,
-            backgroundY = backgroundInfo.y,
+            backgroundOffset = backgroundInfo.offset,
             contentPlaceable = contentPlaceable,
-            contentX = offset.x,
-            contentY = offset.y,
+            contentOffset = offset,
          )
       }
 
@@ -457,14 +453,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val fixOffset = IntOffset(fixOverFlow.x, fixOverFlow.y)
          val fixSize = IntSize(fixOverFlow.width, fixOverFlow.height)
 
-         val contentPlaceable = measureContent(cs.newMax(fixSize.width, fixSize.height))
+         val contentPlaceable = measureContent(cs.newMax(fixSize))
 
          val backgroundInfo = backgroundPlaceInfo(
             cs = cs,
             contentOffset = fixOffset,
             contentSize = fixSize,
          )
-         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.width, backgroundInfo.height))
+         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
          logMsg {
             "layout fix overflow \n" +
@@ -476,41 +472,33 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          return layoutFinally(
             cs = cs,
             backgroundPlaceable = backgroundPlaceable,
-            backgroundX = backgroundInfo.x,
-            backgroundY = backgroundInfo.y,
+            backgroundOffset = backgroundInfo.offset,
             contentPlaceable = contentPlaceable,
-            contentX = fixOffset.x,
-            contentY = fixOffset.y,
+            contentOffset = fixOffset,
          )
       }
 
       private fun layoutFinally(
          cs: Constraints,
          backgroundPlaceable: Placeable,
-         backgroundX: Int,
-         backgroundY: Int,
+         backgroundOffset: IntOffset,
          contentPlaceable: Placeable,
-         contentX: Int,
-         contentY: Int,
+         contentOffset: IntOffset,
          saveInfo: Boolean = true,
       ): MeasureResult {
          return measureScope.layout(cs.maxWidth, cs.maxHeight) {
             if (saveInfo) {
                _visibleBackgroundInfo = PlaceInfo(
-                  x = backgroundX,
-                  y = backgroundY,
-                  width = backgroundPlaceable.width,
-                  height = backgroundPlaceable.height,
+                  offset = backgroundOffset,
+                  size = backgroundPlaceable.intSize(),
                )
                _visibleContentInfo = PlaceInfo(
-                  x = contentX,
-                  y = contentY,
-                  width = contentPlaceable.width,
-                  height = contentPlaceable.height,
+                  offset = contentOffset,
+                  size = contentPlaceable.intSize(),
                )
             }
-            backgroundPlaceable.placeRelative(backgroundX, backgroundY, -1f)
-            contentPlaceable.placeRelative(contentX, contentY)
+            backgroundPlaceable.placeRelative(backgroundOffset, -1f)
+            contentPlaceable.placeRelative(contentOffset)
          }
       }
 
@@ -522,10 +510,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val direction = _clipBackgroundDirection
          if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
             return PlaceInfo(
-               x = 0,
-               y = 0,
-               width = cs.maxWidth,
-               height = cs.maxHeight,
+               offset = IntOffset.Zero,
+               size = cs.maxIntSize(),
             )
          }
 
@@ -562,10 +548,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          }
 
          return PlaceInfo(
-            x = x,
-            y = y,
-            width = width.coerceAtLeast(0),
-            height = height.coerceAtLeast(0),
+            offset = IntOffset(x, y),
+            size = IntSize(width.coerceAtLeast(0), height.coerceAtLeast(0)),
          )
       }
 
@@ -587,10 +571,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    private data class PlaceInfo(
-      val x: Int,
-      val y: Int,
-      val width: Int,
-      val height: Int,
+      val offset: IntOffset,
+      val size: IntSize,
    )
 
    private enum class SlotId {
@@ -686,9 +668,13 @@ private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
    }
 }
 
-private fun Constraints.newMax(width: Int, height: Int): Constraints {
-   return this.copy(maxWidth = width, maxHeight = height)
+private fun Constraints.newMax(size: IntSize): Constraints {
+   return this.copy(maxWidth = size.width, maxHeight = size.height)
 }
+
+private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
+
+private fun Placeable.intSize(): IntSize = IntSize(width, height)
 
 private fun Aligner.Result.findBestPosition(
    layer: Layer,
