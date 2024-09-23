@@ -87,7 +87,7 @@ private fun Content() {
 private fun layer(): TargetLayer {
    return rememberTargetLayer(
       onCreate = {
-         it.isDebug = true
+         it.debug = true
          it.setPosition(Layer.Position.BottomCenter)
          it.setDismissOnTouchOutside(true)
       },

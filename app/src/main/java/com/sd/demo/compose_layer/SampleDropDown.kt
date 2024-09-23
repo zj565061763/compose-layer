@@ -65,7 +65,7 @@ private fun Content() {
 private fun layer(): TargetLayer {
    return rememberTargetLayer(
       onCreate = {
-         it.isDebug = true
+         it.debug = true
          it.setTarget("button")
          it.setPosition(Layer.Position.BottomCenter)
          it.setClipBackgroundDirection(Directions.Top)

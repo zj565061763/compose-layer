@@ -1,6 +1,7 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,45 +24,40 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
+import com.sd.lib.compose.layer.Layer.Dismiss
 import com.sd.lib.compose.layer.Layer.Position
 import java.util.concurrent.atomic.AtomicLong
 
 interface Layer {
    /** 是否调试模式，tag:FLayer */
-   var isDebug: Boolean
+   var debug: Boolean
 
    /** 当前Layer是否可见 */
    val isVisibleState: Boolean
 
-   /** 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true */
-   val dismissOnBackPressState: Boolean?
-
-   /** 触摸非内容区域是否移除Layer，true-移除，false-不移除，null-不处理，事件会透过背景，默认-false */
-   val dismissOnTouchOutsideState: Boolean?
-
-   /** 显示位置 */
+   /** [setPosition] */
    val positionState: Position
 
-   /** 背景颜色 */
+   /** [setBackgroundColor] */
    val backgroundColorState: Color
 
    /**
-    * [dismissOnBackPressState]
+    * 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true
     */
    fun setDismissOnBackPress(value: Boolean?)
 
    /**
-    * [dismissOnTouchOutsideState]
+    * 触摸非内容区域是否移除Layer，true-移除，false-不移除，null-不处理，事件会透过背景，默认-false
     */
    fun setDismissOnTouchOutside(value: Boolean?)
 
    /**
-    * [position]
+    * 显示位置
     */
    fun setPosition(position: Position)
 
    /**
-    * [backgroundColorState]
+    * 背景颜色
     */
    fun setBackgroundColor(color: Color)
 
@@ -69,6 +65,11 @@ interface Layer {
     * 是否裁剪内容区域，默认true
     */
    fun setClipToBounds(clipToBounds: Boolean)
+
+   /**
+    * 设置移除请求回调
+    */
+   fun setDismissRequestCallback(callback: (Dismiss) -> Unit)
 
    /**
     * 添加到容器
@@ -79,6 +80,14 @@ interface Layer {
     * 从容器上移除
     */
    fun detach()
+
+   enum class Dismiss {
+      /** 按返回键 */
+      OnBackPress,
+
+      /** 触摸非内容区域 */
+      OnTouchOutside,
+   }
 
    enum class Position {
       /** 顶部开始方向对齐 */
@@ -155,10 +164,10 @@ internal open class LayerImpl : Layer {
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
    private var _clipToBoundsState by mutableStateOf(true)
 
-   final override var isDebug: Boolean = false
+   private var _dismissRequestCallback: ((Dismiss) -> Unit)? = null
+
+   final override var debug: Boolean = false
    final override val isVisibleState: Boolean get() = _isVisibleState
-   final override val dismissOnBackPressState: Boolean? get() = _dismissOnBackPressState
-   final override val dismissOnTouchOutsideState: Boolean? get() = _dismissOnTouchOutsideState
    final override val positionState: Position get() = _positionState
    final override val backgroundColorState: Color get() = _backgroundColorState
 
@@ -166,20 +175,24 @@ internal open class LayerImpl : Layer {
       _positionState = position
    }
 
-   override fun setBackgroundColor(color: Color) {
+   final override fun setBackgroundColor(color: Color) {
       _backgroundColorState = color
    }
 
-   override fun setDismissOnBackPress(value: Boolean?) {
+   final override fun setDismissOnBackPress(value: Boolean?) {
       _dismissOnBackPressState = value
    }
 
-   override fun setDismissOnTouchOutside(value: Boolean?) {
+   final override fun setDismissOnTouchOutside(value: Boolean?) {
       _dismissOnTouchOutsideState = value
    }
 
    final override fun setClipToBounds(clipToBounds: Boolean) {
       _clipToBoundsState = clipToBounds
+   }
+
+   final override fun setDismissRequestCallback(callback: (Dismiss) -> Unit) {
+      _dismissRequestCallback = callback
    }
 
    final override fun attach() {
@@ -263,6 +276,21 @@ internal open class LayerImpl : Layer {
    }
 
    /**
+    * 处理返回键逻辑
+    */
+   @Composable
+   internal fun HandleBack() {
+      if (isVisibleState && _dismissOnBackPressState != null) {
+         BackHandler {
+            if (_dismissOnBackPressState == true) {
+               logMsg { "cancel OnBackPress" }
+               _dismissRequestCallback?.invoke(Dismiss.OnBackPress)
+            }
+         }
+      }
+   }
+
+   /**
     * 渲染Layer内容
     */
    @Composable
@@ -321,19 +349,19 @@ internal open class LayerImpl : Layer {
                modifier = Modifier
                   .fillMaxSize()
                   .background(backgroundColorState)
-                  .let {
-                     if (dismissOnTouchOutsideState != null) {
-                        it.pointerInput(Unit) {
+                  .let { m ->
+                     if (_dismissOnTouchOutsideState != null) {
+                        m.pointerInput(Unit) {
                            awaitEachGesture {
                               awaitFirstDown(pass = PointerEventPass.Initial)
-                              if (dismissOnTouchOutsideState == true) {
-                                 logMsg { "cancel touch background" }
-                                 detach()
+                              if (_dismissOnTouchOutsideState == true) {
+                                 logMsg { "cancel OnTouchOutside" }
+                                 _dismissRequestCallback?.invoke(Dismiss.OnTouchOutside)
                               }
                            }
                         }
                      } else {
-                        it
+                        m
                      }
                   }
             )
@@ -368,7 +396,7 @@ private fun Position.toAlignment(): Alignment {
 }
 
 internal inline fun Layer.logMsg(block: () -> String) {
-   if (isDebug) {
-      Log.i("FLayer", "$this ${block()}")
+   if (debug) {
+      Log.d("FLayer", "$this ${block()}")
    }
 }

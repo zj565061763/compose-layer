@@ -50,7 +50,7 @@ fun LayerContainer(
  * 添加Layer
  *
  * @param visible 是否显示Layer
- * @param onDismissRequest 由[dismissOnBackPress]或者[dismissOnTouchOutside]触发的移除回调
+ * @param onDismissRequest 由[Layer.Dismiss]触发的移除回调
  * @param dismissOnBackPress 按返回键是否移除Layer，true-移除，false-不移除，null-不处理返回键逻辑，默认-true
  * @param dismissOnTouchOutside 触摸非内容区域是否移除Layer，true-移除，false-不移除，null-不处理，事件会透过背景，默认-false
  * @param position 显示位置
@@ -59,11 +59,12 @@ fun LayerContainer(
 @Composable
 fun Layer(
    visible: Boolean,
-   onDismissRequest: () -> Unit,
+   onDismissRequest: (Layer.Dismiss) -> Unit,
    dismissOnBackPress: Boolean? = true,
    dismissOnTouchOutside: Boolean? = false,
    position: Layer.Position = Layer.Position.Center,
    backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   debug: Boolean = false,
    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
@@ -71,10 +72,12 @@ fun Layer(
       display = display,
       content = content,
    ).apply {
-      setDismissOnBackPress(dismissOnBackPress)
-      setDismissOnTouchOutside(dismissOnTouchOutside)
-      setPosition(position)
-      setBackgroundColor(backgroundColor)
+      this.debug = debug
+      this.setDismissOnBackPress(dismissOnBackPress)
+      this.setDismissOnTouchOutside(dismissOnTouchOutside)
+      this.setPosition(position)
+      this.setBackgroundColor(backgroundColor)
+      this.setDismissRequestCallback(onDismissRequest)
    }
 
    LaunchedEffect(layer, visible) {
@@ -118,6 +121,7 @@ fun rememberLayer(
    }.apply {
       this.Init(content = content, display = display)
    }
+
    DisposableEffect(layer) {
       onDispose {
          layer.destroy()

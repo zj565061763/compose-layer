@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import androidx.activity.compose.BackHandler
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -188,13 +187,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
       _attachedLayers.forEach { layer ->
          key(layer.id) {
             layer.Content()
-            layer.dismissOnBackPressState?.let { cancelable ->
-               BackHandler(layer.isVisibleState) {
-                  if (cancelable) {
-                     layer.detach()
-                  }
-               }
-            }
+            layer.HandleBack()
          }
       }
    }

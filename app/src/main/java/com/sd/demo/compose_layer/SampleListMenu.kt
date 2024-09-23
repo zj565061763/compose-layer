@@ -72,7 +72,7 @@ private fun Content() {
 private fun layer(): TargetLayer {
    return rememberTargetLayer(
       onCreate = {
-         it.isDebug = true
+         it.debug = true
          it.setBackgroundColor(Color.Transparent)
          it.setDismissOnTouchOutside(null)
          it.setFindBestPosition(true)

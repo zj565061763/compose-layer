@@ -71,7 +71,7 @@ private fun Content() {
 private fun layer(): TargetLayer {
    return rememberTargetLayer(
       onCreate = {
-         it.isDebug = true
+         it.debug = true
          it.setTarget("hello")
          it.setBackgroundColor(Color.Transparent)
          it.setDismissOnBackPress(null)
