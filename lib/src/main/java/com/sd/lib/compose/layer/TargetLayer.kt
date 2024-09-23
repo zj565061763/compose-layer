@@ -169,8 +169,8 @@ private data class UIState(
 
 @Immutable
 private data class LayoutInfo(
-   val size: IntSize,
    val offset: IntOffset,
+   val size: IntSize,
    val isAttached: Boolean,
 )
 
