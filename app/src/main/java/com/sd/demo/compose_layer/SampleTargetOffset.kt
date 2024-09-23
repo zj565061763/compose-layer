@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,12 +23,12 @@ import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
 import com.sd.lib.compose.layer.DisplaySlideUpDown
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.TargetAlignment
+import com.sd.lib.compose.layer.TargetAlignmentOffset
 import com.sd.lib.compose.layer.TargetLayer
-import com.sd.lib.compose.layer.TargetOffset
-import com.sd.lib.compose.layer.layerTarget
-import com.sd.lib.compose.layer.rememberTargetLayer
+import com.sd.lib.compose.layer.layerTag
 
 class SampleTargetOffset : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +46,8 @@ class SampleTargetOffset : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   val layer = layer()
+   val tag = "hello"
+   var attach by remember { mutableStateOf(false) }
 
    Column(
       modifier = Modifier
@@ -52,31 +57,24 @@ private fun Content() {
    ) {
       Spacer(modifier = Modifier.height(500.dp))
       Button(
-         onClick = {
-            layer.attach()
-         },
-         modifier = Modifier.layerTarget("button")
+         onClick = { attach = false },
+         modifier = Modifier.layerTag(tag)
       ) {
          Text("Click")
       }
    }
-}
 
-@Composable
-private fun layer(): TargetLayer {
-   return rememberTargetLayer(
-      onCreate = {
-         it.debug = true
-         it.setTarget("button")
-         it.setDismissOnTouchOutside(true)
-         it.setPosition(Layer.Position.TopCenter)
-         it.setClipBackgroundDirection(Directions.Bottom + Directions.Start + Directions.End)
-
-         // 偏移
-         it.setTargetOffsetY(TargetOffset.Percent(0.5f))
-         it.setTargetOffsetX(TargetOffset.PX(100))
-      },
-      display = { DisplaySlideUpDown() }
+   TargetLayer(
+      target = LayerTarget.Tag(tag),
+      attach = attach,
+      onDetachRequest = { attach = false },
+      alignment = TargetAlignment.TopCenter,
+      detachOnTouchOutside = true,
+      alignmentOffsetX = TargetAlignmentOffset.PX(100),
+      alignmentOffsetY = TargetAlignmentOffset.Percent(0.5f),
+      clipBackgroundDirection = Directions.Bottom + Directions.Start + Directions.End,
+      display = { DisplaySlideUpDown() },
+      debug = true,
    ) {
       VerticalList(
          count = 5,

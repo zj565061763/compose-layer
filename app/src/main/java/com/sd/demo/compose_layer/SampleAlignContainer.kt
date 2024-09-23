@@ -34,24 +34,24 @@ class SampleAlignContainer : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   var showLayer by remember { mutableStateOf(false) }
+   var attach by remember { mutableStateOf(false) }
 
    Column(
       modifier = Modifier.fillMaxSize(),
       horizontalAlignment = Alignment.CenterHorizontally,
    ) {
       Button(onClick = {
-         showLayer = true
+         attach = true
       }) {
          Text(text = "Attach")
       }
    }
 
    Layer(
-      visible = showLayer,
-      onDismissRequest = { showLayer = false },
-      position = Layer.Position.BottomCenter,
-      dismissOnTouchOutside = true,
+      attach = attach,
+      onDetachRequest = { attach = false },
+      alignment = Alignment.BottomCenter,
+      detachOnTouchOutside = true,
       debug = true,
    ) {
       ColorBox(

@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -23,82 +24,138 @@ import com.sd.lib.aligner.toResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
-import kotlin.properties.Delegates
 
-interface TargetLayer : Layer {
+internal interface TargetLayer : Layer {
    /**
-    * 设置目标
+    * 要对齐的目标
     */
-   fun setTarget(target: String?)
+   fun setTarget(target: LayerTarget?)
 
    /**
-    * 设置目标坐标
+    * 对齐目标位置，默认[TargetAlignment.Center]
     */
-   fun setTarget(offset: IntOffset?)
+   fun setAlignment(alignment: TargetAlignment)
 
    /**
-    * 设置目标X方向偏移量
+    * 对齐目标X方向偏移量
     */
-   fun setTargetOffsetX(offset: TargetOffset?)
+   fun setAlignmentOffsetX(offset: TargetAlignmentOffset?)
 
    /**
-    * 设置目标Y方向偏移量
+    * 对齐目标Y方向偏移量
     */
-   fun setTargetOffsetY(offset: TargetOffset?)
+   fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
    /**
-    * 设置是否修复溢出，默认true
+    * 是否修复溢出，默认true
     */
    fun setFixOverflow(fixOverflow: Boolean)
 
    /**
-    * 设置是否查找最佳的显示位置，默认false
+    * 是否查找最佳的显示位置，默认false
     */
    fun setFindBestPosition(findBestPosition: Boolean)
 
    /**
-    * 设置要裁切背景的方向[Directions]
+    * 裁切背景的方向[Directions]
     */
    fun setClipBackgroundDirection(direction: Directions?)
 }
 
-sealed interface TargetOffset {
-   /**
-    * 偏移指定像素
-    */
-   data class PX(val value: Int) : TargetOffset
-
-   /**
-    * 偏移目标大小的倍数，例如：1表示向正方向偏移1倍目标的大小，-1表示向负方向偏移1倍目标的大小
-    */
-   data class Percent(val value: Float) : TargetOffset
+/**
+ * 要对齐的目标
+ */
+@Immutable
+sealed interface LayerTarget {
+   data class Tag(val tag: String?) : LayerTarget
+   data class Offset(val offset: IntOffset?) : LayerTarget
 }
 
-sealed class Directions(direction: Int) {
-   private val _direction = direction
+/**
+ * 目标对齐位置
+ */
+enum class TargetAlignment {
+   /** 顶部开始方向对齐 */
+   TopStart,
+   /** 顶部中间对齐 */
+   TopCenter,
+   /** 顶部结束方向对齐 */
+   TopEnd,
+   /** 顶部对齐，不计算x坐标，默认x坐标为0 */
+   Top,
 
-   fun hasTop() = FlagTop and _direction != 0
-   fun hasBottom() = FlagBottom and _direction != 0
-   fun hasStart() = FlagStart and _direction != 0
-   fun hasEnd() = FlagEnd and _direction != 0
+   /** 底部开始方向对齐 */
+   BottomStart,
+   /** 底部中间对齐 */
+   BottomCenter,
+   /** 底部结束方向对齐 */
+   BottomEnd,
+   /** 底部对齐，不计算x坐标，默认x坐标为0 */
+   Bottom,
 
-   operator fun plus(direction: Directions): Directions {
-      val plusDirection = this._direction or direction._direction
-      return Combine(plusDirection)
+   /** 开始方向顶部对齐 */
+   StartTop,
+   /** 开始方向中间对齐 */
+   StartCenter,
+   /** 开始方向底部对齐 */
+   StartBottom,
+   /** 开始方向对齐，不计算y坐标，默认y坐标为0 */
+   Start,
+
+   /** 结束方向顶部对齐 */
+   EndTop,
+   /** 结束方向中间对齐 */
+   EndCenter,
+   /** 结束方向底部对齐 */
+   EndBottom,
+   /** 结束方向对齐，不计算y坐标，默认y坐标为0 */
+   End,
+
+   /** 中间对齐 */
+   Center,
+}
+
+/**
+ * 目标对齐位置偏移量
+ */
+@Immutable
+sealed interface TargetAlignmentOffset {
+   /**
+    * 按指定像素[value]偏移
+    */
+   data class PX(val value: Int) : TargetAlignmentOffset
+
+   /**
+    * 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小
+    */
+   data class Percent(val value: Float) : TargetAlignmentOffset
+}
+
+@Immutable
+sealed class Directions(
+   private val flag: Int,
+) {
+   data object Top : Directions(TOP)
+   data object Bottom : Directions(BOTTOM)
+   data object Start : Directions(START)
+   data object End : Directions(END)
+
+   fun hasTop() = TOP and flag != 0
+   fun hasBottom() = BOTTOM and flag != 0
+   fun hasStart() = START and flag != 0
+   fun hasEnd() = END and flag != 0
+
+   operator fun plus(directions: Directions): Directions {
+      return Combine(flag or directions.flag)
    }
-
-   data object Top : Directions(FlagTop)
-   data object Bottom : Directions(FlagBottom)
-   data object Start : Directions(FlagStart)
-   data object End : Directions(FlagEnd)
 
    private class Combine(direction: Int) : Directions(direction)
 
    companion object {
-      private const val FlagTop = 1
-      private const val FlagBottom = FlagTop shl 1
-      private const val FlagStart = FlagTop shl 2
-      private const val FlagEnd = FlagTop shl 3
+      private const val TOP = 1
+      private const val BOTTOM = TOP shl 1
+      private const val START = TOP shl 2
+      private const val END = TOP shl 3
    }
 }
 
@@ -106,6 +163,7 @@ sealed class Directions(direction: Int) {
 
 @Immutable
 private data class UIState(
+   val alignment: TargetAlignment,
    val targetLayout: LayoutInfo,
    val containerLayout: LayoutInfo,
 )
@@ -126,6 +184,7 @@ private val EmptyLayoutInfo = LayoutInfo(
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private val _uiState = MutableStateFlow(
       UIState(
+         alignment = TargetAlignment.Center,
          targetLayout = EmptyLayoutInfo,
          containerLayout = EmptyLayoutInfo,
       )
@@ -135,51 +194,64 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private var _findBestPosition = false
    private var _clipBackgroundDirection: Directions? = null
 
-   private var _targetOffset by Delegates.observable<IntOffset?>(null) { _, oldValue, newValue ->
-      if (oldValue != newValue) {
-         updateTargetLayout()
-      }
+   /** 目标 */
+   private var _target: LayerTarget? = null
+
+   /** X方向偏移量 */
+   private var _alignmentOffsetX: TargetAlignmentOffset? = null
+   /** Y方向偏移量 */
+   private var _alignmentOffsetY: TargetAlignmentOffset? = null
+
+   override fun setTarget(target: LayerTarget?) {
+      if (_target == target) return
+
+      val oldTarget = _target
+      unregisterTagTargetLayoutCallback(oldTarget)
+
+      _target = target
+      registerTagTargetLayoutCallback(target)
    }
-   private var _targetOffsetX by Delegates.observable<TargetOffset?>(null) { _, oldValue, newValue ->
-      if (oldValue != newValue) {
-         updateTargetLayout()
-      }
-   }
-   private var _targetOffsetY by Delegates.observable<TargetOffset?>(null) { _, oldValue, newValue ->
-      if (oldValue != newValue) {
-         updateTargetLayout()
+
+   private fun registerTagTargetLayoutCallback(target: LayerTarget?) {
+      if (target is LayerTarget.Tag) {
+         layerContainer?.registerTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
       }
    }
 
-   private var _target by Delegates.observable("") { _, oldValue, newValue ->
-      if (oldValue != newValue) {
-         logMsg { "target changed ($oldValue) -> ($newValue)" }
-         layerContainer?.run {
-            unregisterTargetLayoutCallback(oldValue, _targetLayoutCallback)
-            registerTargetLayoutCallback(newValue, _targetLayoutCallback)
+   private fun unregisterTagTargetLayoutCallback(target: LayerTarget?) {
+      if (target is LayerTarget.Tag) {
+         layerContainer?.unregisterTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
+      }
+   }
+
+   private var _tagTargetLayout: LayoutCoordinates? = null
+   private val _tagTargetLayoutCallback: (LayoutCoordinates?) -> Unit = {
+      _tagTargetLayout = it
+      updateTargetLayout()
+   }
+
+   override fun setAlignment(alignment: TargetAlignment) {
+      _uiState.update {
+         if (it.alignment != alignment) {
+            it.copy(alignment = alignment)
+         } else {
+            it
          }
       }
    }
 
-   private val _targetLayoutCallback: (LayoutCoordinates?) -> Unit = { _targetLayout = it }
-   private var _targetLayout: LayoutCoordinates? by Delegates.observable(null) { _, _, _ ->
-      updateTargetLayout()
+   override fun setAlignmentOffsetX(offset: TargetAlignmentOffset?) {
+      if (_alignmentOffsetX != offset) {
+         _alignmentOffsetX = offset
+         updateTargetLayout()
+      }
    }
 
-   override fun setTarget(target: String?) {
-      _target = target ?: ""
-   }
-
-   override fun setTarget(offset: IntOffset?) {
-      _targetOffset = offset
-   }
-
-   override fun setTargetOffsetX(offset: TargetOffset?) {
-      _targetOffsetX = offset
-   }
-
-   override fun setTargetOffsetY(offset: TargetOffset?) {
-      _targetOffsetY = offset
+   override fun setAlignmentOffsetY(offset: TargetAlignmentOffset?) {
+      if (_alignmentOffsetY != offset) {
+         _alignmentOffsetY = offset
+         updateTargetLayout()
+      }
    }
 
    override fun setFixOverflow(fixOverflow: Boolean) {
@@ -194,20 +266,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       _clipBackgroundDirection = direction
    }
 
-   override fun onAttach() {
-      super.onAttach()
-      layerContainer?.run {
-         registerContainerLayoutCallback(_containerLayoutCallback)
-         registerTargetLayoutCallback(_target, _targetLayoutCallback)
-      }
+   override fun onAttach(container: ContainerForLayer) {
+      container.registerContainerLayoutCallback(_containerLayoutCallback)
+      registerTagTargetLayoutCallback(_target)
    }
 
-   override fun onDetach() {
-      super.onDetach()
-      layerContainer?.run {
-         unregisterContainerLayoutCallback(_containerLayoutCallback)
-         unregisterTargetLayoutCallback(_target, _targetLayoutCallback)
-      }
+   override fun onDetach(container: ContainerForLayer) {
+      container.unregisterContainerLayoutCallback(_containerLayoutCallback)
+      unregisterTagTargetLayoutCallback(_target)
    }
 
    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { layout ->
@@ -220,28 +286,41 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     * 更新目标布局信息
     */
    private fun updateTargetLayout() {
-      val layout = _targetOffset?.toLayoutInfo() ?: _targetLayout.toLayoutInfo()
+      var layout = when (val target = _target) {
+         is LayerTarget.Tag -> {
+            val targetLayout = _tagTargetLayout ?: return
+            targetLayout.toLayoutInfo()
+         }
+         is LayerTarget.Offset -> {
+            val offset = target.offset ?: return
+            LayoutInfo(
+               size = IntSize.Zero,
+               offset = offset,
+               isAttached = true,
+            )
+         }
+         else -> return
+      }
 
-      val targetOffsetX = _targetOffsetX
-      val targetOffsetY = _targetOffsetY
-      val finalLayout = if (targetOffsetX != null || targetOffsetY != null) {
-         val offsetX = targetOffsetX.pxValue(layout.size.width)
-         val offsetY = targetOffsetY.pxValue(layout.size.height)
-         val newOffset = IntOffset(layout.offset.x + offsetX, layout.offset.y + offsetY)
-         layout.copy(offset = newOffset)
-      } else {
-         layout
+      val offsetX = _alignmentOffsetX
+      val offsetY = _alignmentOffsetY
+      if (offsetX != null || offsetY != null) {
+         val offset = IntOffset(
+            x = offsetX.pxValue(layout.size.width),
+            y = offsetY.pxValue(layout.size.height)
+         )
+         layout = layout.copy(offset = layout.offset + offset)
       }
 
       _uiState.update {
-         it.copy(targetLayout = finalLayout)
+         it.copy(targetLayout = layout)
       }
    }
 
    @Composable
-   override fun Content() {
+   override fun LayerContent() {
       val uiState by _uiState.collectAsState()
-      LayerBox {
+      Box(modifier = Modifier.fillMaxSize()) {
          OffsetBox(
             uiState = uiState,
             background = { BackgroundBox() },
@@ -331,7 +410,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val contentPlaceable = measureContent(cs)
 
          val result = alignTarget(
-            position = positionState,
+            alignment = uiState.alignment,
             target = uiState.targetLayout,
             container = uiState.containerLayout,
             contentSize = IntSize(contentPlaceable.width, contentPlaceable.height),
@@ -368,7 +447,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val originalPlaceable = measureContent(cs, slotId = null)
 
          val result = alignTarget(
-            position = positionState,
+            alignment = uiState.alignment,
             target = uiState.targetLayout,
             container = uiState.containerLayout,
             contentSize = IntSize(originalPlaceable.width, originalPlaceable.height),
@@ -523,7 +602,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 }
 
 private fun alignTarget(
-   position: Layer.Position,
+   alignment: TargetAlignment,
    target: LayoutInfo,
    container: LayoutInfo,
    contentSize: IntSize,
@@ -531,7 +610,7 @@ private fun alignTarget(
    check(target.isAttached)
    check(container.isAttached)
    return Aligner.Input(
-      position = position.toAlignerPosition(),
+      position = alignment.toAlignerPosition(),
 
       targetX = target.offset.x,
       targetY = target.offset.y,
@@ -548,39 +627,30 @@ private fun alignTarget(
    ).toResult()
 }
 
-private fun Layer.Position.toAlignerPosition(): Aligner.Position {
+private fun TargetAlignment.toAlignerPosition(): Aligner.Position {
    return when (this) {
-      Layer.Position.TopStart -> Aligner.Position.TopStart
-      Layer.Position.TopCenter -> Aligner.Position.TopCenter
-      Layer.Position.TopEnd -> Aligner.Position.TopEnd
-      Layer.Position.Top -> Aligner.Position.Top
+      TargetAlignment.TopStart -> Aligner.Position.TopStart
+      TargetAlignment.TopCenter -> Aligner.Position.TopCenter
+      TargetAlignment.TopEnd -> Aligner.Position.TopEnd
+      TargetAlignment.Top -> Aligner.Position.Top
 
-      Layer.Position.BottomStart -> Aligner.Position.BottomStart
-      Layer.Position.BottomCenter -> Aligner.Position.BottomCenter
-      Layer.Position.BottomEnd -> Aligner.Position.BottomEnd
-      Layer.Position.Bottom -> Aligner.Position.Bottom
+      TargetAlignment.BottomStart -> Aligner.Position.BottomStart
+      TargetAlignment.BottomCenter -> Aligner.Position.BottomCenter
+      TargetAlignment.BottomEnd -> Aligner.Position.BottomEnd
+      TargetAlignment.Bottom -> Aligner.Position.Bottom
 
-      Layer.Position.StartTop -> Aligner.Position.StartTop
-      Layer.Position.StartCenter -> Aligner.Position.StartCenter
-      Layer.Position.StartBottom -> Aligner.Position.StartBottom
-      Layer.Position.Start -> Aligner.Position.Start
+      TargetAlignment.StartTop -> Aligner.Position.StartTop
+      TargetAlignment.StartCenter -> Aligner.Position.StartCenter
+      TargetAlignment.StartBottom -> Aligner.Position.StartBottom
+      TargetAlignment.Start -> Aligner.Position.Start
 
-      Layer.Position.EndTop -> Aligner.Position.EndTop
-      Layer.Position.EndCenter -> Aligner.Position.EndCenter
-      Layer.Position.EndBottom -> Aligner.Position.EndBottom
-      Layer.Position.End -> Aligner.Position.End
+      TargetAlignment.EndTop -> Aligner.Position.EndTop
+      TargetAlignment.EndCenter -> Aligner.Position.EndCenter
+      TargetAlignment.EndBottom -> Aligner.Position.EndBottom
+      TargetAlignment.End -> Aligner.Position.End
 
-      Layer.Position.Center -> Aligner.Position.Center
+      TargetAlignment.Center -> Aligner.Position.Center
    }
-}
-
-private fun IntOffset?.toLayoutInfo(): LayoutInfo? {
-   if (this == null) return null
-   return LayoutInfo(
-      size = IntSize.Zero,
-      offset = this,
-      isAttached = true,
-   )
 }
 
 private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
@@ -607,11 +677,11 @@ private fun LayoutCoordinates?.isAttached(): Boolean {
    return this.isAttached
 }
 
-private fun TargetOffset?.pxValue(targetSize: Int): Int {
+private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
    return when (val offset = this) {
       null -> 0
-      is TargetOffset.PX -> offset.value
-      is TargetOffset.Percent -> {
+      is TargetAlignmentOffset.PX -> offset.value
+      is TargetAlignmentOffset.Percent -> {
          val px = targetSize * offset.value
          if (px.isInfinite()) 0 else px.roundToInt()
       }

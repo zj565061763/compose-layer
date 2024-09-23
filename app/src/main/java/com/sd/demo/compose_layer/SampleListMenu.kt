@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,11 +28,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.LayerTarget
 import com.sd.lib.compose.layer.TargetLayer
-import com.sd.lib.compose.layer.rememberTargetLayer
 
 class SampleListMenu : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +49,8 @@ class SampleListMenu : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   val layer = layer()
+   var attach by remember { mutableStateOf(false) }
+   var offset: IntOffset? by remember { mutableStateOf(null) }
 
    LazyColumn(
       modifier = Modifier
@@ -59,29 +60,30 @@ private fun Content() {
       items(100) { index ->
          ListItem(
             text = index.toString(),
-            layer = layer,
-         ) { offset ->
-            layer.setTarget(offset)
-            layer.attach()
-         }
+            onPress = {
+               attach = false
+               offset = null
+            },
+            onLongPress = {
+               offset = it
+               attach = true
+            },
+         )
       }
    }
-}
 
-@Composable
-private fun layer(): TargetLayer {
-   return rememberTargetLayer(
-      onCreate = {
-         it.debug = true
-         it.setBackgroundColor(Color.Transparent)
-         it.setDismissOnTouchOutside(null)
-         it.setFindBestPosition(true)
-      },
+   TargetLayer(
+      target = LayerTarget.Offset(offset),
+      attach = attach,
+      onDetachRequest = { attach = false },
+      backgroundColor = Color.Transparent,
+      detachOnTouchOutside = null,
+      findBestPosition = true,
    ) {
       VerticalList(
          count = 5,
          modifier = Modifier.width(200.dp),
-         onClick = { layer.detach() }
+         onClick = { attach = false }
       )
    }
 }
@@ -90,13 +92,15 @@ private fun layer(): TargetLayer {
 private fun ListItem(
    modifier: Modifier = Modifier,
    text: String,
-   layer: Layer,
-   onClick: (IntOffset) -> Unit,
+   onPress: () -> Unit,
+   onLongPress: (IntOffset) -> Unit,
 ) {
-   val onClickUpdated by rememberUpdatedState(newValue = onClick)
+   val onPressUpdated by rememberUpdatedState(onPress)
+   val onLongPressUpdated by rememberUpdatedState(onLongPress)
 
    val context = LocalContext.current
    var layoutCoordinates: LayoutCoordinates? by remember { mutableStateOf(null) }
+
    Box(
       modifier = modifier
          .fillMaxSize()
@@ -104,10 +108,10 @@ private fun ListItem(
          .onGloballyPositioned {
             layoutCoordinates = it
          }
-         .pointerInput(layer, context) {
+         .pointerInput(context) {
             detectTapGestures(
                onPress = {
-                  layer.detach()
+                  onPressUpdated()
                },
                onTap = {
                   Toast
@@ -118,7 +122,7 @@ private fun ListItem(
                   val layout = layoutCoordinates
                   if (layout?.isAttached == true) {
                      val offset = layout.localToWindow(it)
-                     onClickUpdated(IntOffset(offset.x.toInt(), offset.y.toInt()))
+                     onLongPressUpdated(offset.round())
                   }
                }
             )
@@ -128,7 +132,7 @@ private fun ListItem(
          text = text,
          modifier = Modifier.align(Alignment.Center),
       )
-      Divider(
+      HorizontalDivider(
          modifier = Modifier.align(Alignment.BottomCenter)
       )
    }

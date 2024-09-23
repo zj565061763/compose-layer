@@ -25,31 +25,27 @@ internal interface ContainerForComposable {
 
 internal interface ContainerForLayer {
    fun initLayer(layer: LayerImpl)
-
-   fun attachLayer(layer: LayerImpl)
-
-   fun detachLayer(layer: LayerImpl): Boolean
-
    fun destroyLayer(layer: LayerImpl)
 
-   fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
+   fun attachLayer(layer: LayerImpl)
+   fun detachLayer(layer: LayerImpl): Boolean
 
+   fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
    fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
 
-   fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
-
-   fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit)
+   fun registerTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit)
+   fun unregisterTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit)
 }
 
 private abstract class ComposableLayerContainer : ContainerForComposable {
    protected var destroyed = false
       private set
 
-   /** 容器的布局信息 */
+   /** 容器布局信息 */
    private var _containerLayout: LayoutCoordinates? = null
 
-   /** 目标的布局信息 */
-   private val _targetLayouts: MutableMap<String, LayoutCoordinates> = hashMapOf()
+   /** 目标布局信息 */
+   private val _targetLayouts: MutableMap<String, LayoutCoordinates> = mutableMapOf()
 
    final override fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
       if (destroyed) return
@@ -59,8 +55,7 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
 
    final override fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
       if (destroyed) return
-      if (tag.isEmpty()) error("tag is empty.")
-
+      require(tag.isNotEmpty()) { "tag is empty." }
       _targetLayouts.put(tag, layoutCoordinates)?.let { old ->
          if (old !== layoutCoordinates) error("Tag:$tag already exist.")
       }
@@ -68,6 +63,7 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
    }
 
    final override fun removeTarget(tag: String) {
+      if (destroyed) return
       if (_targetLayouts.remove(tag) != null) {
          onUpdateTargetLayout(tag, null)
       }
@@ -81,19 +77,17 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
    }
 
    protected fun getContainerLayout(): LayoutCoordinates? = _containerLayout
-
    protected fun getTargetLayout(tag: String): LayoutCoordinates? = _targetLayouts[tag]
 
    protected abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
-
    protected abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
 }
 
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
    private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
 
-   private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = hashSetOf()
-   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = hashMapOf()
+   private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = mutableSetOf()
+   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
 
    override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
       _containerLayoutCallbacks.toTypedArray().forEach {
@@ -109,13 +103,18 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    override fun initLayer(layer: LayerImpl) {
       if (destroyed) return
-      if (layer.layerContainer === this) {
-         // 已经初始化过了
-         return
-      }
+      if (layer.layerContainer === this) return
       layer.destroy()
       layer.onInit(this)
       check(layer.layerContainer === this)
+   }
+
+   override fun destroyLayer(layer: LayerImpl) {
+      if (layer.layerContainer === this) {
+         _attachedLayers.remove(layer)
+         layer.onDestroy(this)
+         check(layer.layerContainer == null)
+      }
    }
 
    override fun attachLayer(layer: LayerImpl) {
@@ -129,14 +128,6 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    override fun detachLayer(layer: LayerImpl): Boolean {
       return _attachedLayers.remove(layer)
-   }
-
-   override fun destroyLayer(layer: LayerImpl) {
-      if (layer.layerContainer === this) {
-         _attachedLayers.remove(layer)
-         layer.onDestroy(this)
-         check(layer.layerContainer == null)
-      }
    }
 
    //---------- container ----------
@@ -156,16 +147,17 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    //---------- target ----------
 
-   override fun registerTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
+   override fun registerTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit) {
       if (destroyed) return
-      if (tag.isEmpty()) return
-      val holder = _targetLayoutCallbacks.getOrPut(tag) { hashSetOf() }
+      if (tag.isNullOrEmpty()) return
+      val holder = _targetLayoutCallbacks.getOrPut(tag) { mutableSetOf() }
       if (holder.add(callback)) {
          callback(getTargetLayout(tag))
       }
    }
 
-   override fun unregisterTargetLayoutCallback(tag: String, callback: (LayoutCoordinates?) -> Unit) {
+   override fun unregisterTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit) {
+      if (tag.isNullOrEmpty()) return
       val holder = _targetLayoutCallbacks[tag] ?: return
       if (holder.remove(callback)) {
          callback(null)
@@ -187,7 +179,6 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
       _attachedLayers.forEach { layer ->
          key(layer.id) {
             layer.Content()
-            layer.HandleBack()
          }
       }
    }

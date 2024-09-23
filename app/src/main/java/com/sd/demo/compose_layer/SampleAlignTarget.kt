@@ -30,11 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
-import com.sd.lib.compose.layer.layerTarget
-import com.sd.lib.compose.layer.rememberTargetLayer
+import com.sd.lib.compose.layer.layerTag
 
 class SampleAlignTarget : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,32 +51,27 @@ class SampleAlignTarget : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   val layer = layer()
+   val tag = "hello"
+   var attach by remember { mutableStateOf(false) }
+   var alignment by remember { mutableStateOf(TargetAlignment.Center) }
 
    Box(modifier = Modifier.fillMaxSize()) {
-      TargetView("hello")
+      TargetView(tag = tag)
       ButtonsView(
-         onClickDetach = {
-            layer.detach()
-         },
-         onClick = { position ->
-            layer.setPosition(position)
-            layer.attach()
-         },
+         onClickDetach = { attach = false },
+         onClick = { alignment = it },
       )
    }
-}
 
-@Composable
-private fun layer(): TargetLayer {
-   return rememberTargetLayer(
-      onCreate = {
-         it.debug = true
-         it.setTarget("hello")
-         it.setBackgroundColor(Color.Transparent)
-         it.setDismissOnBackPress(null)
-         it.setDismissOnTouchOutside(null)
-      }
+   TargetLayer(
+      target = LayerTarget.Tag(tag),
+      attach = attach,
+      onDetachRequest = { attach = false },
+      alignment = alignment,
+      backgroundColor = Color.Transparent,
+      detachOnBackPress = null,
+      detachOnTouchOutside = null,
+      debug = true,
    ) {
       ColorBox(
          color = Color.Red,
@@ -87,8 +82,8 @@ private fun layer(): TargetLayer {
 
 @Composable
 private fun TargetView(
-   target: String,
    modifier: Modifier = Modifier,
+   tag: String,
 ) {
    var showTarget by remember { mutableStateOf(true) }
 
@@ -115,7 +110,7 @@ private fun TargetView(
                modifier = Modifier
                   .size(150.dp)
                   .background(Color.LightGray)
-                  .layerTarget(target)
+                  .layerTag(tag)
             ) {
                Text(text = "Target", modifier = Modifier.align(Alignment.Center))
             }
@@ -130,7 +125,7 @@ private fun TargetView(
 private fun ButtonsView(
    modifier: Modifier = Modifier,
    onClickDetach: () -> Unit,
-   onClick: (Layer.Position) -> Unit,
+   onClick: (TargetAlignment) -> Unit,
 ) {
    Column(
       modifier = modifier
@@ -141,69 +136,57 @@ private fun ButtonsView(
       // Top
       ButtonRow(
          list = listOf(
-            Layer.Position.TopStart.name,
-            Layer.Position.TopCenter.name,
-            Layer.Position.TopEnd.name,
+            TargetAlignment.TopStart,
+            TargetAlignment.TopCenter,
+            TargetAlignment.TopEnd,
          ),
-         onClick = {
-            onClick(Layer.Position.valueOf(it))
-         }
+         onClick = onClick,
       )
 
       // Bottom
       ButtonRow(
          list = listOf(
-            Layer.Position.BottomStart.name,
-            Layer.Position.BottomCenter.name,
-            Layer.Position.BottomEnd.name,
+            TargetAlignment.BottomStart,
+            TargetAlignment.BottomCenter,
+            TargetAlignment.BottomEnd,
          ),
-         onClick = {
-            onClick(Layer.Position.valueOf(it))
-         }
+         onClick = onClick,
       )
 
       // Center
       ButtonRow(
          list = listOf(
-            Layer.Position.Top.name,
-            Layer.Position.Bottom.name,
-            Layer.Position.Center.name,
-            Layer.Position.Start.name,
-            Layer.Position.End.name,
+            TargetAlignment.Top,
+            TargetAlignment.Bottom,
+            TargetAlignment.Center,
+            TargetAlignment.Start,
+            TargetAlignment.End,
          ),
-         onClick = {
-            onClick(Layer.Position.valueOf(it))
-         }
+         onClick = onClick,
       )
 
       // Start
       ButtonRow(
          list = listOf(
-            Layer.Position.StartTop.name,
-            Layer.Position.StartCenter.name,
-            Layer.Position.StartBottom.name,
+            TargetAlignment.StartTop,
+            TargetAlignment.StartCenter,
+            TargetAlignment.StartBottom,
          ),
-         onClick = {
-            onClick(Layer.Position.valueOf(it))
-         }
+         onClick = onClick,
       )
 
       // End
       ButtonRow(
          list = listOf(
-            Layer.Position.EndTop.name,
-            Layer.Position.EndCenter.name,
-            Layer.Position.EndBottom.name,
+            TargetAlignment.EndTop,
+            TargetAlignment.EndCenter,
+            TargetAlignment.EndBottom,
          ),
-         onClick = {
-            onClick(Layer.Position.valueOf(it))
-         }
+         onClick = onClick,
       )
 
       Button(
-         onClick = {
-            onClickDetach()
-         },
+         onClick = { onClickDetach() },
          colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.error
          )
@@ -216,23 +199,21 @@ private fun ButtonsView(
 @Composable
 private fun ButtonRow(
    modifier: Modifier = Modifier,
-   list: List<String>,
-   onClick: (String) -> Unit,
+   list: List<TargetAlignment>,
+   onClick: (TargetAlignment) -> Unit,
 ) {
    Row(
       modifier = modifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.Center,
    ) {
-      list.forEach {
+      list.forEach { item ->
          Button(
-            onClick = {
-               onClick(it)
-            },
+            onClick = { onClick(item) },
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(0.dp)
          ) {
-            Text(text = it)
+            Text(text = item.name)
          }
       }
    }

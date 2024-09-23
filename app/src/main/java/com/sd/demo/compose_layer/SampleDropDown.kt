@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,11 +23,11 @@ import androidx.core.view.WindowCompat
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
 import com.sd.lib.compose.layer.DisplaySlideDownUp
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
-import com.sd.lib.compose.layer.layerTarget
-import com.sd.lib.compose.layer.rememberTargetLayer
+import com.sd.lib.compose.layer.layerTag
 
 class SampleDropDown : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +45,8 @@ class SampleDropDown : ComponentActivity() {
 
 @Composable
 private fun Content() {
-   val layer = layer()
+   val tag = "hello"
+   var attach by remember { mutableStateOf(false) }
 
    Column(
       modifier = Modifier
@@ -51,27 +56,22 @@ private fun Content() {
    ) {
       Spacer(modifier = Modifier.height(300.dp))
       Button(
-         onClick = {
-            layer.attach()
-         },
-         modifier = Modifier.layerTarget("button")
+         onClick = { attach = true },
+         modifier = Modifier.layerTag(tag)
       ) {
          Text("Click")
       }
    }
-}
 
-@Composable
-private fun layer(): TargetLayer {
-   return rememberTargetLayer(
-      onCreate = {
-         it.debug = true
-         it.setTarget("button")
-         it.setPosition(Layer.Position.BottomCenter)
-         it.setClipBackgroundDirection(Directions.Top)
-         it.setDismissOnTouchOutside(true)
-      },
-      display = { DisplaySlideDownUp() }
+   TargetLayer(
+      target = LayerTarget.Tag(tag),
+      attach = attach,
+      onDetachRequest = { attach = false },
+      alignment = TargetAlignment.BottomCenter,
+      clipBackgroundDirection = Directions.Top,
+      detachOnTouchOutside = true,
+      display = { DisplaySlideDownUp() },
+      debug = true,
    ) {
       VerticalList(
          count = 5,
