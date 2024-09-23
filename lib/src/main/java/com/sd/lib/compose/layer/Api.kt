@@ -11,9 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.layout.onGloballyPositioned
 
-internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
-internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer?> { null }
-
 /**
  * 显示Layer的容器
  */
@@ -105,3 +102,7 @@ fun rememberTargetLayer(
    }
    return layer
 }
+
+internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
+internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer?> { null }
+internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }

@@ -10,8 +10,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }
-
 @Composable
 fun LayerDisplayScope.DisplaySlideUpDown(
    modifier: Modifier = Modifier,
