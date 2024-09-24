@@ -497,7 +497,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
        * 测量原始内容
        */
       private fun measureRawContent(constraints: Constraints): Placeable {
-         val measurable = measureScope.subcompose(SlotId.RawContent, contentState).let {
+         val measurable = measureScope.subcompose(SlotId.RawContent, rawContentState).let {
             check(it.size == 1)
             it.first()
          }
