@@ -94,7 +94,7 @@ internal abstract class LayerImpl : Layer {
 
    private val _layerScope = LayerScopeImpl()
    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
-   private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>({ Content() })
+   private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>(DefaultDisplay)
 
    private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
    private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
