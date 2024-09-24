@@ -112,11 +112,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       )
    )
 
-   private var _clipBackgroundDirection: Directions? = null
-
-   private var _smartAlignments: SmartAliments? = null
-   private var _smartAlignment by mutableStateOf<SmartAliment?>(null)
-
    /** 目标 */
    private var _target: LayerTarget? = null
 
@@ -124,6 +119,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private var _alignmentOffsetX: TargetAlignmentOffset? = null
    /** Y方向偏移量 */
    private var _alignmentOffsetY: TargetAlignmentOffset? = null
+
+   /** 智能对齐 */
+   private var _smartAlignments: SmartAliments? = null
+   private var _smartAlignment by mutableStateOf<SmartAliment?>(null)
+
+   /** 裁切背景 */
+   private var _clipBackgroundDirection: Directions? = null
 
    override fun setTarget(target: LayerTarget?) {
       if (_target == target) return
@@ -197,6 +199,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       unregisterTagTargetLayoutCallback(_target)
    }
 
+   override fun onDetached(container: ContainerForLayer) {
+      _smartAlignment = null
+   }
+
    private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { layout ->
       _uiState.update {
          it.copy(containerLayout = layout.toLayoutInfo())
@@ -241,7 +247,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    @Composable
    override fun defaultTransition(): LayerTransition {
       val direction = LocalLayoutDirection.current
-
       _smartAlignment?.let {
          return it.transition ?: it.alignment.transition(direction)
       }
@@ -303,7 +308,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             && uiState.containerLayout.isAttached
 
          if (!isVisibleState) {
-            _smartAlignment = null
             return@SubcomposeLayout state.layoutLastVisible(cs).also {
                logMsg { "layout invisible" }
                if (isReady) {

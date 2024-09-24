@@ -148,6 +148,7 @@ internal abstract class LayerImpl : Layer {
 
    protected open fun onAttach(container: ContainerForLayer) = Unit
    protected open fun onDetach(container: ContainerForLayer) = Unit
+   protected open fun onDetached(container: ContainerForLayer) = Unit
 
    @Composable
    internal fun Init(
@@ -230,8 +231,12 @@ internal abstract class LayerImpl : Layer {
                if (it.size == IntSize.Zero) {
                   logMsg { "ContentBox zero size isAttached:$_isAttached isVisible:$_isVisibleState" }
                   if (!_isAttached && !_isVisibleState) {
-                     logMsg { "detachLayer" }
-                     layerContainer?.detachLayer(this@LayerImpl)
+                     layerContainer?.let { container ->
+                        if (container.detachLayer(this@LayerImpl)) {
+                           logMsg { "detachLayer" }
+                           onDetached(container)
+                        }
+                     }
                   }
                }
             }
