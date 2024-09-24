@@ -43,7 +43,6 @@ android {
 dependencies {
    implementation(libs.androidx.compose.foundation)
    implementation(libs.androidx.activity.compose)
-   implementation(libs.sd.aligner)
 }
 
 publishing {
