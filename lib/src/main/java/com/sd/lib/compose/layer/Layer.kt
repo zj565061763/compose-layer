@@ -46,11 +46,6 @@ internal interface Layer {
    fun setBackgroundColor(color: Color)
 
    /**
-    * 是否裁剪内容区域，默认值true
-    */
-   fun setClipToBounds(clipToBounds: Boolean)
-
-   /**
     * 设置移除请求回调
     */
    fun setDetachRequestCallback(callback: (LayerDetach) -> Unit)
@@ -104,7 +99,6 @@ internal abstract class LayerImpl : Layer {
    private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
    private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
-   private var _clipToBoundsState by mutableStateOf(true)
 
    private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
 
@@ -121,10 +115,6 @@ internal abstract class LayerImpl : Layer {
 
    final override fun setBackgroundColor(color: Color) {
       _backgroundColorState = color
-   }
-
-   final override fun setClipToBounds(clipToBounds: Boolean) {
-      _clipToBoundsState = clipToBounds
    }
 
    final override fun setDetachRequestCallback(callback: (LayerDetach) -> Unit) {
@@ -248,13 +238,7 @@ internal abstract class LayerImpl : Layer {
                   }
                }
             }
-            .let {
-               if (_clipToBoundsState) {
-                  it.clipToBounds()
-               } else {
-                  it
-               }
-            }
+            .clipToBounds()
       ) {
          _displayState.value.invoke(_layerScope)
       }
