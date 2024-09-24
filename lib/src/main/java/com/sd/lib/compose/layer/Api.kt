@@ -69,7 +69,7 @@ fun Layer(
    detachOnTouchOutside: Boolean? = false,
    backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
    alignment: Alignment = Alignment.Center,
-   display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
+   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { NormalLayerImpl() }.apply {
@@ -130,7 +130,7 @@ fun TargetLayer(
    alignmentOffsetY: TargetAlignmentOffset? = null,
    smartAlignments: List<TargetAlignment>? = null,
    clipBackgroundDirection: Directions? = null,
-   display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
+   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { TargetLayerImpl() }.apply {

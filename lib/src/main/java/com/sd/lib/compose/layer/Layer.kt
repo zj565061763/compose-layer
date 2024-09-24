@@ -153,7 +153,7 @@ internal abstract class LayerImpl : Layer {
    @Composable
    internal fun Init(
       content: @Composable LayerContentScope.() -> Unit,
-      display: @Composable LayerDisplayScope.() -> Unit,
+      display: @Composable (LayerDisplayScope.() -> Unit)?,
    ) {
       val layerContainer = checkNotNull(LocalContainerForLayer.current) {
          "Not in LayerContainer scope."
@@ -161,7 +161,7 @@ internal abstract class LayerImpl : Layer {
       layerContainer.initLayer(this)
 
       _contentState.value = content
-      _displayState.value = display
+      _displayState.value = display ?: getDefaultDisplay()
    }
 
    internal fun destroy() {
@@ -221,6 +221,8 @@ internal abstract class LayerImpl : Layer {
          }
       }
    }
+
+   protected open fun getDefaultDisplay(): @Composable (LayerDisplayScope.() -> Unit) = DefaultDisplay
 
    @Composable
    abstract fun LayerContent()

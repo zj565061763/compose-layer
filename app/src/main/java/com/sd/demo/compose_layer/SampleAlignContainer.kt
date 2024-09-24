@@ -3,7 +3,7 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -35,22 +35,54 @@ class SampleAlignContainer : ComponentActivity() {
 @Composable
 private fun Content() {
    var attach by remember { mutableStateOf(false) }
+   var alignment by remember { mutableStateOf(Alignment.Center) }
 
-   Column(
-      modifier = Modifier.fillMaxSize(),
-      horizontalAlignment = Alignment.CenterHorizontally,
-   ) {
-      Button(onClick = {
-         attach = true
-      }) {
-         Text(text = "Attach")
+   Box(modifier = Modifier.fillMaxSize()) {
+      Button(
+         modifier = Modifier.align(Alignment.TopCenter),
+         onClick = {
+            alignment = Alignment.TopCenter
+            attach = true
+         }
+      ) {
+         Text(text = "TopCenter")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.BottomCenter),
+         onClick = {
+            alignment = Alignment.BottomCenter
+            attach = true
+         }
+      ) {
+         Text(text = "BottomCenter")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.CenterStart),
+         onClick = {
+            alignment = Alignment.CenterStart
+            attach = true
+         }
+      ) {
+         Text(text = "CenterStart")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.CenterEnd),
+         onClick = {
+            alignment = Alignment.CenterEnd
+            attach = true
+         }
+      ) {
+         Text(text = "CenterEnd")
       }
    }
 
    Layer(
       attach = attach,
       onDetachRequest = { attach = false },
-      alignment = Alignment.BottomCenter,
+      alignment = alignment,
       detachOnTouchOutside = true,
       debug = true,
    ) {

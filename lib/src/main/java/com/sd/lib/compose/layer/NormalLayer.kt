@@ -35,4 +35,16 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
          ContentBox(Modifier.align(_alignment))
       }
    }
+
+   override fun getDefaultDisplay(): @Composable() (LayerDisplayScope.() -> Unit) = _defaultDisplay
+
+   private val _defaultDisplay: @Composable LayerDisplayScope.() -> Unit = {
+      when (_alignment) {
+         Alignment.TopCenter -> DisplaySlideTopToBottom()
+         Alignment.BottomCenter -> DisplaySlideBottomToTop()
+         Alignment.CenterStart -> DisplaySlideStartToEnd()
+         Alignment.CenterEnd -> DisplaySlideEndToStart()
+         else -> DisplayDefault()
+      }
+   }
 }
