@@ -177,7 +177,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
    @Composable
    override fun Layers() {
       _attachedLayers.forEach { layer ->
-         key(layer.id) {
+         key(layer) {
             layer.Content()
          }
       }
