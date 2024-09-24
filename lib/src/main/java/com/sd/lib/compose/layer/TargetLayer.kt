@@ -60,7 +60,10 @@ internal interface TargetLayer : Layer {
  */
 @Immutable
 sealed interface LayerTarget {
+   /** 以[tag]为目标 */
    data class Tag(val tag: String?) : LayerTarget
+
+   /** 以[offset]为目标 */
    data class Offset(val offset: IntOffset?) : LayerTarget
 }
 
@@ -113,14 +116,10 @@ enum class TargetAlignment {
  */
 @Immutable
 sealed interface TargetAlignmentOffset {
-   /**
-    * 按指定像素[value]偏移
-    */
+   /** 按指定像素[value]偏移 */
    data class PX(val value: Int) : TargetAlignmentOffset
 
-   /**
-    * 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小
-    */
+   /** 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小 */
    data class Percent(val value: Float) : TargetAlignmentOffset
 }
 

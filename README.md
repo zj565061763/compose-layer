@@ -9,7 +9,6 @@
 ![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_target.gif?raw=true)
 ![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_offset.gif?raw=true)
 ![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/drop_down.gif?raw=true)
-![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/overflow.gif?raw=true)
 
 # 普通Layer
 
@@ -23,41 +22,38 @@ AppTheme {
 ```
 
 ```kotlin
- @Composable
-private fun Content() {
-   // 创建一个普通的Layer
-   val layer = rememberLayer(
-      onCreate = {
-         // 设置在容器中的位置
-         it.setPosition(Layer.Position.StartCenter)
-         // 设置触摸背景消失
-         it.setCanceledOnTouchBackground(true)
-         it.registerAttachCallback {
-            // layer 添加回调
-         }
-         it.registerDetachCallback {
-            // layer 移除回调
-         }
-      },
-      display = {
-         // 设置layer显示隐藏动画，默认为透明度变化
-         DisplaySlideUpDown()
-      },
-   ) {
-      // layer内容
-      ColorBox(
-         color = Color.Red,
-         text = "Box",
-      )
-   }
+/**
+ * 创建Layer
+ *
+ * @param attach 是否添加Layer，true-添加；false-移除
+ * @param onDetachRequest [LayerDetach]触发的移除回调
+ * @param debug 是否调试模式，tag:FLayer
+ * @param detachOnBackPress 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认true
+ * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
+ * @param backgroundColor 背景颜色
+ * @param alignment 对齐容器位置
+ * @param display Layer显示，通常用来做动画效果
+ * @param content Layer内容
+ */
+@Composable
+fun Layer(
+   attach: Boolean,
+   onDetachRequest: (LayerDetach) -> Unit,
+   debug: Boolean = false,
+   detachOnBackPress: Boolean? = true,
+   detachOnTouchOutside: Boolean? = false,
+   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   alignment: Alignment = Alignment.Center,
+   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   content: @Composable LayerContentScope.() -> Unit,
+)
 
-   LaunchedEffect(layer) {
-      // 显示layer
-      layer.attach()
+enum class LayerDetach {
+   /** 按返回键 */
+   OnBackPress,
 
-      // 移除layer
-      layer.detach()
-   }
+   /** 触摸非内容区域 */
+   OnTouchOutside,
 }
 ```
 
@@ -73,46 +69,61 @@ AppTheme {
 ```
 
 ```kotlin
+/**
+ * 创建TargetLayer
+ *
+ * @param target 要对齐的目标
+ * @param attach 是否添加Layer，true-添加；false-移除
+ * @param onDetachRequest [LayerDetach]触发的移除回调
+ * @param debug 是否调试模式，tag:FLayer
+ * @param detachOnBackPress 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认值true
+ * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认值false
+ * @param backgroundColor 背景颜色
+ * @param alignment 对齐目标位置
+ * @param alignmentOffsetX 对齐目标X方向偏移量
+ * @param alignmentOffsetY 对齐目标Y方向偏移量
+ * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
+ * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
+ * @param clipBackgroundDirection （非响应式）裁切背景的方向[Directions]
+ * @param display Layer显示，通常用来做动画效果
+ * @param content Layer内容
+ */
 @Composable
-private fun layer(): TargetLayer {
-   // 创建跟踪目标的Layer
-   return rememberTargetLayer(
-      onCreate = {
-         // 设置目标
-         it.setTarget("hello")
-         /** 设置对齐目标的位置 */
-         it.setPosition(Layer.Position.Center)
-         // 设置背景透明
-         it.setBackgroundColor(Color.Transparent)
-         // 不处理返回事件
-         it.setCanceledOnBackPressed(null)
-         // 不处理触摸背景事件
-         it.setCanceledOnTouchBackground(null)
-      }
-   ) {
-      // 设置要显示的内容
-      ColorBox(
-         color = Color.Red,
-         text = "Box",
-      )
-   }
+fun TargetLayer(
+   target: LayerTarget?,
+   attach: Boolean,
+   onDetachRequest: (LayerDetach) -> Unit,
+   debug: Boolean = false,
+   detachOnBackPress: Boolean? = true,
+   detachOnTouchOutside: Boolean? = false,
+   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   alignment: TargetAlignment = TargetAlignment.Center,
+   alignmentOffsetX: TargetAlignmentOffset? = null,
+   alignmentOffsetY: TargetAlignmentOffset? = null,
+   smartAlignments: List<TargetAlignment>? = null,
+   clipBackgroundDirection: Directions? = null,
+   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   content: @Composable LayerContentScope.() -> Unit,
+)
+```
+
+### 要对齐的目标
+
+```kotlin
+@Immutable
+sealed interface LayerTarget {
+   /** 以[tag]为目标 */
+   data class Tag(val tag: String?) : LayerTarget
+
+   /** 以[offset]为目标 */
+   data class Offset(val offset: IntOffset?) : LayerTarget
 }
 ```
 
-```kotlin
-Button(
-   onClick = { layer.attach() },
-   // 将当前Button设置为目标
-   modifier = Modifier.layerTarget("button")
-) {
-   Text("Click")
-}
-```
-
-# 显示位置
+### 目标对齐位置
 
 ```kotlin
-enum class Position {
+enum class TargetAlignment {
    /** 顶部开始方向对齐 */
    TopStart,
    /** 顶部中间对齐 */
@@ -154,146 +165,15 @@ enum class Position {
 }
 ```
 
-# 普通Layer接口
+### 目标对齐位置偏移量
 
 ```kotlin
-interface Layer {
-   /**
-    * 是否调试模式，tag:FLayer
-    */
-   var isDebug: Boolean
+@Immutable
+sealed interface TargetAlignmentOffset {
+   /** 按指定像素[value]偏移 */
+   data class PX(val value: Int) : TargetAlignmentOffset
 
-   /**
-    * 当前Layer是否可见
-    */
-   val isVisibleState: Boolean
-
-   /**
-    * 位置
-    */
-   val positionState: Position
-
-   /**
-    * 背景颜色
-    */
-   val backgroundColorState: Color
-
-   /**
-    * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
-    */
-   val isCanceledOnBackPressedState: Boolean?
-
-   /**
-    * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
-    */
-   val isCanceledOnTouchBackgroundState: Boolean?
-
-   /**
-    * 对齐的位置，默认[Position.Center]
-    */
-   fun setPosition(position: Position)
-
-   /**
-    * 背景颜色
-    */
-   fun setBackgroundColor(color: Color)
-
-   /**
-    * 按返回键是否取消[detach]，null表示不处理返回键逻辑，默认true表示按返回键触发[detach]
-    */
-   fun setCanceledOnBackPressed(value: Boolean?)
-
-   /**
-    * 触摸背景是否取消[detach]，null表示不处理，事件会透过背景，默认false表示触摸背景不会[detach]
-    */
-   fun setCanceledOnTouchBackground(value: Boolean?)
-
-   /**
-    * 是否裁剪内容区域，默认true
-    */
-   fun setClipToBounds(clipToBounds: Boolean)
-
-   /**
-    * 注册[attach]回调
-    */
-   fun registerAttachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 取消注册
-    */
-   fun unregisterAttachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 注册[detach]回调
-    */
-   fun registerDetachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 取消注册
-    */
-   fun unregisterDetachCallback(callback: (Layer) -> Unit)
-
-   /**
-    * 添加到容器
-    */
-   fun attach()
-
-   /**
-    * 从容器上移除
-    */
-   fun detach()
-}
-```
-
-# 目标Layer接口
-
-```kotlin
-interface TargetLayer : Layer {
-   /**
-    * 设置目标
-    */
-   fun setTarget(target: String?)
-
-   /**
-    * 设置目标坐标
-    */
-   fun setTarget(offset: IntOffset?)
-
-   /**
-    * 设置目标X方向偏移量
-    */
-   fun setTargetOffsetX(offset: TargetOffset?)
-
-   /**
-    * 设置目标Y方向偏移量
-    */
-   fun setTargetOffsetY(offset: TargetOffset?)
-
-   /**
-    * 设置是否修复溢出，默认true
-    */
-   fun setFixOverflow(fixOverflow: Boolean)
-
-   /**
-    * 设置是否查找最佳的显示位置，默认false
-    */
-   fun setFindBestPosition(findBestPosition: Boolean)
-
-   /**
-    * 设置要裁切背景的方向[Directions]
-    */
-   fun setClipBackgroundDirection(direction: Directions?)
-}
-
-sealed interface TargetOffset {
-   /**
-    * 偏移指定像素
-    */
-   data class PX(val value: Int) : TargetOffset
-
-   /**
-    * 偏移目标大小的倍数，例如：1表示向正方向偏移1倍目标的大小，-1表示向负方向偏移1倍目标的大小
-    */
-   data class Percent(val value: Float) : TargetOffset
+   /** 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小 */
+   data class Percent(val value: Float) : TargetAlignmentOffset
 }
 ```
