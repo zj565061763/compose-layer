@@ -57,7 +57,7 @@ fun LayerContainer(
  * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
- * @param display Layer显示
+ * @param display Layer显示，通常用来做动画效果
  * @param content Layer内容
  */
 @Composable
@@ -113,7 +113,7 @@ fun Layer(
  * @param fixOverflow 是否修复溢出，默认true（此参数非响应式）
  * @param findBestPosition 是否查找最佳的显示位置，默认false（此参数非响应式）
  * @param clipBackgroundDirection 裁切背景的方向[Directions]（此参数非响应式）
- * @param display Layer显示
+ * @param display Layer显示，通常用来做动画效果
  * @param content Layer内容
  */
 @Composable
