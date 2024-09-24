@@ -3,13 +3,20 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +33,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.sp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
@@ -79,18 +87,16 @@ private fun Content() {
       // 触摸非内容区域请求移除回调
       detachOnTouchOutside = true,
       // 设置居中对齐
-      alignment = TargetAlignment.Center,
+      alignment = TargetAlignment.BottomCenter,
       // 如果默认的对齐方式溢出，会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
       smartAlignments = SmartAliments.Default,
       // 调试模式
       debug = true,
    ) {
       // Layer内容
-      VerticalList(
-         count = 5,
-         modifier = Modifier.width(200.dp),
-         onClick = { attach = false }
-      )
+      Menus {
+         attach = false
+      }
    }
 }
 
@@ -116,12 +122,38 @@ private fun ListItem(
                val offset = coordinates
                   ?.localToWindow(it)
                   ?.round()
-               // 通知坐标点
+               // 回调坐标点
                onOffsetUpdated(offset)
             }
          }
    ) {
       Text(text = text, modifier = Modifier.align(Alignment.Center))
       HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
+   }
+}
+
+@Composable
+private fun Menus(
+   modifier: Modifier = Modifier,
+   onClickItem: (String) -> Unit,
+) {
+   Column(
+      modifier = modifier
+         .width(200.dp)
+         .background(MaterialTheme.colorScheme.surfaceContainer)
+   ) {
+      remember { listOf("标为未读", "置顶该聊天", "删除该聊天") }
+         .forEach { item ->
+            Box(
+               modifier = Modifier
+                  .fillMaxWidth()
+                  .heightIn(64.dp)
+                  .clickable { onClickItem(item) }
+                  .padding(start = 20.dp),
+               contentAlignment = Alignment.CenterStart,
+            ) {
+               Text(item, fontSize = 18.sp)
+            }
+         }
    }
 }
