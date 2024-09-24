@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
-import com.sd.lib.compose.layer.DisplaySlideTopToBottom
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
 import com.sd.lib.compose.layer.TargetAlignment
@@ -68,7 +67,6 @@ private fun Content() {
       alignment = TargetAlignment.BottomCenter,
       clipBackgroundDirection = Directions.Top,
       detachOnTouchOutside = true,
-      display = { DisplaySlideTopToBottom() },
       debug = true,
    ) {
       VerticalList(
