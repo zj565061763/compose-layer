@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.round
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.SmartAliments
 import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
 
@@ -80,7 +81,7 @@ private fun Content() {
       backgroundColor = Color.Transparent,
       detachOnTouchOutside = null,
       alignment = TargetAlignment.Center,
-      smartAlignments = emptyList(),
+      smartAlignments = SmartAliments.Default,
       debug = true,
    ) {
       VerticalList(

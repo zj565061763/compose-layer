@@ -45,10 +45,10 @@ internal interface TargetLayer : Layer {
    fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
    /**
-    * 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
+    * 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，默认值null。
     * 开启之后，如果默认的[setAlignment]导致内容溢出会使用[alignments]提供的位置按顺序查找溢出最小的位置
     */
-   fun setSmartAlignments(alignments: List<SmartAliment>?)
+   fun setSmartAlignments(alignments: SmartAliments?)
 
    /**
     * 裁切背景的方向[Directions]（非响应式）
@@ -111,8 +111,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       )
    )
 
-   private var _smartAlignments: List<SmartAliment>? = null
    private var _clipBackgroundDirection: Directions? = null
+
+   private var _smartAlignments: SmartAliments? = null
+   private var _smartAlignment by mutableStateOf<SmartAliment?>(null)
 
    /** 目标 */
    private var _target: LayerTarget? = null
@@ -176,12 +178,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
    }
 
-   override fun setSmartAlignments(alignments: List<SmartAliment>?) {
-      _smartAlignments = if (alignments?.isEmpty() == true) {
-         SmartAliments.Default
-      } else {
-         alignments
-      }
+   override fun setSmartAlignments(alignments: SmartAliments?) {
+      _smartAlignments = alignments
    }
 
    override fun setClipBackgroundDirection(direction: Directions?) {
@@ -241,9 +239,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
    @Composable
    override fun defaultTransition(): LayerTransition {
+      val direction = LocalLayoutDirection.current
+      _smartAlignment?.let {
+         return it.transition ?: it.alignment.defaultTransition(direction)
+      }
+
       val uiState by _uiState.collectAsStateWithLifecycle()
-      val alignment = uiState.alignment
-      return alignment.defaultTransition(LocalLayoutDirection.current)
+      return uiState.alignment.defaultTransition(LocalLayoutDirection.current)
    }
 
    @Composable
@@ -254,6 +256,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          uiState = uiState,
          background = { BackgroundBox() },
          content = { ContentBox() },
+         rawContent = { RawContent() },
       )
    }
 
@@ -263,10 +266,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       uiState: UIState,
       background: @Composable () -> Unit,
       content: @Composable () -> Unit,
+      rawContent: @Composable () -> Unit,
    ) {
       val state = remember { OffsetBoxState() }.apply {
          this.backgroundState = background
          this.contentState = content
+         this.rawContentState = rawContent
       }
 
       SubcomposeLayout(modifier) { cs ->
@@ -288,6 +293,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             && uiState.containerLayout.isAttached
 
          if (!isVisibleState) {
+            _smartAlignment = null
             return@SubcomposeLayout state.layoutLastVisible(cs).also {
                logMsg { "layout invisible" }
                if (isReady) {
@@ -310,39 +316,25 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private inner class OffsetBoxState {
       var backgroundState by mutableStateOf<@Composable () -> Unit>({})
       var contentState by mutableStateOf<@Composable () -> Unit>({})
+      var rawContentState by mutableStateOf<@Composable () -> Unit>({})
 
       lateinit var measureScope: SubcomposeMeasureScope
 
       private var _visibleBackgroundInfo: PlaceInfo? = null
       private var _visibleContentInfo: PlaceInfo? = null
 
-      fun layoutLastVisible(cs: Constraints): MeasureResult {
-         val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
-         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
-
-         val contentInfo = _visibleContentInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
-         val contentPlaceable = measureContent(cs.newMax(contentInfo.size))
-
-         return layoutFinally(
-            cs = cs,
-            backgroundPlaceable = backgroundPlaceable,
-            backgroundOffset = backgroundInfo.offset,
-            contentPlaceable = contentPlaceable,
-            contentOffset = contentInfo.offset,
-            saveInfo = false,
-         )
-      }
-
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
-         val originalPlaceable = measureContent(cs, slotId = null)
-         val originalSize = originalPlaceable.intSize()
+         val rawPlaceable = measureRawContent(cs)
+         val rawSize = rawPlaceable.intSize()
 
-         val result = alignTarget(
+         val (result, smartAlignment) = alignTarget(
             alignment = uiState.alignment,
             target = uiState.targetLayout,
             container = uiState.containerLayout,
-            contentSize = originalSize,
+            contentSize = rawSize,
          ).findBestResult(this@TargetLayerImpl, _smartAlignments)
+
+         _smartAlignment = smartAlignment
 
          val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl)
 
@@ -359,7 +351,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             """
                layout fix overflow
                   offset:(${result.x}, ${result.y}) -> $fixOffset
-                  size:$originalSize -> $fixSize
+                  size:$rawSize -> $fixSize
                   realSize:${contentPlaceable.intSize()}
             """.trimIndent()
          }
@@ -370,6 +362,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             backgroundOffset = backgroundInfo.offset,
             contentPlaceable = contentPlaceable,
             contentOffset = fixOffset,
+         )
+      }
+
+      fun layoutLastVisible(cs: Constraints): MeasureResult {
+         val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
+
+         val contentInfo = _visibleContentInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val contentPlaceable = measureContent(cs.newMax(contentInfo.size))
+
+         return layoutFinally(
+            cs = cs,
+            backgroundPlaceable = backgroundPlaceable,
+            backgroundOffset = backgroundInfo.offset,
+            contentPlaceable = contentPlaceable,
+            contentOffset = contentInfo.offset,
+            saveInfo = false,
          )
       }
 
@@ -449,10 +458,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
 
       /**
-       * 测量内容
+       * 测量背景
        */
-      private fun measureContent(constraints: Constraints, slotId: SlotId? = SlotId.Content): Placeable {
-         val measurable = measureScope.subcompose(slotId, contentState).let {
+      private fun measureBackground(constraints: Constraints): Placeable {
+         val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
             check(it.size == 1)
             it.first()
          }
@@ -460,10 +469,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
 
       /**
-       * 测量背景
+       * 测量内容
        */
-      private fun measureBackground(constraints: Constraints): Placeable {
-         val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
+      private fun measureContent(constraints: Constraints): Placeable {
+         val measurable = measureScope.subcompose(SlotId.Content, contentState).let {
+            check(it.size == 1)
+            it.first()
+         }
+         return measurable.measure(constraints)
+      }
+
+      /**
+       * 测量原始内容
+       */
+      private fun measureRawContent(constraints: Constraints): Placeable {
+         val measurable = measureScope.subcompose(SlotId.RawContent, contentState).let {
             check(it.size == 1)
             it.first()
          }
@@ -477,8 +497,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    )
 
    private enum class SlotId {
-      Content,
       Background,
+      Content,
+      RawContent,
    }
 }
 
@@ -508,15 +529,19 @@ private fun alignTarget(
 
 private fun Aligner.Result.findBestResult(
    layer: Layer,
-   list: List<SmartAliment>?,
-): Aligner.Result {
-   if (list.isNullOrEmpty()) return this
+   alignments: SmartAliments?,
+): Pair<Aligner.Result, SmartAliment?> {
+   if (alignments == null) return this to null
+
+   val list = alignments.aliments
+   if (list.isEmpty()) return this to null
 
    val overflowDefault = sourceOverflow.totalOverflow()
-   if (overflowDefault == 0) return this
+   if (overflowDefault == 0) return this to null
 
    var bestResult = this
    var minOverflow = overflowDefault
+   var smartAliment: SmartAliment? = null
 
    for (item in list) {
       val position = item.alignment.toAlignerPosition()
@@ -525,11 +550,12 @@ private fun Aligner.Result.findBestResult(
       if (newOverflow < minOverflow) {
          minOverflow = newOverflow
          bestResult = newResult
+         smartAliment = item
       }
       if (newOverflow == 0) break
    }
 
-   return bestResult.also {
+   return (bestResult to smartAliment).also {
       layer.logMsg {
          "findBestResult ${this.input.position} -> ${bestResult.input.position}"
       }
@@ -645,11 +671,10 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
          if (resultWidth <= 0 || resultHeight <= 0) {
             break
          }
-         val newInput = result.input.copy(
+         result = result.input.copy(
             sourceWidth = resultWidth,
             sourceHeight = resultHeight,
-         )
-         result = newInput.toResult()
+         ).toResult()
       } else {
          break
       }

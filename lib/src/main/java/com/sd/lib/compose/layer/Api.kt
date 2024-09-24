@@ -111,7 +111,7 @@ fun Layer(
  * @param alignment 对齐目标位置
  * @param alignmentOffsetX 对齐目标X方向偏移量
  * @param alignmentOffsetY 对齐目标Y方向偏移量
- * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
+ * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐。
  * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
  * @param clipBackgroundDirection （非响应式）裁切背景的方向[Directions]
  * @param transition Layer动画
@@ -129,7 +129,7 @@ fun TargetLayer(
    alignment: TargetAlignment = TargetAlignment.Center,
    alignmentOffsetX: TargetAlignmentOffset? = null,
    alignmentOffsetY: TargetAlignmentOffset? = null,
-   smartAlignments: List<SmartAliment>? = null,
+   smartAlignments: SmartAliments? = null,
    clipBackgroundDirection: Directions? = null,
    transition: LayerTransition? = null,
    content: @Composable LayerContentScope.() -> Unit,

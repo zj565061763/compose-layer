@@ -2,9 +2,14 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Immutable
 
-interface SmartAliments {
+@Immutable
+data class SmartAliments(
+   val aliments: List<SmartAliment>,
+) {
+   constructor(vararg array: SmartAliment) : this(array.toList())
+
    companion object {
-      val Default = listOf(
+      val Default = SmartAliments(
          SmartAliment(
             alignment = TargetAlignment.BottomEnd,
             transition = LayerTransition.SlideTopToBottom,

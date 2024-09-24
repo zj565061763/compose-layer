@@ -72,6 +72,32 @@ internal fun TargetAlignment.toAlignerPosition(): Aligner.Position {
    }
 }
 
+internal fun Aligner.Position.toTargetAlignment(): TargetAlignment {
+   return when (this) {
+      Aligner.Position.TopStart -> TargetAlignment.TopStart
+      Aligner.Position.TopCenter -> TargetAlignment.TopCenter
+      Aligner.Position.TopEnd -> TargetAlignment.TopEnd
+      Aligner.Position.Top -> TargetAlignment.Top
+
+      Aligner.Position.BottomStart -> TargetAlignment.BottomStart
+      Aligner.Position.BottomCenter -> TargetAlignment.BottomCenter
+      Aligner.Position.BottomEnd -> TargetAlignment.BottomEnd
+      Aligner.Position.Bottom -> TargetAlignment.Bottom
+
+      Aligner.Position.StartTop -> TargetAlignment.StartTop
+      Aligner.Position.StartCenter -> TargetAlignment.StartCenter
+      Aligner.Position.StartBottom -> TargetAlignment.StartBottom
+      Aligner.Position.Start -> TargetAlignment.Start
+
+      Aligner.Position.EndTop -> TargetAlignment.EndTop
+      Aligner.Position.EndCenter -> TargetAlignment.EndCenter
+      Aligner.Position.EndBottom -> TargetAlignment.EndBottom
+      Aligner.Position.End -> TargetAlignment.End
+
+      Aligner.Position.Center -> TargetAlignment.Center
+   }
+}
+
 internal fun TargetAlignment.defaultTransition(
    directions: LayoutDirection = LayoutDirection.Ltr,
 ): LayerTransition {

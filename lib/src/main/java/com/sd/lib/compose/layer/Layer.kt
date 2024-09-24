@@ -274,6 +274,11 @@ internal abstract class LayerImpl : Layer {
    }
 
    @Composable
+   protected fun RawContent() {
+      _contentState.value.invoke(_layerScope)
+   }
+
+   @Composable
    private fun AnimatedContent() {
       val transition = _transition ?: defaultTransition()
       AnimatedVisibility(
