@@ -416,9 +416,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             contentSize = originalSize,
          ).findBestResult(this@TargetLayerImpl, _smartAlignments)
 
-         val fixOverFlow = result.fixOverFlow(this@TargetLayerImpl)
-         val fixOffset = IntOffset(fixOverFlow.x, fixOverFlow.y)
-         val fixSize = IntSize(fixOverFlow.width, fixOverFlow.height)
+         val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl)
 
          val contentPlaceable = measureContent(cs.newMax(fixSize))
 
@@ -611,23 +609,21 @@ private fun Aligner.Result.findBestResult(
 }
 
 private data class FixOverFlow(
-   val x: Int,
-   val y: Int,
-   val width: Int,
-   val height: Int,
+   val offset: IntOffset,
+   val size: IntSize,
 )
 
 private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
    val position = input.position
    var result = this
 
-   var resultWith = result.input.sourceWidth
+   var resultWidth = result.input.sourceWidth
    var resultHeight = result.input.sourceHeight
 
    var count = 0
    while (true) {
       layer.logMsg {
-         "checkOverflow ${++count} ($resultWith,$resultHeight)"
+         "checkOverflow ${++count} ($resultWidth,$resultHeight)"
       }
 
       var hasOverflow = false
@@ -664,13 +660,13 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
                   }
                }
 
-               val oldWidth = resultWith
-               resultWith = oldWidth - overSize
+               val oldWidth = resultWidth
+               resultWidth = oldWidth - overSize
 
                layer.logMsg {
                   val startLog = if (start > 0) " start:$start" else ""
                   val endLog = if (end > 0) " end:$end" else ""
-                  "width overflow:${overSize}${startLog}${endLog} ($oldWidth)->($resultWith)"
+                  "width overflow:${overSize}${startLog}${endLog} ($oldWidth)->($resultWidth)"
                }
             }
          }
@@ -718,11 +714,11 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
       }
 
       if (hasOverflow) {
-         if (resultWith <= 0 || resultHeight <= 0) {
+         if (resultWidth <= 0 || resultHeight <= 0) {
             break
          }
          val newInput = result.input.copy(
-            sourceWidth = resultWith,
+            sourceWidth = resultWidth,
             sourceHeight = resultHeight,
          )
          result = newInput.toResult()
@@ -732,10 +728,8 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
    }
 
    return FixOverFlow(
-      x = result.x,
-      y = result.y,
-      width = resultWith.coerceAtLeast(0),
-      height = resultHeight.coerceAtLeast(0),
+      offset = IntOffset(result.x, result.y),
+      size = IntSize(resultWidth.coerceAtLeast(0), resultHeight.coerceAtLeast(0))
    )
 }
 
