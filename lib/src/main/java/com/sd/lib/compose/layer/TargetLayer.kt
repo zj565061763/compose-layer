@@ -328,14 +328,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    private inner class OffsetBoxState {
-      var backgroundState by mutableStateOf<@Composable () -> Unit>({})
-      var contentState by mutableStateOf<@Composable () -> Unit>({})
-      var rawContentState by mutableStateOf<@Composable () -> Unit>({})
-
-      lateinit var measureScope: SubcomposeMeasureScope
-
-      private var _visibleBackgroundInfo: PlaceInfo? = null
-      private var _visibleContentInfo: PlaceInfo? = null
 
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val rawPlaceable = measureRawContent(cs)
@@ -470,6 +462,15 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             size = IntSize(width.coerceAtLeast(0), height.coerceAtLeast(0)),
          )
       }
+
+      var backgroundState by mutableStateOf<@Composable () -> Unit>({})
+      var contentState by mutableStateOf<@Composable () -> Unit>({})
+      var rawContentState by mutableStateOf<@Composable () -> Unit>({})
+
+      lateinit var measureScope: SubcomposeMeasureScope
+
+      private var _visibleBackgroundInfo: PlaceInfo? = null
+      private var _visibleContentInfo: PlaceInfo? = null
 
       /**
        * 测量背景
