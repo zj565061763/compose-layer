@@ -249,11 +249,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       val direction = LocalLayoutDirection.current
 
       _smartAlignment?.let {
+         logMsg { "getLayerTransition from smartAlignment $it" }
          return it.transition ?: it.alignment.transition(direction)
       }
 
-      transition?.let { return it }
+      transition?.let {
+         logMsg { "getLayerTransition from params" }
+         return it
+      }
 
+      logMsg { "getLayerTransition from default" }
       val uiState by _uiState.collectAsStateWithLifecycle()
       return uiState.alignment.transition(direction)
    }
@@ -323,6 +328,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private inner class OffsetBoxState {
 
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
+         logMsg { "layoutFixOverflow start" }
+
          val rawPlaceable = measureRawContent(cs)
          val rawSize = rawPlaceable.intSize()
 
@@ -348,7 +355,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
          logMsg {
             """
-               layout fix overflow
+               layoutFixOverflow
                   offset:(${result.x}, ${result.y}) -> $fixOffset
                   size:$rawSize -> $fixSize
                   realSize:${contentPlaceable.intSize()}
