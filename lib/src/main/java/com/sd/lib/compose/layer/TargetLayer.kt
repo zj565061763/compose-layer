@@ -3,7 +3,6 @@ package com.sd.lib.compose.layer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +17,7 @@ import androidx.compose.ui.layout.SubcomposeMeasureScope
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
@@ -316,9 +316,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
    }
 
+   override val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = {
+      val uiState by _uiState.collectAsStateWithLifecycle()
+      val alignment = uiState.alignment
+      when {
+         alignment.isTop() -> DisplaySlideBottomToTop()
+         alignment.isBottom() -> DisplaySlideTopToBottom()
+         alignment.isStart() -> DisplaySlideEndToStart()
+         alignment.isEnd() -> DisplaySlideStartToEnd()
+         else -> DisplayDefault()
+      }
+   }
+
    @Composable
    override fun LayerContent() {
-      val uiState by _uiState.collectAsState()
+      val uiState by _uiState.collectAsStateWithLifecycle()
       OffsetBox(
          modifier = Modifier.fillMaxSize(),
          uiState = uiState,
@@ -777,6 +789,42 @@ private fun TargetAlignment.toAlignerPosition(): Aligner.Position {
 
       TargetAlignment.Center -> Aligner.Position.Center
    }
+}
+
+private fun TargetAlignment.isTop() = when (this) {
+   TargetAlignment.TopStart,
+   TargetAlignment.TopCenter,
+   TargetAlignment.TopEnd,
+   TargetAlignment.Top,
+   -> true
+   else -> false
+}
+
+private fun TargetAlignment.isBottom() = when (this) {
+   TargetAlignment.BottomStart,
+   TargetAlignment.BottomCenter,
+   TargetAlignment.BottomEnd,
+   TargetAlignment.Bottom,
+   -> true
+   else -> false
+}
+
+private fun TargetAlignment.isStart() = when (this) {
+   TargetAlignment.StartTop,
+   TargetAlignment.StartCenter,
+   TargetAlignment.StartBottom,
+   TargetAlignment.Start,
+   -> true
+   else -> false
+}
+
+private fun TargetAlignment.isEnd() = when (this) {
+   TargetAlignment.EndTop,
+   TargetAlignment.EndCenter,
+   TargetAlignment.EndBottom,
+   TargetAlignment.End,
+   -> true
+   else -> false
 }
 
 private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {

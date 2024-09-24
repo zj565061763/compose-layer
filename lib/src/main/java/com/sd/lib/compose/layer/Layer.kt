@@ -161,8 +161,10 @@ internal abstract class LayerImpl : Layer {
       layerContainer.initLayer(this)
 
       _contentState.value = content
-      _displayState.value = display ?: getDefaultDisplay()
+      _displayState.value = display ?: defaultDisplay
    }
+
+   protected open val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = DefaultDisplay
 
    internal fun destroy() {
       layerContainer?.destroyLayer(this)
@@ -221,8 +223,6 @@ internal abstract class LayerImpl : Layer {
          }
       }
    }
-
-   protected open fun getDefaultDisplay(): @Composable (LayerDisplayScope.() -> Unit) = DefaultDisplay
 
    @Composable
    abstract fun LayerContent()

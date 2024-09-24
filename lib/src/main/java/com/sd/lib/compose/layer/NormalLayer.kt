@@ -36,9 +36,7 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
       }
    }
 
-   override fun getDefaultDisplay(): @Composable() (LayerDisplayScope.() -> Unit) = _defaultDisplay
-
-   private val _defaultDisplay: @Composable LayerDisplayScope.() -> Unit = {
+   override val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = {
       when (_alignment) {
          Alignment.TopCenter -> DisplaySlideTopToBottom()
          Alignment.BottomCenter -> DisplaySlideBottomToTop()
