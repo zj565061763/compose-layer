@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.SubcomposeMeasureScope
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -47,7 +48,7 @@ internal interface TargetLayer : Layer {
     * 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
     * 开启之后，如果默认的[setAlignment]导致内容溢出会使用[alignments]提供的位置按顺序查找溢出最小的位置
     */
-   fun setSmartAlignments(alignments: List<TargetAlignment>?)
+   fun setSmartAlignments(alignments: List<SmartAliment>?)
 
    /**
     * 裁切背景的方向[Directions]（非响应式）
@@ -68,50 +69,6 @@ sealed interface LayerTarget {
 }
 
 /**
- * 目标对齐位置
- */
-enum class TargetAlignment {
-   /** 顶部开始方向对齐 */
-   TopStart,
-   /** 顶部中间对齐 */
-   TopCenter,
-   /** 顶部结束方向对齐 */
-   TopEnd,
-   /** 顶部对齐，不计算x坐标，默认x坐标为0 */
-   Top,
-
-   /** 底部开始方向对齐 */
-   BottomStart,
-   /** 底部中间对齐 */
-   BottomCenter,
-   /** 底部结束方向对齐 */
-   BottomEnd,
-   /** 底部对齐，不计算x坐标，默认x坐标为0 */
-   Bottom,
-
-   /** 开始方向顶部对齐 */
-   StartTop,
-   /** 开始方向中间对齐 */
-   StartCenter,
-   /** 开始方向底部对齐 */
-   StartBottom,
-   /** 开始方向对齐，不计算y坐标，默认y坐标为0 */
-   Start,
-
-   /** 结束方向顶部对齐 */
-   EndTop,
-   /** 结束方向中间对齐 */
-   EndCenter,
-   /** 结束方向底部对齐 */
-   EndBottom,
-   /** 结束方向对齐，不计算y坐标，默认y坐标为0 */
-   End,
-
-   /** 中间对齐 */
-   Center,
-}
-
-/**
  * 目标对齐位置偏移量
  */
 @Immutable
@@ -121,34 +78,6 @@ sealed interface TargetAlignmentOffset {
 
    /** 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小 */
    data class Percent(val value: Float) : TargetAlignmentOffset
-}
-
-@Immutable
-sealed class Directions(
-   private val flag: Int,
-) {
-   data object Top : Directions(TOP)
-   data object Bottom : Directions(BOTTOM)
-   data object Start : Directions(START)
-   data object End : Directions(END)
-
-   fun hasTop() = TOP and flag != 0
-   fun hasBottom() = BOTTOM and flag != 0
-   fun hasStart() = START and flag != 0
-   fun hasEnd() = END and flag != 0
-
-   operator fun plus(directions: Directions): Directions {
-      return Combine(flag or directions.flag)
-   }
-
-   private class Combine(direction: Int) : Directions(direction)
-
-   companion object {
-      private const val TOP = 1
-      private const val BOTTOM = TOP shl 1
-      private const val START = TOP shl 2
-      private const val END = TOP shl 3
-   }
 }
 
 //---------- Impl ----------
@@ -182,7 +111,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       )
    )
 
-   private var _smartAlignments: List<TargetAlignment>? = null
+   private var _smartAlignments: List<SmartAliment>? = null
    private var _clipBackgroundDirection: Directions? = null
 
    /** 目标 */
@@ -247,14 +176,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
    }
 
-   override fun setSmartAlignments(alignments: List<TargetAlignment>?) {
+   override fun setSmartAlignments(alignments: List<SmartAliment>?) {
       _smartAlignments = if (alignments?.isEmpty() == true) {
-         listOf(
-            TargetAlignment.BottomEnd,
-            TargetAlignment.BottomStart,
-            TargetAlignment.TopEnd,
-            TargetAlignment.TopStart,
-         )
+         SmartAliments.Default
       } else {
          alignments
       }
@@ -315,16 +239,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
    }
 
-   override val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = {
+   @Composable
+   override fun defaultTransition(): LayerTransition {
       val uiState by _uiState.collectAsStateWithLifecycle()
       val alignment = uiState.alignment
-      when {
-         alignment.isTop() -> DisplaySlideBottomToTop()
-         alignment.isBottom() -> DisplaySlideTopToBottom()
-         alignment.isStart() -> DisplaySlideEndToStart()
-         alignment.isEnd() -> DisplaySlideStartToEnd()
-         else -> DisplayDefault()
-      }
+      return alignment.defaultTransition(LocalLayoutDirection.current)
    }
 
    @Composable
@@ -589,7 +508,7 @@ private fun alignTarget(
 
 private fun Aligner.Result.findBestResult(
    layer: Layer,
-   list: List<TargetAlignment>?,
+   list: List<SmartAliment>?,
 ): Aligner.Result {
    if (list.isNullOrEmpty()) return this
 
@@ -600,7 +519,7 @@ private fun Aligner.Result.findBestResult(
    var minOverflow = overflowDefault
 
    for (item in list) {
-      val position = item.toAlignerPosition()
+      val position = item.alignment.toAlignerPosition()
       val newResult = this.input.copy(position = position).toResult()
       val newOverflow = newResult.sourceOverflow.totalOverflow()
       if (newOverflow < minOverflow) {
@@ -762,68 +681,6 @@ private fun Aligner.Position.isCenterVertical(): Boolean {
 
       else -> false
    }
-}
-
-private fun TargetAlignment.toAlignerPosition(): Aligner.Position {
-   return when (this) {
-      TargetAlignment.TopStart -> Aligner.Position.TopStart
-      TargetAlignment.TopCenter -> Aligner.Position.TopCenter
-      TargetAlignment.TopEnd -> Aligner.Position.TopEnd
-      TargetAlignment.Top -> Aligner.Position.Top
-
-      TargetAlignment.BottomStart -> Aligner.Position.BottomStart
-      TargetAlignment.BottomCenter -> Aligner.Position.BottomCenter
-      TargetAlignment.BottomEnd -> Aligner.Position.BottomEnd
-      TargetAlignment.Bottom -> Aligner.Position.Bottom
-
-      TargetAlignment.StartTop -> Aligner.Position.StartTop
-      TargetAlignment.StartCenter -> Aligner.Position.StartCenter
-      TargetAlignment.StartBottom -> Aligner.Position.StartBottom
-      TargetAlignment.Start -> Aligner.Position.Start
-
-      TargetAlignment.EndTop -> Aligner.Position.EndTop
-      TargetAlignment.EndCenter -> Aligner.Position.EndCenter
-      TargetAlignment.EndBottom -> Aligner.Position.EndBottom
-      TargetAlignment.End -> Aligner.Position.End
-
-      TargetAlignment.Center -> Aligner.Position.Center
-   }
-}
-
-private fun TargetAlignment.isTop() = when (this) {
-   TargetAlignment.TopStart,
-   TargetAlignment.TopCenter,
-   TargetAlignment.TopEnd,
-   TargetAlignment.Top,
-   -> true
-   else -> false
-}
-
-private fun TargetAlignment.isBottom() = when (this) {
-   TargetAlignment.BottomStart,
-   TargetAlignment.BottomCenter,
-   TargetAlignment.BottomEnd,
-   TargetAlignment.Bottom,
-   -> true
-   else -> false
-}
-
-private fun TargetAlignment.isStart() = when (this) {
-   TargetAlignment.StartTop,
-   TargetAlignment.StartCenter,
-   TargetAlignment.StartBottom,
-   TargetAlignment.Start,
-   -> true
-   else -> false
-}
-
-private fun TargetAlignment.isEnd() = when (this) {
-   TargetAlignment.EndTop,
-   TargetAlignment.EndCenter,
-   TargetAlignment.EndBottom,
-   TargetAlignment.End,
-   -> true
-   else -> false
 }
 
 private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {

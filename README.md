@@ -44,17 +44,9 @@ fun Layer(
    detachOnTouchOutside: Boolean? = false,
    backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
    alignment: Alignment = Alignment.Center,
-   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   display: LayerDisplay? = null,
    content: @Composable LayerContentScope.() -> Unit,
 )
-
-enum class LayerDetach {
-   /** 按返回键 */
-   OnBackPress,
-
-   /** 触摸非内容区域 */
-   OnTouchOutside,
-}
 ```
 
 # 目标Layer
@@ -102,7 +94,7 @@ fun TargetLayer(
    alignmentOffsetY: TargetAlignmentOffset? = null,
    smartAlignments: List<TargetAlignment>? = null,
    clipBackgroundDirection: Directions? = null,
-   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   display: LayerDisplay? = null,
    content: @Composable LayerContentScope.() -> Unit,
 )
 ```

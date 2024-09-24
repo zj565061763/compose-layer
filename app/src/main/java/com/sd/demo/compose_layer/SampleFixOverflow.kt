@@ -24,9 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.DisplayDefault
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.LayerTransition
 import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
@@ -86,12 +86,10 @@ private fun Content() {
       onDetachRequest = { attach = false },
       alignment = TargetAlignment.BottomCenter,
       detachOnTouchOutside = true,
-      display = {
-         DisplayDefault(
-            enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-            exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-         )
-      },
+      transition = LayerTransition(
+         enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+         exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+      ),
       debug = true,
    ) {
       VerticalList(

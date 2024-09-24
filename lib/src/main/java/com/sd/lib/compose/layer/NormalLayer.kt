@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 
 internal interface NormalLayer : Layer {
    /**
@@ -36,13 +37,15 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
       }
    }
 
-   override val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = {
-      when (_alignment) {
-         Alignment.TopCenter -> DisplaySlideTopToBottom()
-         Alignment.BottomCenter -> DisplaySlideBottomToTop()
-         Alignment.CenterStart -> DisplaySlideStartToEnd()
-         Alignment.CenterEnd -> DisplaySlideEndToStart()
-         else -> DisplayDefault()
+   @Composable
+   override fun defaultTransition(): LayerTransition {
+      val direction = LocalLayoutDirection.current
+      return when (_alignment) {
+         Alignment.TopCenter -> LayerTransition.SlideTopToBottom
+         Alignment.BottomCenter -> LayerTransition.SlideBottomToTop
+         Alignment.CenterStart -> LayerTransition.slideStartToEnd(direction)
+         Alignment.CenterEnd -> LayerTransition.slideEndToStart(direction)
+         else -> LayerTransition.Default
       }
    }
 }

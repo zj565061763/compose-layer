@@ -50,6 +50,11 @@ internal interface Layer {
    fun setDetachRequestCallback(callback: (LayerDetach) -> Unit)
 
    /**
+    * 设置动画
+    */
+   fun setTransition(transition: LayerTransition?)
+
+   /**
     * 添加到容器
     */
    fun attach()
@@ -73,11 +78,6 @@ interface LayerContentScope {
    val isVisibleState: Boolean
 }
 
-interface LayerDisplayScope : LayerContentScope {
-   @Composable
-   fun Content()
-}
-
 //---------- Impl ----------
 
 internal abstract class LayerImpl : Layer {
@@ -89,12 +89,12 @@ internal abstract class LayerImpl : Layer {
 
    private val _layerScope = LayerScopeImpl()
    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
-   private val _displayState = mutableStateOf<(@Composable LayerDisplayScope.() -> Unit)>(DefaultDisplay)
 
    private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
    private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
+   private var _transition by mutableStateOf<LayerTransition?>(null)
    private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
 
    final override var debug: Boolean = false
@@ -114,6 +114,10 @@ internal abstract class LayerImpl : Layer {
 
    final override fun setDetachRequestCallback(callback: (LayerDetach) -> Unit) {
       _detachRequestCallback = callback
+   }
+
+   override fun setTransition(transition: LayerTransition?) {
+      _transition = transition
    }
 
    final override fun attach() {
@@ -148,7 +152,6 @@ internal abstract class LayerImpl : Layer {
    @Composable
    internal fun Init(
       content: @Composable LayerContentScope.() -> Unit,
-      display: @Composable (LayerDisplayScope.() -> Unit)?,
    ) {
       val layerContainer = checkNotNull(LocalContainerForLayer.current) {
          "Not in LayerContainer scope."
@@ -156,10 +159,7 @@ internal abstract class LayerImpl : Layer {
       layerContainer.initLayer(this)
 
       _contentState.value = content
-      _displayState.value = display ?: defaultDisplay
    }
-
-   protected open val defaultDisplay: @Composable (LayerDisplayScope.() -> Unit) = DefaultDisplay
 
    internal fun destroy() {
       layerContainer?.destroyLayer(this)
@@ -237,7 +237,7 @@ internal abstract class LayerImpl : Layer {
             }
             .clipToBounds()
       ) {
-         _displayState.value.invoke(_layerScope)
+         AnimatedContent()
       }
    }
 
@@ -273,14 +273,24 @@ internal abstract class LayerImpl : Layer {
       }
    }
 
-   private inner class LayerScopeImpl : LayerDisplayScope {
+   @Composable
+   private fun AnimatedContent() {
+      val transition = _transition ?: defaultTransition()
+      AnimatedVisibility(
+         visible = _isVisibleState,
+         enter = transition.enter,
+         exit = transition.exit,
+      ) {
+         _contentState.value.invoke(_layerScope)
+      }
+   }
+
+   @Composable
+   protected open fun defaultTransition(): LayerTransition = LayerTransition.Default
+
+   private inner class LayerScopeImpl : LayerContentScope {
       override val isVisibleState: Boolean
          get() = this@LayerImpl._isVisibleState
-
-      @Composable
-      override fun Content() {
-         _contentState.value.invoke(this@LayerScopeImpl)
-      }
    }
 }
 

@@ -57,7 +57,7 @@ fun LayerContainer(
  * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
- * @param display Layer显示，通常用来做动画效果
+ * @param transition Layer动画
  * @param content Layer内容
  */
 @Composable
@@ -69,17 +69,18 @@ fun Layer(
    detachOnTouchOutside: Boolean? = false,
    backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
    alignment: Alignment = Alignment.Center,
-   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   transition: LayerTransition? = null,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { NormalLayerImpl() }.apply {
       this.debug = debug
-      this.Init(content = content, display = display)
+      this.Init(content)
       this.setDetachRequestCallback(onDetachRequest)
       this.setDetachOnBackPress(detachOnBackPress)
       this.setDetachOnTouchOutside(detachOnTouchOutside)
       this.setBackgroundColor(backgroundColor)
       this.setAlignment(alignment)
+      this.setTransition(transition)
    }
 
    DisposableEffect(layer) {
@@ -113,7 +114,7 @@ fun Layer(
  * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
  * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
  * @param clipBackgroundDirection （非响应式）裁切背景的方向[Directions]
- * @param display Layer显示，通常用来做动画效果
+ * @param transition Layer动画
  * @param content Layer内容
  */
 @Composable
@@ -128,14 +129,14 @@ fun TargetLayer(
    alignment: TargetAlignment = TargetAlignment.Center,
    alignmentOffsetX: TargetAlignmentOffset? = null,
    alignmentOffsetY: TargetAlignmentOffset? = null,
-   smartAlignments: List<TargetAlignment>? = null,
+   smartAlignments: List<SmartAliment>? = null,
    clipBackgroundDirection: Directions? = null,
-   display: @Composable (LayerDisplayScope.() -> Unit)? = null,
+   transition: LayerTransition? = null,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
    val layer = remember { TargetLayerImpl() }.apply {
       this.debug = debug
-      this.Init(content = content, display = display)
+      this.Init(content)
       this.setDetachRequestCallback(onDetachRequest)
       this.setDetachOnBackPress(detachOnBackPress)
       this.setDetachOnTouchOutside(detachOnTouchOutside)
@@ -146,6 +147,7 @@ fun TargetLayer(
       this.setAlignmentOffsetY(alignmentOffsetY)
       this.setSmartAlignments(smartAlignments)
       this.setClipBackgroundDirection(clipBackgroundDirection)
+      this.setTransition(transition)
    }
 
    DisposableEffect(layer) {
@@ -186,5 +188,3 @@ fun Modifier.layerTag(tag: String): Modifier = composed {
 
 internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
 internal val LocalContainerForLayer = staticCompositionLocalOf<ContainerForLayer?> { null }
-
-internal val DefaultDisplay: @Composable LayerDisplayScope.() -> Unit = { DisplayDefault() }
