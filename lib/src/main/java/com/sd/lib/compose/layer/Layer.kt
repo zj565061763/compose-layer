@@ -31,12 +31,12 @@ internal interface Layer {
    val isVisibleState: Boolean
 
    /**
-    * 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认true
+    * 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认值true
     */
    fun setDetachOnBackPress(value: Boolean?)
 
    /**
-    * 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
+    * 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认值false
     */
    fun setDetachOnTouchOutside(value: Boolean?)
 
@@ -46,7 +46,7 @@ internal interface Layer {
    fun setBackgroundColor(color: Color)
 
    /**
-    * 是否裁剪内容区域，默认true
+    * 是否裁剪内容区域，默认值true
     */
    fun setClipToBounds(clipToBounds: Boolean)
 

@@ -104,14 +104,15 @@ fun Layer(
  * @param attach 是否添加Layer，true-添加；false-移除
  * @param onDetachRequest [LayerDetach]触发的移除回调
  * @param debug 是否调试模式，tag:FLayer
- * @param detachOnBackPress 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认true
- * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
+ * @param detachOnBackPress 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认值true
+ * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认值false
  * @param backgroundColor 背景颜色
  * @param alignment 对齐目标位置
  * @param alignmentOffsetX 对齐目标X方向偏移量
  * @param alignmentOffsetY 对齐目标Y方向偏移量
- * @param smartAlignments 智能对齐目标位置，null-关闭智能对齐；空列表-默认的对齐列表，默认null（非响应式）
- * @param clipBackgroundDirection 裁切背景的方向[Directions]（非响应式）
+ * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
+ * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
+ * @param clipBackgroundDirection （非响应式）裁切背景的方向[Directions]
  * @param display Layer显示，通常用来做动画效果
  * @param content Layer内容
  */

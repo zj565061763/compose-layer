@@ -46,7 +46,8 @@ internal interface TargetLayer : Layer {
    fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
    /**
-    * 智能对齐目标位置，null-关闭智能对齐；空列表-默认的对齐列表，默认null（非响应式）
+    * 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，如果是空列表则采用内置的对齐列表，默认关闭智能对齐。
+    * 开启之后，如果默认的[setAlignment]导致内容溢出会使用[alignments]提供的位置按顺序查找溢出最小的位置
     */
    fun setSmartAlignments(alignments: List<TargetAlignment>?)
 
