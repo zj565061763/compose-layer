@@ -20,6 +20,8 @@ data class SmartAliments(
 
 @Immutable
 data class SmartAliment(
+   /** 要对齐的位置 */
    val alignment: TargetAlignment,
+   /** 动画 */
    val transition: LayerTransition? = null,
 )

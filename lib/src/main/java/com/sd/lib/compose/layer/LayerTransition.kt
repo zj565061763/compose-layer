@@ -108,8 +108,8 @@ data class LayerTransition(
 
       fun scaleBottomEnd(direction: LayoutDirection): LayerTransition {
          return when (direction) {
-            LayoutDirection.Ltr -> ScaleBottomLeft
-            LayoutDirection.Rtl -> ScaleBottomRight
+            LayoutDirection.Ltr -> ScaleBottomRight
+            LayoutDirection.Rtl -> ScaleBottomLeft
          }
       }
    }
