@@ -79,7 +79,7 @@ private fun Content() {
       onDetachRequest = { attach = false },
       backgroundColor = Color.Transparent,
       detachOnTouchOutside = null,
-      alignment = TargetAlignment.BottomEnd,
+      alignment = TargetAlignment.Center,
       smartAlignments = emptyList(),
       debug = true,
    ) {
