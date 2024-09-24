@@ -25,7 +25,7 @@
         <activity android:name=".SampleAlignContainer" />
         <activity android:name=".SampleAlignTarget" />
         <activity android:name=".SampleDropDown" />
-        <activity android:name=".SampleOverflow" />
+        <activity android:name=".SampleFixOverflow" />
         <activity android:name=".SampleListMenu" />
         <activity android:name=".SampleTargetOffset" />
 

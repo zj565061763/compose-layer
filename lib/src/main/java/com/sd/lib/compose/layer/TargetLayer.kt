@@ -46,11 +46,6 @@ internal interface TargetLayer : Layer {
    fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
    /**
-    * 是否修复溢出，默认true
-    */
-   fun setFixOverflow(fixOverflow: Boolean)
-
-   /**
     * 是否查找最佳的显示位置，默认false
     */
    fun setFindBestPosition(findBestPosition: Boolean)
@@ -189,7 +184,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       )
    )
 
-   private var _fixOverflow = true
    private var _findBestPosition = false
    private var _clipBackgroundDirection: Directions? = null
 
@@ -253,10 +247,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          _alignmentOffsetY = offset
          updateTargetLayout()
       }
-   }
-
-   override fun setFixOverflow(fixOverflow: Boolean) {
-      _fixOverflow = fixOverflow
    }
 
    override fun setFindBestPosition(findBestPosition: Boolean) {
@@ -375,11 +365,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             }
          }
 
-         if (_fixOverflow) {
-            state.layoutFixOverflow(cs, uiState)
-         } else {
-            state.layoutOverflow(cs, uiState)
-         }
+         state.layoutFixOverflow(cs, uiState)
       }
    }
 

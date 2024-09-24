@@ -110,7 +110,6 @@ fun Layer(
  * @param alignment 对齐目标位置
  * @param alignmentOffsetX 对齐目标X方向偏移量
  * @param alignmentOffsetY 对齐目标Y方向偏移量
- * @param fixOverflow 是否修复溢出，默认true（此参数非响应式）
  * @param findBestPosition 是否查找最佳的显示位置，默认false（此参数非响应式）
  * @param clipBackgroundDirection 裁切背景的方向[Directions]（此参数非响应式）
  * @param display Layer显示，通常用来做动画效果
@@ -128,7 +127,6 @@ fun TargetLayer(
    alignment: TargetAlignment = TargetAlignment.Center,
    alignmentOffsetX: TargetAlignmentOffset? = null,
    alignmentOffsetY: TargetAlignmentOffset? = null,
-   fixOverflow: Boolean = true,
    findBestPosition: Boolean = false,
    clipBackgroundDirection: Directions? = null,
    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
@@ -145,7 +143,6 @@ fun TargetLayer(
       this.setAlignment(alignment)
       this.setAlignmentOffsetX(alignmentOffsetX)
       this.setAlignmentOffsetY(alignmentOffsetY)
-      this.setFixOverflow(fixOverflow)
       this.setFindBestPosition(findBestPosition)
       this.setClipBackgroundDirection(clipBackgroundDirection)
    }

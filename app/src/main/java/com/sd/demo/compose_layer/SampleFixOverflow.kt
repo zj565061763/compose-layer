@@ -32,7 +32,7 @@ import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
 
-class SampleOverflow : ComponentActivity() {
+class SampleFixOverflow : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
       setContent {
@@ -49,7 +49,6 @@ class SampleOverflow : ComponentActivity() {
 private fun Content() {
    var attach by remember { mutableStateOf(false) }
    var tag by remember { mutableStateOf("") }
-   var fixOverflow by remember { mutableStateOf(false) }
 
    Column(
       modifier = Modifier.fillMaxSize(),
@@ -65,23 +64,21 @@ private fun Content() {
          Button(
             onClick = {
                tag = "button1"
-               fixOverflow = false
                attach = true
             },
             modifier = Modifier.layerTag("button1")
          ) {
-            Text("Overflow")
+            Text("button1")
          }
 
          Button(
             onClick = {
                tag = "button2"
-               fixOverflow = true
                attach = true
             },
             modifier = Modifier.layerTag("button2")
          ) {
-            Text("Fix overflow")
+            Text("button2")
          }
       }
    }
@@ -92,7 +89,6 @@ private fun Content() {
       onDetachRequest = { attach = false },
       alignment = TargetAlignment.BottomCenter,
       detachOnTouchOutside = true,
-      fixOverflow = fixOverflow,
       display = {
          DisplayDefault(
             enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
