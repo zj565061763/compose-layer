@@ -405,9 +405,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
-      /**
-       * 检查溢出
-       */
       fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
          val originalPlaceable = measureContent(cs, slotId = null)
          val originalSize = originalPlaceable.intSize()
@@ -582,75 +579,6 @@ private fun alignTarget(
       sourceHeight = contentSize.height,
    ).toResult()
 }
-
-private fun TargetAlignment.toAlignerPosition(): Aligner.Position {
-   return when (this) {
-      TargetAlignment.TopStart -> Aligner.Position.TopStart
-      TargetAlignment.TopCenter -> Aligner.Position.TopCenter
-      TargetAlignment.TopEnd -> Aligner.Position.TopEnd
-      TargetAlignment.Top -> Aligner.Position.Top
-
-      TargetAlignment.BottomStart -> Aligner.Position.BottomStart
-      TargetAlignment.BottomCenter -> Aligner.Position.BottomCenter
-      TargetAlignment.BottomEnd -> Aligner.Position.BottomEnd
-      TargetAlignment.Bottom -> Aligner.Position.Bottom
-
-      TargetAlignment.StartTop -> Aligner.Position.StartTop
-      TargetAlignment.StartCenter -> Aligner.Position.StartCenter
-      TargetAlignment.StartBottom -> Aligner.Position.StartBottom
-      TargetAlignment.Start -> Aligner.Position.Start
-
-      TargetAlignment.EndTop -> Aligner.Position.EndTop
-      TargetAlignment.EndCenter -> Aligner.Position.EndCenter
-      TargetAlignment.EndBottom -> Aligner.Position.EndBottom
-      TargetAlignment.End -> Aligner.Position.End
-
-      TargetAlignment.Center -> Aligner.Position.Center
-   }
-}
-
-private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
-   return LayoutInfo(
-      size = size(),
-      offset = offset(),
-      isAttached = isAttached(),
-   )
-}
-
-private fun LayoutCoordinates?.size(): IntSize {
-   if (this == null || !this.isAttached) return IntSize.Zero
-   return this.size
-}
-
-private fun LayoutCoordinates?.offset(): IntOffset {
-   if (this == null || !this.isAttached) return IntOffset.Zero
-   val offset = this.localToWindow(Offset.Zero)
-   return IntOffset(offset.x.toInt(), offset.y.toInt())
-}
-
-private fun LayoutCoordinates?.isAttached(): Boolean {
-   if (this == null) return false
-   return this.isAttached
-}
-
-private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
-   return when (val offset = this) {
-      null -> 0
-      is TargetAlignmentOffset.PX -> offset.value
-      is TargetAlignmentOffset.Percent -> {
-         val px = targetSize * offset.value
-         if (px.isInfinite()) 0 else px.roundToInt()
-      }
-   }
-}
-
-private fun Constraints.newMax(size: IntSize): Constraints {
-   return this.copy(maxWidth = size.width, maxHeight = size.height)
-}
-
-private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
-
-private fun Placeable.intSize(): IntSize = IntSize(width, height)
 
 private fun Aligner.Result.findBestResult(
    layer: Layer,
@@ -832,3 +760,72 @@ private fun Aligner.Position.isCenterVertical(): Boolean {
       else -> false
    }
 }
+
+private fun TargetAlignment.toAlignerPosition(): Aligner.Position {
+   return when (this) {
+      TargetAlignment.TopStart -> Aligner.Position.TopStart
+      TargetAlignment.TopCenter -> Aligner.Position.TopCenter
+      TargetAlignment.TopEnd -> Aligner.Position.TopEnd
+      TargetAlignment.Top -> Aligner.Position.Top
+
+      TargetAlignment.BottomStart -> Aligner.Position.BottomStart
+      TargetAlignment.BottomCenter -> Aligner.Position.BottomCenter
+      TargetAlignment.BottomEnd -> Aligner.Position.BottomEnd
+      TargetAlignment.Bottom -> Aligner.Position.Bottom
+
+      TargetAlignment.StartTop -> Aligner.Position.StartTop
+      TargetAlignment.StartCenter -> Aligner.Position.StartCenter
+      TargetAlignment.StartBottom -> Aligner.Position.StartBottom
+      TargetAlignment.Start -> Aligner.Position.Start
+
+      TargetAlignment.EndTop -> Aligner.Position.EndTop
+      TargetAlignment.EndCenter -> Aligner.Position.EndCenter
+      TargetAlignment.EndBottom -> Aligner.Position.EndBottom
+      TargetAlignment.End -> Aligner.Position.End
+
+      TargetAlignment.Center -> Aligner.Position.Center
+   }
+}
+
+private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
+   return LayoutInfo(
+      size = size(),
+      offset = offset(),
+      isAttached = isAttached(),
+   )
+}
+
+private fun LayoutCoordinates?.size(): IntSize {
+   if (this == null || !this.isAttached) return IntSize.Zero
+   return this.size
+}
+
+private fun LayoutCoordinates?.offset(): IntOffset {
+   if (this == null || !this.isAttached) return IntOffset.Zero
+   val offset = this.localToWindow(Offset.Zero)
+   return IntOffset(offset.x.toInt(), offset.y.toInt())
+}
+
+private fun LayoutCoordinates?.isAttached(): Boolean {
+   if (this == null) return false
+   return this.isAttached
+}
+
+private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
+   return when (val offset = this) {
+      null -> 0
+      is TargetAlignmentOffset.PX -> offset.value
+      is TargetAlignmentOffset.Percent -> {
+         val px = targetSize * offset.value
+         if (px.isInfinite()) 0 else px.roundToInt()
+      }
+   }
+}
+
+private fun Constraints.newMax(size: IntSize): Constraints {
+   return this.copy(maxWidth = size.width, maxHeight = size.height)
+}
+
+private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
+
+private fun Placeable.intSize(): IntSize = IntSize(width, height)
