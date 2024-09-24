@@ -10,22 +10,10 @@ data class SmartAliments(
 
    companion object {
       val Default = SmartAliments(
-         SmartAliment(
-            alignment = TargetAlignment.BottomEnd,
-            transition = LayerTransition.SlideTopToBottom,
-         ),
-         SmartAliment(
-            alignment = TargetAlignment.BottomStart,
-            transition = LayerTransition.SlideTopToBottom,
-         ),
-         SmartAliment(
-            alignment = TargetAlignment.TopEnd,
-            transition = LayerTransition.SlideBottomToTop,
-         ),
-         SmartAliment(
-            alignment = TargetAlignment.TopStart,
-            transition = LayerTransition.SlideBottomToTop,
-         ),
+         SmartAliment(TargetAlignment.BottomEnd),
+         SmartAliment(TargetAlignment.BottomStart),
+         SmartAliment(TargetAlignment.TopEnd),
+         SmartAliment(TargetAlignment.TopStart),
       )
    }
 }

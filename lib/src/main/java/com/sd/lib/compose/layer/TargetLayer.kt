@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -240,12 +241,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    @Composable
    override fun defaultTransition(): LayerTransition {
       val direction = LocalLayoutDirection.current
+
       _smartAlignment?.let {
-         return it.transition ?: it.alignment.defaultTransition(direction)
+         return it.transition ?: it.alignment.transition(direction)
       }
 
       val uiState by _uiState.collectAsStateWithLifecycle()
-      return uiState.alignment.defaultTransition(LocalLayoutDirection.current)
+      return uiState.alignment.transition(direction)
+   }
+
+   private fun TargetAlignment.transition(direction: LayoutDirection): LayerTransition {
+      return if (_target is LayerTarget.Offset) {
+         offsetTransition(direction)
+      } else {
+         defaultTransition(direction)
+      }
    }
 
    @Composable

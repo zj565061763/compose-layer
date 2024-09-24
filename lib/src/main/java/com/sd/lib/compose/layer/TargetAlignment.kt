@@ -72,35 +72,7 @@ internal fun TargetAlignment.toAlignerPosition(): Aligner.Position {
    }
 }
 
-internal fun Aligner.Position.toTargetAlignment(): TargetAlignment {
-   return when (this) {
-      Aligner.Position.TopStart -> TargetAlignment.TopStart
-      Aligner.Position.TopCenter -> TargetAlignment.TopCenter
-      Aligner.Position.TopEnd -> TargetAlignment.TopEnd
-      Aligner.Position.Top -> TargetAlignment.Top
-
-      Aligner.Position.BottomStart -> TargetAlignment.BottomStart
-      Aligner.Position.BottomCenter -> TargetAlignment.BottomCenter
-      Aligner.Position.BottomEnd -> TargetAlignment.BottomEnd
-      Aligner.Position.Bottom -> TargetAlignment.Bottom
-
-      Aligner.Position.StartTop -> TargetAlignment.StartTop
-      Aligner.Position.StartCenter -> TargetAlignment.StartCenter
-      Aligner.Position.StartBottom -> TargetAlignment.StartBottom
-      Aligner.Position.Start -> TargetAlignment.Start
-
-      Aligner.Position.EndTop -> TargetAlignment.EndTop
-      Aligner.Position.EndCenter -> TargetAlignment.EndCenter
-      Aligner.Position.EndBottom -> TargetAlignment.EndBottom
-      Aligner.Position.End -> TargetAlignment.End
-
-      Aligner.Position.Center -> TargetAlignment.Center
-   }
-}
-
-internal fun TargetAlignment.defaultTransition(
-   directions: LayoutDirection = LayoutDirection.Ltr,
-): LayerTransition {
+internal fun TargetAlignment.defaultTransition(direction: LayoutDirection): LayerTransition {
    return when (this) {
       TargetAlignment.TopStart,
       TargetAlignment.TopCenter,
@@ -118,20 +90,36 @@ internal fun TargetAlignment.defaultTransition(
       TargetAlignment.StartCenter,
       TargetAlignment.StartBottom,
       TargetAlignment.Start,
-      -> when (directions) {
-         LayoutDirection.Ltr -> LayerTransition.SlideRightToLeft
-         LayoutDirection.Rtl -> LayerTransition.SlideLeftToRight
-      }
+      -> LayerTransition.slideEndToStart(direction)
 
       TargetAlignment.EndTop,
       TargetAlignment.EndCenter,
       TargetAlignment.EndBottom,
       TargetAlignment.End,
-      -> when (directions) {
-         LayoutDirection.Ltr -> LayerTransition.SlideLeftToRight
-         LayoutDirection.Rtl -> LayerTransition.SlideRightToLeft
-      }
+      -> LayerTransition.slideStartToEnd(direction)
 
       else -> LayerTransition.Default
+   }
+}
+
+internal fun TargetAlignment.offsetTransition(direction: LayoutDirection): LayerTransition {
+   return when (this) {
+      TargetAlignment.TopStart,
+      TargetAlignment.StartTop,
+      -> LayerTransition.scaleBottomStart(direction)
+
+      TargetAlignment.TopEnd,
+      TargetAlignment.EndTop,
+      -> LayerTransition.scaleBottomEnd(direction)
+
+      TargetAlignment.BottomStart,
+      TargetAlignment.StartBottom,
+      -> LayerTransition.scaleTopStart(direction)
+
+      TargetAlignment.BottomEnd,
+      TargetAlignment.EndBottom,
+      -> LayerTransition.scaleTopEnd(direction)
+
+      else -> defaultTransition(direction)
    }
 }
