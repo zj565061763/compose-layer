@@ -110,8 +110,8 @@ fun Layer(
  * @param alignment 对齐目标位置
  * @param alignmentOffsetX 对齐目标X方向偏移量
  * @param alignmentOffsetY 对齐目标Y方向偏移量
- * @param findBestPosition 是否查找最佳的显示位置，默认false（此参数非响应式）
- * @param clipBackgroundDirection 裁切背景的方向[Directions]（此参数非响应式）
+ * @param smartAlignments 智能对齐目标位置，null-关闭智能对齐；空列表-默认的对齐列表，默认null（非响应式）
+ * @param clipBackgroundDirection 裁切背景的方向[Directions]（非响应式）
  * @param display Layer显示，通常用来做动画效果
  * @param content Layer内容
  */
@@ -127,7 +127,7 @@ fun TargetLayer(
    alignment: TargetAlignment = TargetAlignment.Center,
    alignmentOffsetX: TargetAlignmentOffset? = null,
    alignmentOffsetY: TargetAlignmentOffset? = null,
-   findBestPosition: Boolean = false,
+   smartAlignments: List<TargetAlignment>? = null,
    clipBackgroundDirection: Directions? = null,
    display: @Composable LayerDisplayScope.() -> Unit = DefaultDisplay,
    content: @Composable LayerContentScope.() -> Unit,
@@ -143,7 +143,7 @@ fun TargetLayer(
       this.setAlignment(alignment)
       this.setAlignmentOffsetX(alignmentOffsetX)
       this.setAlignmentOffsetY(alignmentOffsetY)
-      this.setFindBestPosition(findBestPosition)
+      this.setSmartAlignments(smartAlignments)
       this.setClipBackgroundDirection(clipBackgroundDirection)
    }
 

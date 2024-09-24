@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.round
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
+import com.sd.lib.compose.layer.TargetAlignment
 import com.sd.lib.compose.layer.TargetLayer
 
 class SampleListMenu : ComponentActivity() {
@@ -78,7 +79,8 @@ private fun Content() {
       onDetachRequest = { attach = false },
       backgroundColor = Color.Transparent,
       detachOnTouchOutside = null,
-      findBestPosition = true,
+      alignment = TargetAlignment.BottomEnd,
+      smartAlignments = emptyList(),
       debug = true,
    ) {
       VerticalList(
