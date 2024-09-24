@@ -292,18 +292,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val cs = cs.copy(minWidth = 0, minHeight = 0)
          state.measureScope = this
 
+         val isReady = uiState.targetLayout.isAttached
+            && uiState.containerLayout.isAttached
+
          logMsg {
             """
-               layout start -----> isVisible:$isVisibleState
+               layout start ----------> isVisible:$isVisibleState isReady:$isReady
                   alignment:${uiState.alignment}
                   target:${uiState.targetLayout}
                   container:${uiState.containerLayout}
                   cs:$cs
             """.trimIndent()
          }
-
-         val isReady = uiState.targetLayout.isAttached
-            && uiState.containerLayout.isAttached
 
          if (!isVisibleState) {
             return@SubcomposeLayout state.layoutLastVisible(cs).also {
