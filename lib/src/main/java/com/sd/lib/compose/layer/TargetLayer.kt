@@ -306,8 +306,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          }
 
          if (!isVisibleState) {
-            return@SubcomposeLayout state.layoutLastVisible(cs).also {
-               logMsg { "layout invisible" }
+            val result = if (isReady) {
+               state.layoutDefault(cs, uiState)
+            } else {
+               state.layoutLastVisible(cs)
+            }
+            return@SubcomposeLayout result.also {
                if (isReady) {
                   setContentVisible(true)
                }
@@ -316,19 +320,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
          if (!isReady) {
             return@SubcomposeLayout state.layoutLastVisible(cs).also {
-               logMsg { "layout not ready" }
                setContentVisible(false)
             }
          }
 
-         state.layoutFixOverflow(cs, uiState)
+         state.layoutDefault(cs, uiState)
       }
    }
 
    private inner class OffsetBoxState {
 
-      fun layoutFixOverflow(cs: Constraints, uiState: UIState): MeasureResult {
-         logMsg { "layoutFixOverflow start" }
+      fun layoutDefault(cs: Constraints, uiState: UIState): MeasureResult {
+         logMsg { "layoutDefault start" }
 
          val rawPlaceable = measureRawContent(cs)
          val rawSize = rawPlaceable.intSize()
@@ -355,7 +358,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
          logMsg {
             """
-               layoutFixOverflow
+               layoutDefault
                   offset:(${result.x}, ${result.y}) -> $fixOffset
                   size:$rawSize -> $fixSize
                   realSize:${contentPlaceable.intSize()}
