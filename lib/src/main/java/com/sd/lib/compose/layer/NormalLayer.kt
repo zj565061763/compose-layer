@@ -38,7 +38,8 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
    }
 
    @Composable
-   override fun defaultTransition(): LayerTransition {
+   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
+      transition?.let { return it }
       val direction = LocalLayoutDirection.current
       return when (_alignment) {
          Alignment.TopCenter -> LayerTransition.SlideTopToBottom

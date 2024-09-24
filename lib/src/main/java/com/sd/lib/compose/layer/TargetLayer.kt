@@ -245,11 +245,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    @Composable
-   override fun defaultTransition(): LayerTransition {
+   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
       val direction = LocalLayoutDirection.current
+
       _smartAlignment?.let {
          return it.transition ?: it.alignment.transition(direction)
       }
+
+      transition?.let { return it }
 
       val uiState by _uiState.collectAsStateWithLifecycle()
       return uiState.alignment.transition(direction)
@@ -269,9 +272,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       OffsetBox(
          modifier = Modifier.fillMaxSize(),
          uiState = uiState,
-         background = { BackgroundBox() },
-         content = { ContentBox() },
-         rawContent = { RawContent() },
       )
    }
 
@@ -279,15 +279,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private fun OffsetBox(
       modifier: Modifier = Modifier,
       uiState: UIState,
-      background: @Composable () -> Unit,
-      content: @Composable () -> Unit,
-      rawContent: @Composable () -> Unit,
    ) {
-      val state = remember { OffsetBoxState() }.apply {
-         this.backgroundState = background
-         this.contentState = content
-         this.rawContentState = rawContent
-      }
+      val state = remember { OffsetBoxState() }
 
       SubcomposeLayout(modifier) { cs ->
          @Suppress("NAME_SHADOWING")
@@ -463,10 +456,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
-      var backgroundState by mutableStateOf<@Composable () -> Unit>({})
-      var contentState by mutableStateOf<@Composable () -> Unit>({})
-      var rawContentState by mutableStateOf<@Composable () -> Unit>({})
-
       lateinit var measureScope: SubcomposeMeasureScope
 
       private var _visibleBackgroundInfo: PlaceInfo? = null
@@ -476,33 +465,36 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
        * 测量背景
        */
       private fun measureBackground(constraints: Constraints): Placeable {
-         val measurable = measureScope.subcompose(SlotId.Background, backgroundState).let {
+         return measureScope.subcompose(SlotId.Background) {
+            BackgroundBox()
+         }.let {
             check(it.size == 1)
-            it.first()
+            it.first().measure(constraints)
          }
-         return measurable.measure(constraints)
       }
 
       /**
        * 测量内容
        */
       private fun measureContent(constraints: Constraints): Placeable {
-         val measurable = measureScope.subcompose(SlotId.Content, contentState).let {
+         return measureScope.subcompose(SlotId.Content) {
+            ContentBox()
+         }.let {
             check(it.size == 1)
-            it.first()
+            it.first().measure(constraints)
          }
-         return measurable.measure(constraints)
       }
 
       /**
        * 测量原始内容
        */
       private fun measureRawContent(constraints: Constraints): Placeable {
-         val measurable = measureScope.subcompose(SlotId.RawContent, rawContentState).let {
+         return measureScope.subcompose(SlotId.RawContent) {
+            RawContent()
+         }.let {
             check(it.size == 1)
-            it.first()
+            it.first().measure(constraints)
          }
-         return measurable.measure(constraints)
       }
    }
 

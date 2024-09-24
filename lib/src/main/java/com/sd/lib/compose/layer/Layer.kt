@@ -94,7 +94,7 @@ internal abstract class LayerImpl : Layer {
    private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
 
-   private var _transition by mutableStateOf<LayerTransition?>(null)
+   private var _layerTransition: LayerTransition? = null
    private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
 
    final override var debug: Boolean = false
@@ -116,8 +116,8 @@ internal abstract class LayerImpl : Layer {
       _detachRequestCallback = callback
    }
 
-   override fun setTransition(transition: LayerTransition?) {
-      _transition = transition
+   final override fun setTransition(transition: LayerTransition?) {
+      _layerTransition = transition
    }
 
    final override fun attach() {
@@ -224,6 +224,9 @@ internal abstract class LayerImpl : Layer {
    abstract fun LayerContent()
 
    @Composable
+   protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
+
+   @Composable
    protected fun ContentBox(modifier: Modifier = Modifier) {
       Box(
          modifier = modifier
@@ -285,7 +288,7 @@ internal abstract class LayerImpl : Layer {
 
    @Composable
    private fun AnimatedContent() {
-      val transition = _transition ?: defaultTransition()
+      val transition = getLayerTransition(_layerTransition)
       AnimatedVisibility(
          visible = _isVisibleState,
          enter = transition.enter,
@@ -294,9 +297,6 @@ internal abstract class LayerImpl : Layer {
          _contentState.value.invoke(_layerScope)
       }
    }
-
-   @Composable
-   protected open fun defaultTransition(): LayerTransition = LayerTransition.Default
 
    private inner class LayerScopeImpl : LayerContentScope {
       override val isVisibleState: Boolean
