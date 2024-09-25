@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -122,7 +120,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
    /** 智能对齐 */
    private var _smartAlignments: SmartAliments? = null
-   private var _smartAlignment by mutableStateOf<SmartAliment?>(null)
+   private var _currentSmartAlignment: SmartAliment? = null
 
    /** 裁切背景 */
    private var _clipBackgroundDirection: Directions? = null
@@ -200,7 +198,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    override fun onDetached(container: ContainerForLayer) {
-      _smartAlignment = null
+      _currentSmartAlignment = null
    }
 
    private val _containerLayoutCallback: LayoutCoordinatesCallback = { layout ->
@@ -248,7 +246,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
       val direction = LocalLayoutDirection.current
 
-      _smartAlignment?.let {
+      _currentSmartAlignment?.let {
          logMsg { "getLayerTransition from smartAlignment $it" }
          return it.transition ?: it.alignment.transition(direction)
       }
@@ -338,7 +336,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             contentSize = rawSize,
          ).findBestResult(this@TargetLayerImpl, _smartAlignments)
 
-         _smartAlignment = smartAlignment
+         _currentSmartAlignment = smartAlignment
 
          val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl)
 
