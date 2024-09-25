@@ -9,6 +9,7 @@ data class SmartAliments(
    constructor(vararg array: SmartAliment) : this(array.toList())
 
    companion object {
+      /** 默认的智能对齐位置 */
       val Default = SmartAliments(
          SmartAliment(TargetAlignment.BottomEnd),
          SmartAliment(TargetAlignment.BottomStart),
