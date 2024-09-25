@@ -68,35 +68,8 @@ data class LayerTransition(
          return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      fun scaleTopStart(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> scaleTopLeft()
-            LayoutDirection.Rtl -> scaleTopRight()
-         }
-      }
-
-      fun scaleTopEnd(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> scaleTopRight()
-            LayoutDirection.Rtl -> scaleTopLeft()
-         }
-      }
-
-      fun scaleBottomStart(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> scaleBottomLeft()
-            LayoutDirection.Rtl -> scaleBottomRight()
-         }
-      }
-
-      fun scaleBottomEnd(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> scaleBottomRight()
-            LayoutDirection.Rtl -> scaleBottomLeft()
-         }
-      }
-
-      private fun scaleTopLeft(): LayerTransition {
+      /** 左上角锚点缩放 */
+      fun scaleTopLeft(): LayerTransition {
          val transformOrigin = TransformOrigin(0.0f, 0.0f)
          return LayerTransition(
             enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
@@ -104,7 +77,8 @@ data class LayerTransition(
          )
       }
 
-      private fun scaleTopRight(): LayerTransition {
+      /** 右上角锚点缩放 */
+      fun scaleTopRight(): LayerTransition {
          val transformOrigin = TransformOrigin(1.0f, 0.0f)
          return LayerTransition(
             enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
@@ -112,7 +86,8 @@ data class LayerTransition(
          )
       }
 
-      private fun scaleBottomLeft(): LayerTransition {
+      /** 左下角锚点缩放 */
+      fun scaleBottomLeft(): LayerTransition {
          val transformOrigin = TransformOrigin(0.0f, 1.0f)
          return LayerTransition(
             enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
@@ -120,12 +95,45 @@ data class LayerTransition(
          )
       }
 
-      private fun scaleBottomRight(): LayerTransition {
+      /** 右下角锚点缩放 */
+      fun scaleBottomRight(): LayerTransition {
          val transformOrigin = TransformOrigin(1.0f, 1.0f)
          return LayerTransition(
             enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
             exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
          )
+      }
+
+      fun scaleTopStart(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { scaleTopLeft() },
+         rtlBuilder: () -> LayerTransition = { scaleTopRight() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+      }
+
+      fun scaleTopEnd(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { scaleTopRight() },
+         rtlBuilder: () -> LayerTransition = { scaleTopLeft() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+      }
+
+      fun scaleBottomStart(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { scaleBottomLeft() },
+         rtlBuilder: () -> LayerTransition = { scaleBottomRight() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+      }
+
+      fun scaleBottomEnd(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { scaleBottomRight() },
+         rtlBuilder: () -> LayerTransition = { scaleBottomLeft() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
    }
 }
