@@ -305,26 +305,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             """.trimIndent()
          }
 
-         if (!isVisibleState) {
-            val result = if (isReady) {
-               state.layoutDefault(cs, uiState)
-            } else {
-               state.layoutLastVisible(cs)
-            }
-            return@SubcomposeLayout result.also {
-               if (isReady) {
+         if (isReady) {
+            state.layoutDefault(cs, uiState)
+         } else {
+            state.layoutLastInfo(cs)
+         }.also {
+            if (isReady) {
+               if (!isVisibleState) {
                   setContentVisible(true)
+               }
+            } else {
+               if (isVisibleState) {
+                  setContentVisible(false)
                }
             }
          }
-
-         if (!isReady) {
-            return@SubcomposeLayout state.layoutLastVisible(cs).also {
-               setContentVisible(false)
-            }
-         }
-
-         state.layoutDefault(cs, uiState)
       }
    }
 
@@ -374,7 +369,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          )
       }
 
-      fun layoutLastVisible(cs: Constraints): MeasureResult {
+      fun layoutLastInfo(cs: Constraints): MeasureResult {
          val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
          val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
