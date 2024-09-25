@@ -152,7 +152,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    private var _tagTargetLayout: LayoutCoordinates? = null
-   private val _tagTargetLayoutCallback: (LayoutCoordinates?) -> Unit = {
+   private val _tagTargetLayoutCallback: LayoutCoordinatesCallback = {
       _tagTargetLayout = it
       updateTargetLayout()
    }
@@ -203,7 +203,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       _smartAlignment = null
    }
 
-   private val _containerLayoutCallback: (LayoutCoordinates?) -> Unit = { layout ->
+   private val _containerLayoutCallback: LayoutCoordinatesCallback = { layout ->
       _uiState.update {
          it.copy(containerLayout = layout.toLayoutInfo())
       }

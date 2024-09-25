@@ -30,12 +30,14 @@ internal interface ContainerForLayer {
    fun attachLayer(layer: LayerImpl)
    fun detachLayer(layer: LayerImpl): Boolean
 
-   fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
-   fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit)
+   fun registerContainerLayoutCallback(callback: LayoutCoordinatesCallback)
+   fun unregisterContainerLayoutCallback(callback: LayoutCoordinatesCallback)
 
-   fun registerTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit)
-   fun unregisterTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit)
+   fun registerTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback)
+   fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback)
 }
+
+internal typealias LayoutCoordinatesCallback = (LayoutCoordinates?) -> Unit
 
 private abstract class ComposableLayerContainer : ContainerForComposable {
    protected var destroyed = false
@@ -63,9 +65,10 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
    }
 
    final override fun removeTarget(tag: String) {
-      if (destroyed) return
       if (_targetLayouts.remove(tag) != null) {
-         onUpdateTargetLayout(tag, null)
+         if (!destroyed) {
+            onUpdateTargetLayout(tag, null)
+         }
       }
    }
 
@@ -86,8 +89,8 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
    private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
 
-   private val _containerLayoutCallbacks: MutableSet<(LayoutCoordinates?) -> Unit> = mutableSetOf()
-   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<(LayoutCoordinates?) -> Unit>> = mutableMapOf()
+   private val _containerLayoutCallbacks: MutableSet<LayoutCoordinatesCallback> = mutableSetOf()
+   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<LayoutCoordinatesCallback>> = mutableMapOf()
 
    override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
       _containerLayoutCallbacks.toTypedArray().forEach {
@@ -132,14 +135,14 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    //---------- container ----------
 
-   override fun registerContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
+   override fun registerContainerLayoutCallback(callback: LayoutCoordinatesCallback) {
       if (destroyed) return
       if (_containerLayoutCallbacks.add(callback)) {
          callback(getContainerLayout())
       }
    }
 
-   override fun unregisterContainerLayoutCallback(callback: (LayoutCoordinates?) -> Unit) {
+   override fun unregisterContainerLayoutCallback(callback: LayoutCoordinatesCallback) {
       if (_containerLayoutCallbacks.remove(callback)) {
          callback(null)
       }
@@ -147,7 +150,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    //---------- target ----------
 
-   override fun registerTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit) {
+   override fun registerTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback) {
       if (destroyed) return
       if (tag.isNullOrEmpty()) return
       val holder = _targetLayoutCallbacks.getOrPut(tag) { mutableSetOf() }
@@ -156,7 +159,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
       }
    }
 
-   override fun unregisterTargetLayoutCallback(tag: String?, callback: (LayoutCoordinates?) -> Unit) {
+   override fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback) {
       if (tag.isNullOrEmpty()) return
       val holder = _targetLayoutCallbacks[tag] ?: return
       if (holder.remove(callback)) {
