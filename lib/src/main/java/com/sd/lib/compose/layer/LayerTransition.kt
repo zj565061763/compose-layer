@@ -2,6 +2,8 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -12,6 +14,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 
 @Immutable
@@ -27,26 +30,26 @@ data class LayerTransition(
 
       /** 从上向下滑动 */
       fun slideTopToBottom(
-         enter: EnterTransition = slideInVertically { -it },
-         exit: ExitTransition = slideOutVertically { -it },
+         enter: EnterTransition = slideInVertically(slideAnimationSpec) { -it },
+         exit: ExitTransition = slideOutVertically(slideAnimationSpec) { -it },
       ): LayerTransition = LayerTransition(enter, exit)
 
       /** 从下向上滑动 */
       fun slideBottomToTop(
-         enter: EnterTransition = slideInVertically { it },
-         exit: ExitTransition = slideOutVertically { it },
+         enter: EnterTransition = slideInVertically(slideAnimationSpec) { it },
+         exit: ExitTransition = slideOutVertically(slideAnimationSpec) { it },
       ): LayerTransition = LayerTransition(enter, exit)
 
       /** 从左向右滑动 */
       fun slideLeftToRight(
-         enter: EnterTransition = slideInHorizontally { -it },
-         exit: ExitTransition = slideOutHorizontally { -it },
+         enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { -it },
+         exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { -it },
       ): LayerTransition = LayerTransition(enter, exit)
 
       /** 从右向左滑动 */
       fun slideRightToLeft(
-         enter: EnterTransition = slideInHorizontally { it },
-         exit: ExitTransition = slideOutHorizontally { it },
+         enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { it },
+         exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { it },
       ): LayerTransition = LayerTransition(enter, exit)
 
       inline fun slideStartToEnd(
@@ -126,6 +129,9 @@ data class LayerTransition(
       }
    }
 }
+
+private val slideAnimationSpec: FiniteAnimationSpec<IntOffset>
+   get() = tween(200)
 
 @PublishedApi
 internal inline fun layoutDirectionTransition(
