@@ -50,7 +50,7 @@ internal interface Layer {
    fun setDetachRequestCallback(callback: (LayerDetach) -> Unit)
 
    /**
-    * 设置动画
+    * 动画（非响应式）
     */
    fun setTransition(transition: LayerTransition?)
 

@@ -149,7 +149,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
    }
 
+   /** Tag目标布局信息 */
    private var _tagTargetLayout: LayoutCoordinates? = null
+   /** 监听Tag目标布局信息 */
    private val _tagTargetLayoutCallback: LayoutCoordinatesCallback = {
       _tagTargetLayout = it
       updateTargetLayout()
@@ -201,6 +203,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       _currentSmartAlignment = null
    }
 
+   /** 监听容器布局信息 */
    private val _containerLayoutCallback: LayoutCoordinatesCallback = { layout ->
       _uiState.update {
          it.copy(containerLayout = layout.toLayoutInfo())

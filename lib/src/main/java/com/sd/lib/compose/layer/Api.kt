@@ -57,8 +57,8 @@ fun LayerContainer(
  * @param detachOnTouchOutside 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认false
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
- * @param transition Layer动画
- * @param content Layer内容
+ * @param transition 动画（非响应式）
+ * @param content 内容
  */
 @Composable
 fun Layer(
@@ -113,9 +113,9 @@ fun Layer(
  * @param alignmentOffsetY 对齐目标Y方向偏移量
  * @param smartAlignments 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐。
  * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
- * @param clipBackgroundDirection （非响应式）裁切背景的方向[Directions]
- * @param transition Layer动画
- * @param content Layer内容
+ * @param clipBackgroundDirection 裁切背景的方向[Directions]（非响应式）
+ * @param transition 动画（非响应式）
+ * @param content 内容
  */
 @Composable
 fun TargetLayer(
