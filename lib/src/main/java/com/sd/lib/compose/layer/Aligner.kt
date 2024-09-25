@@ -168,82 +168,82 @@ internal fun Aligner.Input.toResult(ltr: Boolean = true): Aligner.Result {
 
    when (position.takeIf { ltr } ?: position.rtl()) {
       Aligner.Position.TopStart -> {
-         y = getYAlignTop() - this.sourceHeight
+         y = getYAlignTop() - sourceHeight
          x = getXAlignStart()
       }
 
       Aligner.Position.TopCenter -> {
-         y = getYAlignTop() - this.sourceHeight
+         y = getYAlignTop() - sourceHeight
          x = getXAlignCenter()
       }
 
       Aligner.Position.TopEnd -> {
-         y = getYAlignTop() - this.sourceHeight
+         y = getYAlignTop() - sourceHeight
          x = getXAlignEnd()
       }
 
       Aligner.Position.Top -> {
-         y = getYAlignTop() - this.sourceHeight
+         y = getYAlignTop() - sourceHeight
          x = 0
       }
 
       Aligner.Position.BottomStart -> {
-         y = getYAlignBottom() + this.sourceHeight
+         y = getYAlignBottom() + sourceHeight
          x = getXAlignStart()
       }
 
       Aligner.Position.BottomCenter -> {
-         y = getYAlignBottom() + this.sourceHeight
+         y = getYAlignBottom() + sourceHeight
          x = getXAlignCenter()
       }
 
       Aligner.Position.BottomEnd -> {
-         y = getYAlignBottom() + this.sourceHeight
+         y = getYAlignBottom() + sourceHeight
          x = getXAlignEnd()
       }
 
       Aligner.Position.Bottom -> {
-         y = getYAlignBottom() + this.sourceHeight
+         y = getYAlignBottom() + sourceHeight
          x = 0
       }
 
       Aligner.Position.StartTop -> {
-         x = getXAlignStart() - this.sourceWidth
+         x = getXAlignStart() - sourceWidth
          y = getYAlignTop()
       }
 
       Aligner.Position.StartCenter -> {
-         x = getXAlignStart() - this.sourceWidth
+         x = getXAlignStart() - sourceWidth
          y = getYAlignCenter()
       }
 
       Aligner.Position.StartBottom -> {
-         x = getXAlignStart() - this.sourceWidth
+         x = getXAlignStart() - sourceWidth
          y = getYAlignBottom()
       }
 
       Aligner.Position.Start -> {
-         x = getXAlignStart() - this.sourceWidth
+         x = getXAlignStart() - sourceWidth
          y = 0
       }
 
       Aligner.Position.EndTop -> {
-         x = getXAlignEnd() + this.sourceWidth
+         x = getXAlignEnd() + sourceWidth
          y = getYAlignTop()
       }
 
       Aligner.Position.EndCenter -> {
-         x = getXAlignEnd() + this.sourceWidth
+         x = getXAlignEnd() + sourceWidth
          y = getYAlignCenter()
       }
 
       Aligner.Position.EndBottom -> {
-         x = getXAlignEnd() + this.sourceWidth
+         x = getXAlignEnd() + sourceWidth
          y = getYAlignBottom()
       }
 
       Aligner.Position.End -> {
-         x = getXAlignEnd() + this.sourceWidth
+         x = getXAlignEnd() + sourceWidth
          y = 0
       }
 
