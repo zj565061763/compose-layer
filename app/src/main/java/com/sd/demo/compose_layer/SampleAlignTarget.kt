@@ -53,11 +53,12 @@ class SampleAlignTarget : ComponentActivity() {
 private fun Content() {
    val tag = "hello"
    var attach by remember { mutableStateOf(false) }
-   var alignment by remember { mutableStateOf(TargetAlignment.Center) }
+   var alignment: TargetAlignment? by remember { mutableStateOf(null) }
 
    Box(modifier = Modifier.fillMaxSize()) {
       TargetView(tag = tag)
       ButtonsView(
+         currentAlignment = alignment,
          onClickDetach = { attach = false },
          onClick = {
             alignment = it
@@ -70,7 +71,7 @@ private fun Content() {
       target = LayerTarget.Tag(tag),
       attach = attach,
       onDetachRequest = { attach = false },
-      alignment = alignment,
+      alignment = alignment ?: TargetAlignment.Center,
       backgroundColor = Color.Transparent,
       detachOnBackPress = null,
       detachOnTouchOutside = null,
@@ -125,6 +126,7 @@ private fun TargetView(
 @Composable
 private fun ButtonsView(
    modifier: Modifier = Modifier,
+   currentAlignment: TargetAlignment?,
    onClickDetach: () -> Unit,
    onClick: (TargetAlignment) -> Unit,
 ) {
@@ -141,6 +143,7 @@ private fun ButtonsView(
             TargetAlignment.TopCenter,
             TargetAlignment.TopEnd,
          ),
+         currentAlignment = currentAlignment,
          onClick = onClick,
       )
 
@@ -151,6 +154,7 @@ private fun ButtonsView(
             TargetAlignment.BottomCenter,
             TargetAlignment.BottomEnd,
          ),
+         currentAlignment = currentAlignment,
          onClick = onClick,
       )
 
@@ -163,6 +167,7 @@ private fun ButtonsView(
             TargetAlignment.Start,
             TargetAlignment.End,
          ),
+         currentAlignment = currentAlignment,
          onClick = onClick,
       )
 
@@ -173,6 +178,7 @@ private fun ButtonsView(
             TargetAlignment.StartCenter,
             TargetAlignment.StartBottom,
          ),
+         currentAlignment = currentAlignment,
          onClick = onClick,
       )
 
@@ -183,6 +189,7 @@ private fun ButtonsView(
             TargetAlignment.EndCenter,
             TargetAlignment.EndBottom,
          ),
+         currentAlignment = currentAlignment,
          onClick = onClick,
       )
 
@@ -201,6 +208,7 @@ private fun ButtonsView(
 private fun ButtonRow(
    modifier: Modifier = Modifier,
    list: List<TargetAlignment>,
+   currentAlignment: TargetAlignment?,
    onClick: (TargetAlignment) -> Unit,
 ) {
    Row(
@@ -214,7 +222,10 @@ private fun ButtonRow(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(0.dp)
          ) {
-            Text(text = item.name)
+            Text(
+               text = item.name,
+               color = if (item == currentAlignment) Color.Red else Color.White
+            )
          }
       }
    }
