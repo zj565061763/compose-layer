@@ -162,11 +162,11 @@ internal interface Aligner {
 
 //-------------------- impl --------------------
 
-internal fun Aligner.Input.toResult(): Aligner.Result {
+internal fun Aligner.Input.toResult(ltr: Boolean = true): Aligner.Result {
    var x = 0
    var y = 0
 
-   when (this.position) {
+   when (position.takeIf { ltr } ?: position.rtl()) {
       Aligner.Position.TopStart -> {
          y = getYAlignTop() - this.sourceHeight
          x = getXAlignStart()
@@ -278,4 +278,25 @@ private fun Aligner.Input.getYAlignBottom(): Int {
 
 private fun Aligner.Input.getYAlignCenter(): Int {
    return getYAlignTop() + (this.targetHeight - this.sourceHeight) / 2
+}
+
+private fun Aligner.Position.rtl(): Aligner.Position {
+   return when (this) {
+      Aligner.Position.TopStart -> Aligner.Position.TopEnd
+      Aligner.Position.TopEnd -> Aligner.Position.TopStart
+
+      Aligner.Position.BottomStart -> Aligner.Position.BottomEnd
+      Aligner.Position.BottomEnd -> Aligner.Position.BottomStart
+
+      Aligner.Position.StartTop -> Aligner.Position.EndTop
+      Aligner.Position.StartCenter -> Aligner.Position.EndCenter
+      Aligner.Position.StartBottom -> Aligner.Position.EndBottom
+      Aligner.Position.Start -> Aligner.Position.End
+
+      Aligner.Position.EndTop -> Aligner.Position.StartTop
+      Aligner.Position.EndCenter -> Aligner.Position.StartCenter
+      Aligner.Position.EndBottom -> Aligner.Position.StartBottom
+      Aligner.Position.End -> Aligner.Position.Start
+      else -> this
+   }
 }
