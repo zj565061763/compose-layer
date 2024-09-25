@@ -65,61 +65,64 @@ data class LayerTransition(
          return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      private val ScaleTopLeft = run {
-         val transformOrigin = TransformOrigin(0.1f, 0.1f)
-         LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
-         )
-      }
-      private val ScaleTopRight = run {
-         val transformOrigin = TransformOrigin(0.9f, 0.1f)
-         LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
-         )
-      }
-      private val ScaleBottomLeft = run {
-         val transformOrigin = TransformOrigin(0.1f, 0.9f)
-         LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
-         )
-      }
-      private val ScaleBottomRight = run {
-         val transformOrigin = TransformOrigin(0.9f, 0.9f)
-         LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
-         )
-      }
-
       fun scaleTopStart(direction: LayoutDirection): LayerTransition {
          return when (direction) {
-            LayoutDirection.Ltr -> ScaleTopLeft
-            LayoutDirection.Rtl -> ScaleTopRight
+            LayoutDirection.Ltr -> scaleTopLeft()
+            LayoutDirection.Rtl -> scaleTopRight()
          }
       }
 
       fun scaleTopEnd(direction: LayoutDirection): LayerTransition {
          return when (direction) {
-            LayoutDirection.Ltr -> ScaleTopRight
-            LayoutDirection.Rtl -> ScaleTopLeft
+            LayoutDirection.Ltr -> scaleTopRight()
+            LayoutDirection.Rtl -> scaleTopLeft()
          }
       }
 
       fun scaleBottomStart(direction: LayoutDirection): LayerTransition {
          return when (direction) {
-            LayoutDirection.Ltr -> ScaleBottomLeft
-            LayoutDirection.Rtl -> ScaleBottomRight
+            LayoutDirection.Ltr -> scaleBottomLeft()
+            LayoutDirection.Rtl -> scaleBottomRight()
          }
       }
 
       fun scaleBottomEnd(direction: LayoutDirection): LayerTransition {
          return when (direction) {
-            LayoutDirection.Ltr -> ScaleBottomRight
-            LayoutDirection.Rtl -> ScaleBottomLeft
+            LayoutDirection.Ltr -> scaleBottomRight()
+            LayoutDirection.Rtl -> scaleBottomLeft()
          }
+      }
+
+      private fun scaleTopLeft(): LayerTransition {
+         val transformOrigin = TransformOrigin(0.0f, 0.0f)
+         return LayerTransition(
+            enter = scaleIn(transformOrigin = transformOrigin),
+            exit = scaleOut(transformOrigin = transformOrigin),
+         )
+      }
+
+      private fun scaleTopRight(): LayerTransition {
+         val transformOrigin = TransformOrigin(1.0f, 0.0f)
+         return LayerTransition(
+            enter = scaleIn(transformOrigin = transformOrigin),
+            exit = scaleOut(transformOrigin = transformOrigin),
+         )
+      }
+
+      private fun scaleBottomLeft(): LayerTransition {
+         val transformOrigin = TransformOrigin(0.0f, 1.0f)
+         return LayerTransition(
+            enter = scaleIn(transformOrigin = transformOrigin),
+            exit = scaleOut(transformOrigin = transformOrigin),
+         )
+      }
+
+      private fun scaleBottomRight(): LayerTransition {
+         val transformOrigin = TransformOrigin(1.0f, 1.0f)
+         return LayerTransition(
+            enter = scaleIn(transformOrigin = transformOrigin),
+            exit = scaleOut(transformOrigin = transformOrigin),
+         )
       }
    }
 }
