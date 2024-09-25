@@ -68,7 +68,7 @@ private fun Content() {
       alignment = TargetAlignment.TopCenter,
       detachOnTouchOutside = true,
       alignmentOffsetX = TargetAlignmentOffset.PX(100),
-      alignmentOffsetY = TargetAlignmentOffset.Percent(0.5f),
+      alignmentOffsetY = TargetAlignmentOffset.Target(0.5f),
       clipBackgroundDirection = Directions.Bottom + Directions.Start + Directions.End,
       debug = true,
    ) {
