@@ -2,13 +2,12 @@
 
 # About
 
-实现类似窗口的效果（Layer），支持设置目标，可以让Layer显示在目标的指定位置。
+实现类似窗口的效果（Layer），支持设置目标，可以让Layer显示在目标的指定位置。<br>
+详细介绍可以看[这里](https://juejin.cn/post/7418378848402767882)
 
-# Demo
+# 演示效果
 
-<img src="https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_target.gif?raw=true" width="300px">
-![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_offset.gif?raw=true)
-![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/drop_down.gif?raw=true)
+![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_target.gif?raw=true)
 
 # Layer容器
 
