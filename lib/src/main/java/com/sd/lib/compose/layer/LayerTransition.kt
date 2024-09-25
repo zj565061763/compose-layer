@@ -99,38 +99,41 @@ data class LayerTransition(
       private fun scaleTopLeft(): LayerTransition {
          val transformOrigin = TransformOrigin(0.0f, 0.0f)
          return LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
+            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
          )
       }
 
       private fun scaleTopRight(): LayerTransition {
          val transformOrigin = TransformOrigin(1.0f, 0.0f)
          return LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
+            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
          )
       }
 
       private fun scaleBottomLeft(): LayerTransition {
          val transformOrigin = TransformOrigin(0.0f, 1.0f)
          return LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
+            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
          )
       }
 
       private fun scaleBottomRight(): LayerTransition {
          val transformOrigin = TransformOrigin(1.0f, 1.0f)
          return LayerTransition(
-            enter = scaleIn(transformOrigin = transformOrigin),
-            exit = scaleOut(transformOrigin = transformOrigin),
+            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
          )
       }
    }
 }
 
 private val slideAnimationSpec: FiniteAnimationSpec<IntOffset>
+   get() = tween(200)
+
+private val scaleAnimationSpec: FiniteAnimationSpec<Float>
    get() = tween(200)
 
 @PublishedApi
