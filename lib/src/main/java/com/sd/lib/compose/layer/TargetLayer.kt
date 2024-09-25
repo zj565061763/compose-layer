@@ -287,6 +287,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       uiState: UIState,
    ) {
       val state = remember { OffsetBoxState() }
+      val layoutDirection = LocalLayoutDirection.current
 
       SubcomposeLayout(modifier) { cs ->
          @Suppress("NAME_SHADOWING")
@@ -307,7 +308,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          }
 
          if (isReady) {
-            state.layoutDefault(cs, uiState)
+            state.layoutDefault(cs, uiState, layoutDirection)
          } else {
             state.layoutLastInfo(cs)
          }.also {
@@ -326,7 +327,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
    private inner class OffsetBoxState {
 
-      fun layoutDefault(cs: Constraints, uiState: UIState): MeasureResult {
+      fun layoutDefault(
+         cs: Constraints,
+         uiState: UIState,
+         layoutDirection: LayoutDirection,
+      ): MeasureResult {
          logMsg { "layoutDefault start" }
 
          val rawPlaceable = measureRawContent(cs)
@@ -337,11 +342,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             target = uiState.targetLayout,
             container = uiState.containerLayout,
             contentSize = rawSize,
-         ).findBestResult(this@TargetLayerImpl, _smartAlignments)
+            layoutDirection = layoutDirection,
+         ).findBestResult(this@TargetLayerImpl, _smartAlignments, layoutDirection)
 
          _currentSmartAlignment = smartAlignment
 
-         val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl)
+         val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl, layoutDirection)
 
          val contentPlaceable = measureContent(cs.newMax(fixSize))
 
@@ -406,8 +412,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                   size = contentPlaceable.intSize(),
                )
             }
-            backgroundPlaceable.placeRelative(backgroundOffset, -1f)
-            contentPlaceable.placeRelative(contentOffset)
+            backgroundPlaceable.place(backgroundOffset, -1f)
+            contentPlaceable.place(contentOffset)
          }
       }
 
@@ -521,6 +527,7 @@ private fun alignTarget(
    target: LayoutInfo,
    container: LayoutInfo,
    contentSize: IntSize,
+   layoutDirection: LayoutDirection,
 ): Aligner.Result {
    return Aligner.Input(
       position = alignment.toAlignerPosition(),
@@ -537,12 +544,13 @@ private fun alignTarget(
 
       sourceWidth = contentSize.width,
       sourceHeight = contentSize.height,
-   ).toResult()
+   ).toResult(layoutDirection.isLtr())
 }
 
 private fun Aligner.Result.findBestResult(
    layer: Layer,
    alignments: SmartAliments?,
+   layoutDirection: LayoutDirection,
 ): Pair<Aligner.Result, SmartAliment?> {
    if (alignments == null) return this to null
 
@@ -558,7 +566,7 @@ private fun Aligner.Result.findBestResult(
 
    for (item in list) {
       val position = item.alignment.toAlignerPosition()
-      val newResult = this.input.copy(position = position).toResult()
+      val newResult = this.input.copy(position = position).toResult(layoutDirection.isLtr())
       val newOverflow = newResult.sourceOverflow.totalOverflow()
       if (newOverflow < minOverflow) {
          minOverflow = newOverflow
@@ -580,7 +588,10 @@ private data class FixOverFlow(
    val size: IntSize,
 )
 
-private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
+private fun Aligner.Result.fixOverFlow(
+   layer: Layer,
+   layoutDirection: LayoutDirection,
+): FixOverFlow {
    val position = input.position
    var result = this
 
@@ -687,7 +698,7 @@ private fun Aligner.Result.fixOverFlow(layer: Layer): FixOverFlow {
          result = result.input.copy(
             sourceWidth = resultWidth,
             sourceHeight = resultHeight,
-         ).toResult()
+         ).toResult(layoutDirection.isLtr())
       } else {
          break
       }
@@ -763,3 +774,5 @@ private fun Constraints.newMax(size: IntSize): Constraints {
 private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
 
 private fun Placeable.intSize(): IntSize = IntSize(width, height)
+
+private fun LayoutDirection.isLtr(): Boolean = this == LayoutDirection.Ltr

@@ -162,7 +162,7 @@ internal interface Aligner {
 
 //-------------------- impl --------------------
 
-internal fun Aligner.Input.toResult(ltr: Boolean = true): Aligner.Result {
+internal fun Aligner.Input.toResult(ltr: Boolean): Aligner.Result {
    var x = 0
    var y = 0
 
