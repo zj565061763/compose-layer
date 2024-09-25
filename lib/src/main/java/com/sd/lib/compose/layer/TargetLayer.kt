@@ -75,8 +75,8 @@ sealed interface TargetAlignmentOffset {
    /** 按指定像素[value]偏移 */
    data class PX(val value: Int) : TargetAlignmentOffset
 
-   /** 按偏移目标大小倍数[value]偏移，例如：1表示向正方向偏移1倍目标大小，-1表示向负方向偏移1倍目标大小 */
-   data class Percent(val value: Float) : TargetAlignmentOffset
+   /** 按目标大小倍数[value]偏移 */
+   data class Target(val value: Float) : TargetAlignmentOffset
 }
 
 //---------- Impl ----------
@@ -749,7 +749,7 @@ private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
    return when (val offset = this) {
       null -> 0
       is TargetAlignmentOffset.PX -> offset.value
-      is TargetAlignmentOffset.Percent -> {
+      is TargetAlignmentOffset.Target -> {
          val px = targetSize * offset.value
          if (px.isInfinite()) 0 else px.roundToInt()
       }
