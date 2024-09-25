@@ -42,8 +42,8 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
       transition?.let { return it }
       val direction = LocalLayoutDirection.current
       return when (_alignment) {
-         Alignment.TopCenter -> LayerTransition.SlideTopToBottom
-         Alignment.BottomCenter -> LayerTransition.SlideBottomToTop
+         Alignment.TopCenter -> LayerTransition.slideTopToBottom()
+         Alignment.BottomCenter -> LayerTransition.slideBottomToTop()
          Alignment.CenterStart -> LayerTransition.slideStartToEnd(direction)
          Alignment.CenterEnd -> LayerTransition.slideEndToStart(direction)
          else -> LayerTransition.Default

@@ -25,35 +25,44 @@ data class LayerTransition(
          exit = fadeOut(),
       )
 
-      val SlideTopToBottom = LayerTransition(
-         enter = slideInVertically { -it },
-         exit = slideOutVertically { -it },
-      )
-      val SlideBottomToTop = LayerTransition(
-         enter = slideInVertically { it },
-         exit = slideOutVertically { it },
-      )
-      private val SlideLeftToRight = LayerTransition(
-         enter = slideInHorizontally { -it },
-         exit = slideOutHorizontally { -it },
-      )
-      private val SlideRightToLeft = LayerTransition(
-         enter = slideInHorizontally { it },
-         exit = slideOutHorizontally { it },
-      )
+      /** 从上向下滑动 */
+      fun slideTopToBottom(
+         enter: EnterTransition = slideInVertically { -it },
+         exit: ExitTransition = slideOutVertically { -it },
+      ): LayerTransition = LayerTransition(enter, exit)
 
-      fun slideStartToEnd(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> SlideLeftToRight
-            LayoutDirection.Rtl -> SlideRightToLeft
-         }
+      /** 从下向上滑动 */
+      fun slideBottomToTop(
+         enter: EnterTransition = slideInVertically { it },
+         exit: ExitTransition = slideOutVertically { it },
+      ): LayerTransition = LayerTransition(enter, exit)
+
+      /** 从左向右滑动 */
+      fun slideLeftToRight(
+         enter: EnterTransition = slideInHorizontally { -it },
+         exit: ExitTransition = slideOutHorizontally { -it },
+      ): LayerTransition = LayerTransition(enter, exit)
+
+      /** 从右向左滑动 */
+      fun slideRightToLeft(
+         enter: EnterTransition = slideInHorizontally { it },
+         exit: ExitTransition = slideOutHorizontally { it },
+      ): LayerTransition = LayerTransition(enter, exit)
+
+      inline fun slideStartToEnd(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { slideLeftToRight() },
+         rtlBuilder: () -> LayerTransition = { slideRightToLeft() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      fun slideEndToStart(direction: LayoutDirection): LayerTransition {
-         return when (direction) {
-            LayoutDirection.Ltr -> SlideRightToLeft
-            LayoutDirection.Rtl -> SlideLeftToRight
-         }
+      inline fun slideEndToStart(
+         direction: LayoutDirection,
+         ltrBuilder: () -> LayerTransition = { slideRightToLeft() },
+         rtlBuilder: () -> LayerTransition = { slideLeftToRight() },
+      ): LayerTransition {
+         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
       private val ScaleTopLeft = run {
@@ -112,5 +121,17 @@ data class LayerTransition(
             LayoutDirection.Rtl -> ScaleBottomLeft
          }
       }
+   }
+}
+
+@PublishedApi
+internal inline fun layoutDirectionTransition(
+   direction: LayoutDirection,
+   ltrBuilder: () -> LayerTransition,
+   rtlBuilder: () -> LayerTransition,
+): LayerTransition {
+   return when (direction) {
+      LayoutDirection.Ltr -> ltrBuilder()
+      LayoutDirection.Rtl -> rtlBuilder()
    }
 }

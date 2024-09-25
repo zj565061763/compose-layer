@@ -78,13 +78,13 @@ internal fun TargetAlignment.defaultTransition(direction: LayoutDirection): Laye
       TargetAlignment.TopCenter,
       TargetAlignment.TopEnd,
       TargetAlignment.Top,
-      -> LayerTransition.SlideBottomToTop
+      -> LayerTransition.slideBottomToTop()
 
       TargetAlignment.BottomStart,
       TargetAlignment.BottomCenter,
       TargetAlignment.BottomEnd,
       TargetAlignment.Bottom,
-      -> LayerTransition.SlideTopToBottom
+      -> LayerTransition.slideTopToBottom()
 
       TargetAlignment.StartTop,
       TargetAlignment.StartCenter,
