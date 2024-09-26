@@ -220,11 +220,10 @@ internal abstract class LayerImpl : Layer {
 
       if (state == LayerLifecycleState.Attached) {
          if (oldState == LayerLifecycleState.Detaching) {
-            logMsg { "attached from detaching" }
-            _attachedFromDetaching = true
+            setAttachedFromDetaching(true)
          }
       } else {
-         _attachedFromDetaching = false
+         setAttachedFromDetaching(false)
       }
    }
 
@@ -244,6 +243,17 @@ internal abstract class LayerImpl : Layer {
 
       if (oldVisible != _isVisibleState) {
          logMsg { "setContentVisible:$_isVisibleState" }
+      }
+
+      if (_isVisibleState) {
+         setAttachedFromDetaching(false)
+      }
+   }
+
+   private fun setAttachedFromDetaching(value: Boolean) {
+      if (_attachedFromDetaching != value) {
+         _attachedFromDetaching = value
+         logMsg { "setAttachedFromDetaching:$value" }
       }
    }
 
@@ -280,7 +290,6 @@ internal abstract class LayerImpl : Layer {
                      when (_lifecycleState) {
                         LayerLifecycleState.Attached -> {
                            if (_attachedFromDetaching) {
-                              _attachedFromDetaching = false
                               logMsg { "attached from detaching set content visible" }
                               setContentVisible(true)
                            }
