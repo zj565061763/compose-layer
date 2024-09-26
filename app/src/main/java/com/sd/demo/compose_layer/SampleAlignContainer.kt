@@ -11,15 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.LayerState
 import com.sd.lib.compose.layer.layer
 
 class SampleAlignContainer : ComponentActivity() {
@@ -40,6 +43,7 @@ private fun Content() {
    var attach by remember { mutableStateOf(false) }
    var alignment by remember { mutableStateOf(Alignment.Center) }
 
+   /** 创建Layer，并返回[LayerState] */
    val layerState = layer(
       attach = attach,
       onDetachRequest = { attach = false },
@@ -53,8 +57,24 @@ private fun Content() {
       )
    }
 
+   LaunchedEffect(layerState) {
+      // 监听Layer生命周期状态
+      snapshotFlow { layerState.lifecycleState }
+         .collect {
+            logMsg { "lifecycleState:${it}" }
+         }
+   }
+
+   LaunchedEffect(layerState) {
+      // 监听Layer可见状态
+      snapshotFlow { layerState.isVisibleState }
+         .collect {
+            logMsg { "isVisibleState:${it}" }
+         }
+   }
+
    Box(modifier = Modifier.fillMaxSize()) {
-      ButtonBox(
+      ButtonsBox(
          modifier = Modifier.fillMaxSize(),
          onClick = {
             alignment = it
@@ -62,6 +82,7 @@ private fun Content() {
          }
       )
 
+      // 演示跟踪Layer可见状态动画
       AnimatedVisibility(
          modifier = Modifier.align(Alignment.Center),
          visible = layerState.isVisibleState,
@@ -74,7 +95,7 @@ private fun Content() {
 }
 
 @Composable
-private fun ButtonBox(
+private fun ButtonsBox(
    modifier: Modifier = Modifier,
    onClick: (Alignment) -> Unit,
 ) {

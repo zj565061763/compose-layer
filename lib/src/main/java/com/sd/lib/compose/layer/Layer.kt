@@ -23,7 +23,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 
 interface LayerState {
-   /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
+   /** Layer可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
    val isVisibleState: Boolean
 
    /** Layer生命周期状态 */
