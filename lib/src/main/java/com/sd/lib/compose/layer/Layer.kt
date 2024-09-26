@@ -65,6 +65,20 @@ internal interface Layer {
    fun detach()
 }
 
+enum class LayerState {
+   /** 原始状态，对象刚创建出来 */
+   None,
+
+   /** 已经初始化完毕，可以被添加到容器 */
+   Initialized,
+
+   /** 即将被移除 */
+   Detaching,
+
+   /** 已经添加到容器 */
+   Attached,
+}
+
 enum class LayerDetach {
    /** 按返回键 */
    OnBackPress,
@@ -84,7 +98,7 @@ internal abstract class LayerImpl : Layer {
    internal var layerContainer: ContainerForLayer? = null
       private set
 
-   private var _isAttached = false
+   private var _layerState by mutableStateOf(LayerState.None)
    private var _isVisibleState by mutableStateOf(false)
 
    private val _layerScope = LayerScopeImpl()
@@ -121,29 +135,30 @@ internal abstract class LayerImpl : Layer {
    }
 
    final override fun attach() {
-      if (_isAttached) return
-      val container = checkNotNull(layerContainer) {
-         "LayerContainer is null when attach"
+      when (val state = _layerState) {
+         LayerState.Initialized,
+         LayerState.Detaching,
+         -> {
+            val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
+            logMsg { "attach" }
+            container.attachLayer(this)
+            setLayerState(LayerState.Attached)
+            onAttach(container)
+         }
+         else -> {
+            logMsg { "attach ignored with state:$state" }
+         }
       }
-
-      logMsg { "attach" }
-      _isAttached = true
-
-      container.attachLayer(this)
-      onAttach(container)
    }
 
    final override fun detach() {
-      if (!_isAttached) return
-      val container = checkNotNull(layerContainer) {
-         "LayerContainer is null when detach"
+      if (_layerState == LayerState.Attached) {
+         val container = checkNotNull(layerContainer) { "LayerContainer is null when detach" }
+         logMsg { "detach" }
+         setLayerState(LayerState.Detaching)
+         setContentVisible(false)
+         onDetach(container)
       }
-
-      logMsg { "detach" }
-      _isAttached = false
-
-      setContentVisible(false)
-      onDetach(container)
    }
 
    protected open fun onAttach(container: ContainerForLayer) = Unit
@@ -173,6 +188,7 @@ internal abstract class LayerImpl : Layer {
       logMsg { "onInit $container" }
       check(layerContainer == null)
       layerContainer = container
+      setLayerState(LayerState.Initialized)
    }
 
    /**
@@ -183,6 +199,14 @@ internal abstract class LayerImpl : Layer {
       check(layerContainer === container)
       detach()
       layerContainer = null
+      setLayerState(LayerState.None)
+   }
+
+   private fun setLayerState(state: LayerState) {
+      if (_layerState != state) {
+         _layerState = state
+         logMsg { "state:$_layerState" }
+      }
    }
 
    /**
@@ -192,7 +216,7 @@ internal abstract class LayerImpl : Layer {
       val oldVisible = _isVisibleState
 
       if (visible) {
-         if (_isAttached) {
+         if (_layerState == LayerState.Attached) {
             _isVisibleState = true
          }
       } else {
@@ -232,13 +256,20 @@ internal abstract class LayerImpl : Layer {
          modifier = modifier
             .onGloballyPositioned {
                if (it.size == IntSize.Zero) {
-                  logMsg { "ContentBox zero size isAttached:$_isAttached isVisible:$_isVisibleState" }
-                  if (!_isAttached && !_isVisibleState) {
-                     layerContainer?.let { container ->
-                        if (container.detachLayer(this@LayerImpl)) {
-                           logMsg { "detachLayer" }
-                           onDetached(container)
+                  logMsg { "ContentBox zero size isVisible:$_isVisibleState state:$_layerState" }
+                  if (!_isVisibleState) {
+                     when (_layerState) {
+                        LayerState.Attached -> setContentVisible(true)
+                        LayerState.Detaching -> {
+                           layerContainer?.let { container ->
+                              if (container.detachLayer(this@LayerImpl)) {
+                                 logMsg { "detachLayer" }
+                                 setLayerState(LayerState.Initialized)
+                                 onDetached(container)
+                              }
+                           }
                         }
+                        else -> {}
                      }
                   }
                }
