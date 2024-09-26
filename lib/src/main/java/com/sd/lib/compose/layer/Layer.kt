@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 
@@ -308,6 +310,7 @@ internal abstract class LayerImpl : Layer {
       Box(
          modifier = modifier
             .onGloballyPositioned {
+               _contentLayout = it
                if (it.size == IntSize.Zero) {
                   handleContentZeroSize()
                }
@@ -320,7 +323,7 @@ internal abstract class LayerImpl : Layer {
 
    @Composable
    protected fun BackgroundBox() {
-      Box {
+      Box(modifier = Modifier.handleOnTouchOutside(_detachOnTouchOutsideState)) {
          AnimatedVisibility(
             visible = _isVisibleState,
             enter = fadeIn(),
@@ -330,21 +333,6 @@ internal abstract class LayerImpl : Layer {
                modifier = Modifier
                   .fillMaxSize()
                   .background(_backgroundColorState)
-                  .let { m ->
-                     if (_detachOnTouchOutsideState != null) {
-                        m.pointerInput(Unit) {
-                           awaitEachGesture {
-                              awaitFirstDown(pass = PointerEventPass.Initial)
-                              if (_detachOnTouchOutsideState == true) {
-                                 logMsg { "OnTouchOutside" }
-                                 _detachRequestCallback?.invoke(LayerDetach.OnTouchOutside)
-                              }
-                           }
-                        }
-                     } else {
-                        m
-                     }
-                  }
             )
          }
       }
@@ -364,6 +352,25 @@ internal abstract class LayerImpl : Layer {
          exit = transition.exit,
       ) {
          _contentState.value.invoke(_layerScope)
+      }
+   }
+
+   /** 内容布局 */
+   private var _contentLayout: LayoutCoordinates? = null
+
+   /** 处理触摸非内容区域逻辑 */
+   private fun Modifier.handleOnTouchOutside(state: Boolean?): Modifier {
+      if (state == null) return this
+      return pointerInput(state) {
+         awaitEachGesture {
+            val position = awaitFirstDown(pass = PointerEventPass.Initial).position
+            if (state) {
+               if (_contentLayout?.boundsInParent()?.contains(position) == false) {
+                  logMsg { "OnTouchOutside" }
+                  _detachRequestCallback?.invoke(LayerDetach.OnTouchOutside)
+               }
+            }
+         }
       }
    }
 
