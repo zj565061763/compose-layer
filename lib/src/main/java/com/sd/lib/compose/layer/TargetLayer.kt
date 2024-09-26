@@ -102,8 +102,8 @@ private data class LayoutInfo(
 )
 
 private val EmptyLayoutInfo = LayoutInfo(
-   size = IntSize.Zero,
    offset = IntOffset.Zero,
+   size = IntSize.Zero,
    isAttached = false,
 )
 
@@ -228,8 +228,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          is LayerTarget.Offset -> {
             val offset = target.offset ?: return
             LayoutInfo(
-               size = IntSize.Zero,
                offset = offset,
+               size = IntSize.Zero,
                isAttached = true,
             )
          }
@@ -732,18 +732,10 @@ private fun Aligner.Position.isCenterVertical(): Boolean {
 
 private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
    return LayoutInfo(
-      size = size(),
       offset = offset(),
+      size = size(),
       isAttached = isAttached(),
    )
-}
-
-private fun LayoutCoordinates?.size(): IntSize {
-   return if (this?.isAttached == true) {
-      this.size
-   } else {
-      IntSize.Zero
-   }
 }
 
 private fun LayoutCoordinates?.offset(): IntOffset {
@@ -751,6 +743,14 @@ private fun LayoutCoordinates?.offset(): IntOffset {
       this.localToWindow(Offset.Zero).round()
    } else {
       IntOffset.Zero
+   }
+}
+
+private fun LayoutCoordinates?.size(): IntSize {
+   return if (this?.isAttached == true) {
+      this.size
+   } else {
+      IntSize.Zero
    }
 }
 
