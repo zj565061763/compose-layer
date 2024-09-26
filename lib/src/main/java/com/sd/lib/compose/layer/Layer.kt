@@ -268,12 +268,11 @@ internal abstract class LayerImpl : Layer {
                }
             }
             LayerLifecycleState.Detaching -> {
-               layerContainer?.let { container ->
-                  if (container.detachLayer(this@LayerImpl)) {
-                     logMsg { "detachLayer" }
-                     setLifecycleState(LayerLifecycleState.Initialized)
-                     onDetached(container)
-                  }
+               val container = checkNotNull(layerContainer)
+               if (container.detachLayer(this@LayerImpl)) {
+                  logMsg { "detachLayer" }
+                  setLifecycleState(LayerLifecycleState.Initialized)
+                  onDetached(container)
                }
             }
             else -> {}
