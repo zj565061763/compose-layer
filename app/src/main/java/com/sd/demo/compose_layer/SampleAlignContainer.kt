@@ -123,7 +123,7 @@ private fun ButtonsBox(
 
       Button(
          modifier = Modifier.align(Alignment.CenterEnd),
-         onClick = { onClick(Alignment.CenterStart) },
+         onClick = { onClick(Alignment.CenterEnd) },
       ) {
          Text(text = "CenterEnd")
       }
