@@ -6,8 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -17,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
@@ -362,15 +360,16 @@ internal abstract class LayerImpl : Layer {
    private fun Modifier.handleOnTouchOutside(state: Boolean?): Modifier {
       if (state == null) return this
       return pointerInput(state) {
-         awaitEachGesture {
-            val position = awaitFirstDown(pass = PointerEventPass.Initial).position
-            if (state) {
-               if (_contentLayout?.boundsInParent()?.contains(position) == false) {
-                  logMsg { "OnTouchOutside" }
-                  _detachRequestCallback?.invoke(LayerDetach.OnTouchOutside)
+         detectTapGestures(
+            onPress = { offset ->
+               if (state) {
+                  if (_contentLayout?.boundsInParent()?.contains(offset) == false) {
+                     logMsg { "OnTouchOutside" }
+                     _detachRequestCallback?.invoke(LayerDetach.OnTouchOutside)
+                  }
                }
             }
-         }
+         )
       }
    }
 
