@@ -65,7 +65,7 @@ internal interface Layer {
    fun detach()
 }
 
-enum class LayerState {
+enum class LayerLifecycleState {
    /** 原始状态，对象刚创建出来 */
    None,
 
@@ -90,6 +90,9 @@ enum class LayerDetach {
 interface LayerContentScope {
    /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
    val isVisibleState: Boolean
+
+   /** Layer状态 */
+   val lifecycleState: LayerLifecycleState
 }
 
 //---------- Impl ----------
@@ -98,7 +101,7 @@ internal abstract class LayerImpl : Layer {
    internal var layerContainer: ContainerForLayer? = null
       private set
 
-   private var _layerState by mutableStateOf(LayerState.None)
+   private var _lifecycleState by mutableStateOf(LayerLifecycleState.None)
    private var _isVisibleState by mutableStateOf(false)
 
    private val _layerScope = LayerScopeImpl()
@@ -135,14 +138,14 @@ internal abstract class LayerImpl : Layer {
    }
 
    final override fun attach() {
-      when (val state = _layerState) {
-         LayerState.Initialized,
-         LayerState.Detaching,
+      when (val state = _lifecycleState) {
+         LayerLifecycleState.Initialized,
+         LayerLifecycleState.Detaching,
          -> {
             val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
             logMsg { "attach" }
             container.attachLayer(this)
-            setLayerState(LayerState.Attached)
+            setLifecycleState(LayerLifecycleState.Attached)
             onAttach(container)
          }
          else -> {
@@ -152,10 +155,10 @@ internal abstract class LayerImpl : Layer {
    }
 
    final override fun detach() {
-      if (_layerState == LayerState.Attached) {
+      if (_lifecycleState == LayerLifecycleState.Attached) {
          val container = checkNotNull(layerContainer) { "LayerContainer is null when detach" }
          logMsg { "detach" }
-         setLayerState(LayerState.Detaching)
+         setLifecycleState(LayerLifecycleState.Detaching)
          setContentVisible(false)
          onDetach(container)
       }
@@ -188,7 +191,7 @@ internal abstract class LayerImpl : Layer {
       logMsg { "onInit $container" }
       check(layerContainer == null)
       layerContainer = container
-      setLayerState(LayerState.Initialized)
+      setLifecycleState(LayerLifecycleState.Initialized)
    }
 
    /**
@@ -199,13 +202,13 @@ internal abstract class LayerImpl : Layer {
       check(layerContainer === container)
       detach()
       layerContainer = null
-      setLayerState(LayerState.None)
+      setLifecycleState(LayerLifecycleState.None)
    }
 
-   private fun setLayerState(state: LayerState) {
-      if (_layerState != state) {
-         _layerState = state
-         logMsg { "state:$_layerState" }
+   private fun setLifecycleState(state: LayerLifecycleState) {
+      if (_lifecycleState != state) {
+         _lifecycleState = state
+         logMsg { "state:$_lifecycleState" }
       }
    }
 
@@ -216,7 +219,7 @@ internal abstract class LayerImpl : Layer {
       val oldVisible = _isVisibleState
 
       if (visible) {
-         if (_layerState == LayerState.Attached) {
+         if (_lifecycleState == LayerLifecycleState.Attached) {
             _isVisibleState = true
          }
       } else {
@@ -256,15 +259,15 @@ internal abstract class LayerImpl : Layer {
          modifier = modifier
             .onGloballyPositioned {
                if (it.size == IntSize.Zero) {
-                  logMsg { "ContentBox zero size isVisible:$_isVisibleState state:$_layerState" }
+                  logMsg { "ContentBox zero size isVisible:$_isVisibleState state:$_lifecycleState" }
                   if (!_isVisibleState) {
-                     when (_layerState) {
-                        LayerState.Attached -> setContentVisible(true)
-                        LayerState.Detaching -> {
+                     when (_lifecycleState) {
+                        LayerLifecycleState.Attached -> setContentVisible(true)
+                        LayerLifecycleState.Detaching -> {
                            layerContainer?.let { container ->
                               if (container.detachLayer(this@LayerImpl)) {
                                  logMsg { "detachLayer" }
-                                 setLayerState(LayerState.Initialized)
+                                 setLifecycleState(LayerLifecycleState.Initialized)
                                  onDetached(container)
                               }
                            }
@@ -332,6 +335,9 @@ internal abstract class LayerImpl : Layer {
    private inner class LayerScopeImpl : LayerContentScope {
       override val isVisibleState: Boolean
          get() = this@LayerImpl._isVisibleState
+
+      override val lifecycleState: LayerLifecycleState
+         get() = this@LayerImpl._lifecycleState
    }
 }
 
