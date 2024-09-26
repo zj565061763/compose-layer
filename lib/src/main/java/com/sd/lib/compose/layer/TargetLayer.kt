@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.round
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -738,19 +739,23 @@ private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
 }
 
 private fun LayoutCoordinates?.size(): IntSize {
-   if (this == null || !this.isAttached) return IntSize.Zero
-   return this.size
+   return if (this?.isAttached == true) {
+      this.size
+   } else {
+      IntSize.Zero
+   }
 }
 
 private fun LayoutCoordinates?.offset(): IntOffset {
-   if (this == null || !this.isAttached) return IntOffset.Zero
-   val offset = this.localToWindow(Offset.Zero)
-   return IntOffset(offset.x.toInt(), offset.y.toInt())
+   return if (this?.isAttached == true) {
+      this.localToWindow(Offset.Zero).round()
+   } else {
+      IntOffset.Zero
+   }
 }
 
 private fun LayoutCoordinates?.isAttached(): Boolean {
-   if (this == null) return false
-   return this.isAttached
+   return this?.isAttached == true
 }
 
 private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
