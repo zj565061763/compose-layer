@@ -48,17 +48,7 @@ fun LayerContainer(
 }
 
 /**
- * 创建Layer
- *
- * @param attach 是否添加Layer，true-添加；false-移除
- * @param onDetachRequest [LayerDetach]触发的移除回调
- * @param debug 是否调试模式，tag:FLayer
- * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-请求不移除；null-不处理返回键逻辑，默认true
- * @param detachOnTouchOutside 触摸非内容区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理，事件会透过背景，默认false
- * @param backgroundColor 背景颜色
- * @param alignment 对齐容器位置
- * @param transition 动画（非响应式）
- * @param content 内容
+ * [layer]
  */
 @Composable
 fun Layer(
@@ -72,6 +62,44 @@ fun Layer(
    transition: LayerTransition? = null,
    content: @Composable LayerContentScope.() -> Unit,
 ) {
+   layer(
+      attach = attach,
+      onDetachRequest = onDetachRequest,
+      debug = debug,
+      detachOnBackPress = detachOnBackPress,
+      detachOnTouchOutside = detachOnTouchOutside,
+      backgroundColor = backgroundColor,
+      alignment = alignment,
+      transition = transition,
+      content = content,
+   )
+}
+
+/**
+ * 创建Layer
+ *
+ * @param attach 是否添加Layer，true-添加；false-移除
+ * @param onDetachRequest [LayerDetach]触发的移除回调
+ * @param debug 是否调试模式，tag:FLayer
+ * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-请求不移除；null-不处理返回键逻辑，默认true
+ * @param detachOnTouchOutside 触摸非内容区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理，事件会透过背景，默认false
+ * @param backgroundColor 背景颜色
+ * @param alignment 对齐容器位置
+ * @param transition 动画（非响应式）
+ * @param content 内容
+ */
+@Composable
+fun layer(
+   attach: Boolean,
+   onDetachRequest: (LayerDetach) -> Unit,
+   debug: Boolean = false,
+   detachOnBackPress: Boolean? = true,
+   detachOnTouchOutside: Boolean? = false,
+   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   alignment: Alignment = Alignment.Center,
+   transition: LayerTransition? = null,
+   content: @Composable LayerContentScope.() -> Unit,
+): LayerState {
    val layer = remember { NormalLayerImpl() }.apply {
       this.debug = debug
       this.Init(content)
@@ -96,6 +124,8 @@ fun Layer(
          layer.detach()
       }
    }
+
+   return remember(layer) { layer.toLayerState() }
 }
 
 /**

@@ -22,12 +22,41 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 
-internal interface Layer {
-   /** 是否调试模式，tag:FLayer */
-   var debug: Boolean
-
+interface LayerState {
    /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
    val isVisibleState: Boolean
+
+   /** Layer生命周期状态 */
+   val lifecycleState: LayerLifecycleState
+}
+
+enum class LayerLifecycleState {
+   /** 原始状态，对象刚创建出来 */
+   None,
+
+   /** 已经初始化完毕，可以被添加到容器 */
+   Initialized,
+
+   /** 即将被移除 */
+   Detaching,
+
+   /** 已经添加到容器 */
+   Attached,
+}
+
+enum class LayerDetach {
+   /** 按返回键 */
+   OnBackPress,
+
+   /** 触摸非内容区域 */
+   OnTouchOutside,
+}
+
+interface LayerContentScope
+
+internal interface Layer : LayerState {
+   /** 是否调试模式，tag:FLayer */
+   var debug: Boolean
 
    /**
     * 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认值true
@@ -65,35 +94,8 @@ internal interface Layer {
    fun detach()
 }
 
-enum class LayerLifecycleState {
-   /** 原始状态，对象刚创建出来 */
-   None,
-
-   /** 已经初始化完毕，可以被添加到容器 */
-   Initialized,
-
-   /** 即将被移除 */
-   Detaching,
-
-   /** 已经添加到容器 */
-   Attached,
-}
-
-enum class LayerDetach {
-   /** 按返回键 */
-   OnBackPress,
-
-   /** 触摸非内容区域 */
-   OnTouchOutside,
-}
-
-interface LayerContentScope {
-   /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
-   val isVisibleState: Boolean
-
-   /** Layer状态 */
-   val lifecycleState: LayerLifecycleState
-}
+internal fun Layer.toLayerState(): LayerState = InternalLayerState(this)
+internal class InternalLayerState(layer: Layer) : LayerState by layer
 
 //---------- Impl ----------
 
@@ -116,6 +118,7 @@ internal abstract class LayerImpl : Layer {
 
    final override var debug: Boolean = false
    final override val isVisibleState: Boolean get() = _isVisibleState
+   final override val lifecycleState: LayerLifecycleState get() = _lifecycleState
 
    final override fun setDetachOnBackPress(value: Boolean?) {
       _detachOnBackPressState = value
@@ -332,13 +335,7 @@ internal abstract class LayerImpl : Layer {
       }
    }
 
-   private inner class LayerScopeImpl : LayerContentScope {
-      override val isVisibleState: Boolean
-         get() = this@LayerImpl._isVisibleState
-
-      override val lifecycleState: LayerLifecycleState
-         get() = this@LayerImpl._lifecycleState
-   }
+   private class LayerScopeImpl : LayerContentScope
 }
 
 internal inline fun Layer.logMsg(block: () -> String) {

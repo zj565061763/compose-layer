@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.sd.demo.compose_layer.ui.theme.AppTheme
-import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
+import com.sd.lib.compose.layer.layer
 
 class SampleAlignContainer : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,70 +40,71 @@ private fun Content() {
    var attach by remember { mutableStateOf(false) }
    var alignment by remember { mutableStateOf(Alignment.Center) }
 
-   var useVisibleState by remember { mutableStateOf(false) }
-
-   Box(modifier = Modifier.fillMaxSize()) {
-      Button(
-         modifier = Modifier.align(Alignment.TopCenter),
-         onClick = {
-            alignment = Alignment.TopCenter
-            attach = true
-         }
-      ) {
-         Text(text = "TopCenter")
-      }
-
-      Button(
-         modifier = Modifier.align(Alignment.BottomCenter),
-         onClick = {
-            alignment = Alignment.BottomCenter
-            attach = true
-         }
-      ) {
-         Text(text = "BottomCenter")
-      }
-
-      Button(
-         modifier = Modifier.align(Alignment.CenterStart),
-         onClick = {
-            alignment = Alignment.CenterStart
-            attach = true
-         }
-      ) {
-         Text(text = "CenterStart")
-      }
-
-      Button(
-         modifier = Modifier.align(Alignment.CenterEnd),
-         onClick = {
-            alignment = Alignment.CenterEnd
-            attach = true
-         }
-      ) {
-         Text(text = "CenterEnd")
-      }
-
-      AnimatedVisibility(
-         modifier = Modifier.align(Alignment.Center),
-         visible = useVisibleState,
-         enter = scaleIn(),
-         exit = scaleOut(),
-      ) {
-         Text("Sync visible state")
-      }
-   }
-
-   Layer(
+   val layerState = layer(
       attach = attach,
       onDetachRequest = { attach = false },
       alignment = alignment,
       detachOnTouchOutside = true,
       debug = true,
    ) {
-      useVisibleState = isVisibleState
       ColorBox(
          color = Color.Red,
          text = "Box",
       )
+   }
+
+   Box(modifier = Modifier.fillMaxSize()) {
+      ButtonBox(
+         modifier = Modifier.fillMaxSize(),
+         onClick = {
+            alignment = it
+            attach = true
+         }
+      )
+
+      AnimatedVisibility(
+         modifier = Modifier.align(Alignment.Center),
+         visible = layerState.isVisibleState,
+         enter = scaleIn(),
+         exit = scaleOut(),
+      ) {
+         Text("Sync visible state")
+      }
+   }
+}
+
+@Composable
+private fun ButtonBox(
+   modifier: Modifier = Modifier,
+   onClick: (Alignment) -> Unit,
+) {
+   Box(modifier = modifier) {
+      Button(
+         modifier = Modifier.align(Alignment.TopCenter),
+         onClick = { onClick(Alignment.TopCenter) },
+      ) {
+         Text(text = "TopCenter")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.BottomCenter),
+         onClick = { onClick(Alignment.BottomCenter) },
+      ) {
+         Text(text = "BottomCenter")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.CenterStart),
+         onClick = { onClick(Alignment.CenterStart) },
+      ) {
+         Text(text = "CenterStart")
+      }
+
+      Button(
+         modifier = Modifier.align(Alignment.CenterEnd),
+         onClick = { onClick(Alignment.CenterStart) },
+      ) {
+         Text(text = "CenterEnd")
+      }
    }
 }
