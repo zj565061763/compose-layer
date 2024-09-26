@@ -27,14 +27,8 @@ fun ColorBox(
    text: String,
    modifier: Modifier = Modifier,
 ) {
-   val context = LocalContext.current
    Box(
       modifier = modifier
-         .clickable {
-            Toast
-               .makeText(context, text, Toast.LENGTH_SHORT)
-               .show()
-         }
          .widthIn(50.dp)
          .heightIn(50.dp)
          .background(color)
