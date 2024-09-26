@@ -116,6 +116,9 @@ internal abstract class LayerImpl : Layer {
    private var _layerTransition: LayerTransition? = null
    private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
 
+   /** 是否在移除的过程中被重新添加 */
+   private var _attachedFromDetaching = false
+
    final override var debug: Boolean = false
    final override val isVisibleState: Boolean get() = _isVisibleState
    final override val lifecycleState: LayerLifecycleState get() = _lifecycleState
@@ -209,9 +212,19 @@ internal abstract class LayerImpl : Layer {
    }
 
    private fun setLifecycleState(state: LayerLifecycleState) {
-      if (_lifecycleState != state) {
-         _lifecycleState = state
-         logMsg { "state:$_lifecycleState" }
+      val oldState = _lifecycleState
+      if (oldState == state) return
+
+      _lifecycleState = state
+      logMsg { "state:$_lifecycleState" }
+
+      if (state == LayerLifecycleState.Attached) {
+         if (oldState == LayerLifecycleState.Detaching) {
+            logMsg { "attached from detaching" }
+            _attachedFromDetaching = true
+         }
+      } else {
+         _attachedFromDetaching = false
       }
    }
 
@@ -265,7 +278,12 @@ internal abstract class LayerImpl : Layer {
                   logMsg { "ContentBox zero size isVisible:$_isVisibleState state:$_lifecycleState" }
                   if (!_isVisibleState) {
                      when (_lifecycleState) {
-                        LayerLifecycleState.Attached -> setContentVisible(true)
+                        LayerLifecycleState.Attached -> {
+                           if (_attachedFromDetaching) {
+                              _attachedFromDetaching = false
+                              setContentVisible(true)
+                           }
+                        }
                         LayerLifecycleState.Detaching -> {
                            layerContainer?.let { container ->
                               if (container.detachLayer(this@LayerImpl)) {
