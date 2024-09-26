@@ -26,7 +26,7 @@ internal interface Layer {
    /** 是否调试模式，tag:FLayer */
    var debug: Boolean
 
-   /** 是否可见 */
+   /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
    val isVisibleState: Boolean
 
    /**
@@ -88,7 +88,7 @@ enum class LayerDetach {
 }
 
 interface LayerContentScope {
-   /** 当前Layer是否可见 */
+   /** 监听Layer的可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
    val isVisibleState: Boolean
 }
 

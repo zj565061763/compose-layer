@@ -3,6 +3,9 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
@@ -36,6 +39,8 @@ class SampleAlignContainer : ComponentActivity() {
 private fun Content() {
    var attach by remember { mutableStateOf(false) }
    var alignment by remember { mutableStateOf(Alignment.Center) }
+
+   var useVisibleState by remember { mutableStateOf(false) }
 
    Box(modifier = Modifier.fillMaxSize()) {
       Button(
@@ -77,6 +82,15 @@ private fun Content() {
       ) {
          Text(text = "CenterEnd")
       }
+
+      AnimatedVisibility(
+         modifier = Modifier.align(Alignment.Center),
+         visible = useVisibleState,
+         enter = scaleIn(),
+         exit = scaleOut(),
+      ) {
+         Text("Sync visible state")
+      }
    }
 
    Layer(
@@ -86,6 +100,7 @@ private fun Content() {
       detachOnTouchOutside = true,
       debug = true,
    ) {
+      useVisibleState = isVisibleState
       ColorBox(
          color = Color.Red,
          text = "Box",
