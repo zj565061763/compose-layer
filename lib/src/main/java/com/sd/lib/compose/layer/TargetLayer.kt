@@ -365,10 +365,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
          logMsg {
             """
-               layoutDefault
+               layoutDefault end
                   offset:(${result.x}, ${result.y}) -> $fixOffset
                   size:$rawSize -> $fixSize
-                  realSize:${contentPlaceable.intSize()}
             """.trimIndent()
          }
 
@@ -406,6 +405,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          contentOffset: IntOffset,
          saveInfo: Boolean = true,
       ): MeasureResult {
+         logMsg { "layoutFinally offset:${contentOffset} size:${contentPlaceable.intSize()}" }
          return measureScope.layout(cs.maxWidth, cs.maxHeight) {
             if (saveInfo) {
                _visibleBackgroundInfo = PlaceInfo(
