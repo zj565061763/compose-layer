@@ -21,10 +21,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,8 +35,8 @@ import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
 import com.sd.lib.compose.layer.TargetAlignment
-import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
+import com.sd.lib.compose.layer.targetLayer
 
 class SampleAlignTarget : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,19 +57,7 @@ private fun Content() {
    var attach by remember { mutableStateOf(false) }
    var alignment: TargetAlignment? by remember { mutableStateOf(null) }
 
-   Box(modifier = Modifier.fillMaxSize()) {
-      TargetView(tag = tag)
-      ButtonsView(
-         currentAlignment = alignment,
-         onClickDetach = { attach = false },
-         onClick = {
-            alignment = it
-            attach = true
-         },
-      )
-   }
-
-   TargetLayer(
+   val layerState = targetLayer(
       target = LayerTarget.Tag(tag),
       attach = attach,
       onDetachRequest = { attach = false },
@@ -80,6 +70,34 @@ private fun Content() {
       ColorBox(
          color = Color.Red,
          text = "Box",
+      )
+   }
+
+   LaunchedEffect(layerState) {
+      // 监听Layer生命周期状态
+      snapshotFlow { layerState.lifecycleState }
+         .collect {
+            logMsg { "lifecycleState:${it}" }
+         }
+   }
+
+   LaunchedEffect(layerState) {
+      // 监听Layer可见状态
+      snapshotFlow { layerState.isVisibleState }
+         .collect {
+            logMsg { "isVisibleState:${it}" }
+         }
+   }
+
+   Box(modifier = Modifier.fillMaxSize()) {
+      TargetView(tag = tag)
+      ButtonsView(
+         currentAlignment = alignment,
+         onClickDetach = { attach = false },
+         onClick = {
+            alignment = it
+            attach = true
+         },
       )
    }
 }

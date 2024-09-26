@@ -22,7 +22,33 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
 
-internal interface TargetLayer : Layer {
+interface TargetLayerState : LayerState
+
+/**
+ * 要对齐的目标
+ */
+@Immutable
+sealed interface LayerTarget {
+   /** 以[tag]为目标 */
+   data class Tag(val tag: String?) : LayerTarget
+
+   /** 以[offset]为目标 */
+   data class Offset(val offset: IntOffset?) : LayerTarget
+}
+
+/**
+ * 目标对齐位置偏移量
+ */
+@Immutable
+sealed interface TargetAlignmentOffset {
+   /** 按指定像素[value]偏移，支持正数和负数，以Y轴为例，大于0往下偏移，小于0往上偏移 */
+   data class PX(val value: Int) : TargetAlignmentOffset
+
+   /** 按目标大小倍数[value]偏移，支持正数和负数字，以Y轴为例，1表示往下偏移1倍目标的高度，-1表示往上偏移1倍目标的高度 */
+   data class Target(val value: Float) : TargetAlignmentOffset
+}
+
+internal interface TargetLayer : Layer, TargetLayerState {
    /**
     * 要对齐的目标
     */
@@ -55,29 +81,8 @@ internal interface TargetLayer : Layer {
    fun setClipBackgroundDirection(direction: Directions?)
 }
 
-/**
- * 要对齐的目标
- */
-@Immutable
-sealed interface LayerTarget {
-   /** 以[tag]为目标 */
-   data class Tag(val tag: String?) : LayerTarget
-
-   /** 以[offset]为目标 */
-   data class Offset(val offset: IntOffset?) : LayerTarget
-}
-
-/**
- * 目标对齐位置偏移量
- */
-@Immutable
-sealed interface TargetAlignmentOffset {
-   /** 按指定像素[value]偏移，支持正数和负数，以Y轴为例，大于0往下偏移，小于0往上偏移 */
-   data class PX(val value: Int) : TargetAlignmentOffset
-
-   /** 按目标大小倍数[value]偏移，支持正数和负数字，以Y轴为例，1表示往下偏移1倍目标的高度，-1表示往上偏移1倍目标的高度 */
-   data class Target(val value: Float) : TargetAlignmentOffset
-}
+internal fun TargetLayer.toTargetLayerState(): TargetLayerState = InternalTargetLayerState(this)
+private class InternalTargetLayerState(layer: TargetLayer) : TargetLayerState by layer
 
 //---------- Impl ----------
 

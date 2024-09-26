@@ -95,7 +95,7 @@ internal interface Layer : LayerState {
 }
 
 internal fun Layer.toLayerState(): LayerState = InternalLayerState(this)
-internal class InternalLayerState(layer: Layer) : LayerState by layer
+private class InternalLayerState(layer: Layer) : LayerState by layer
 
 //---------- Impl ----------
 

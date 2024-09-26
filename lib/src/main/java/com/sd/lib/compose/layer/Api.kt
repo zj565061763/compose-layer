@@ -47,6 +47,8 @@ fun LayerContainer(
    }
 }
 
+//-------------------- Layer --------------------
+
 /**
  * [layer]
  */
@@ -128,6 +130,46 @@ fun layer(
    return remember(layer) { layer.toLayerState() }
 }
 
+//-------------------- TargetLayer --------------------
+
+/**
+ * [targetLayer]
+ */
+@Composable
+fun TargetLayer(
+   target: LayerTarget?,
+   attach: Boolean,
+   onDetachRequest: (LayerDetach) -> Unit,
+   debug: Boolean = false,
+   detachOnBackPress: Boolean? = true,
+   detachOnTouchOutside: Boolean? = false,
+   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+   alignment: TargetAlignment = TargetAlignment.Center,
+   alignmentOffsetX: TargetAlignmentOffset? = null,
+   alignmentOffsetY: TargetAlignmentOffset? = null,
+   smartAlignments: SmartAliments? = null,
+   clipBackgroundDirection: Directions? = null,
+   transition: LayerTransition? = null,
+   content: @Composable LayerContentScope.() -> Unit,
+) {
+   targetLayer(
+      target = target,
+      attach = attach,
+      onDetachRequest = onDetachRequest,
+      debug = debug,
+      detachOnBackPress = detachOnBackPress,
+      detachOnTouchOutside = detachOnTouchOutside,
+      backgroundColor = backgroundColor,
+      alignment = alignment,
+      alignmentOffsetX = alignmentOffsetX,
+      alignmentOffsetY = alignmentOffsetY,
+      smartAlignments = smartAlignments,
+      clipBackgroundDirection = clipBackgroundDirection,
+      transition = transition,
+      content = content,
+   )
+}
+
 /**
  * 创建TargetLayer
  *
@@ -148,7 +190,7 @@ fun layer(
  * @param content 内容
  */
 @Composable
-fun TargetLayer(
+fun targetLayer(
    target: LayerTarget?,
    attach: Boolean,
    onDetachRequest: (LayerDetach) -> Unit,
@@ -163,7 +205,7 @@ fun TargetLayer(
    clipBackgroundDirection: Directions? = null,
    transition: LayerTransition? = null,
    content: @Composable LayerContentScope.() -> Unit,
-) {
+): TargetLayerState {
    val layer = remember { TargetLayerImpl() }.apply {
       this.debug = debug
       this.Init(content)
@@ -193,6 +235,8 @@ fun TargetLayer(
          layer.detach()
       }
    }
+
+   return remember(layer) { layer.toTargetLayerState() }
 }
 
 /**
