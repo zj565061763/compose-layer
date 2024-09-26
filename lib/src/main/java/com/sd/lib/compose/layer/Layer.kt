@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.zIndex
 
 interface LayerState {
    /** Layer可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
@@ -58,6 +60,9 @@ internal interface Layer : LayerState {
    /** 是否调试模式，tag:FLayer */
    var debug: Boolean
 
+   /** [Modifier.zIndex] */
+   val zIndexState: Float
+
    /**
     * 按返回键是否移除Layer，true-移除；false-不移除；null-不处理返回键逻辑，默认值true
     */
@@ -82,6 +87,11 @@ internal interface Layer : LayerState {
     * 动画（非响应式）
     */
    fun setTransition(transition: LayerTransition?)
+
+   /**
+    * [Modifier.zIndex]
+    */
+   fun setZIndex(zIndex: Float)
 
    /**
     * 添加到容器
@@ -112,6 +122,7 @@ internal abstract class LayerImpl : Layer {
    private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
    private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+   private var _zIndexState by mutableFloatStateOf(0f)
 
    private var _layerTransition: LayerTransition? = null
    private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
@@ -120,6 +131,7 @@ internal abstract class LayerImpl : Layer {
    private var _attachedFromDetaching = false
 
    final override var debug: Boolean = false
+   final override val zIndexState: Float get() = _zIndexState
    final override val isVisibleState: Boolean get() = _isVisibleState
    final override val lifecycleState: LayerLifecycleState get() = _lifecycleState
 
@@ -141,6 +153,10 @@ internal abstract class LayerImpl : Layer {
 
    final override fun setTransition(transition: LayerTransition?) {
       _layerTransition = transition
+   }
+
+   final override fun setZIndex(zIndex: Float) {
+      _zIndexState = zIndex
    }
 
    final override fun attach() {

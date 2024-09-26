@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.zIndex
 
 internal interface NormalLayer : Layer {
    /**
@@ -31,7 +32,11 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
          setContentVisible(true)
       }
 
-      Box(modifier = Modifier.fillMaxSize()) {
+      Box(
+         modifier = Modifier
+            .fillMaxSize()
+            .zIndex(zIndexState)
+      ) {
          BackgroundBox()
          ContentBox(Modifier.align(_alignment))
       }

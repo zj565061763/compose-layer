@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -282,7 +283,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    override fun LayerContent() {
       val uiState by _uiState.collectAsStateWithLifecycle()
       OffsetBox(
-         modifier = Modifier.fillMaxSize(),
+         modifier = Modifier
+            .fillMaxSize()
+            .zIndex(zIndexState),
          uiState = uiState,
       )
    }

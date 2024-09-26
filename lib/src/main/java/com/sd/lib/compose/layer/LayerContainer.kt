@@ -1,6 +1,7 @@
 package com.sd.lib.compose.layer
 
 import androidx.annotation.CallSuper
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -182,9 +183,11 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
    @Composable
    override fun Layers() {
-      _attachedLayers.forEach { layer ->
-         key(layer) {
-            layer.Content()
+      Box {
+         _attachedLayers.forEach { layer ->
+            key(layer) {
+               layer.Content()
+            }
          }
       }
    }
