@@ -34,6 +34,7 @@ AppTheme {
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
  * @param transition 动画（非响应式）
+ * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
 @Composable
@@ -46,6 +47,7 @@ fun Layer(
    backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
    alignment: Alignment = Alignment.Center,
    transition: LayerTransition? = null,
+   zIndex: Float = 0f,
    content: @Composable LayerContentScope.() -> Unit,
 )
 ```
@@ -70,6 +72,7 @@ fun Layer(
  * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
  * @param clipBackgroundDirection 裁切背景的方向[Directions]（非响应式）
  * @param transition 动画（非响应式）
+ * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
 @Composable
@@ -87,6 +90,7 @@ fun TargetLayer(
    smartAlignments: SmartAliments? = null,
    clipBackgroundDirection: Directions? = null,
    transition: LayerTransition? = null,
+   zIndex: Float = 0f,
    content: @Composable LayerContentScope.() -> Unit,
 )
 ```
