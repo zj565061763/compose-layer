@@ -317,15 +317,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          } else {
             state.layoutLastInfo(cs)
          }.also {
-            if (isReady) {
-               if (!isVisibleState) {
-                  setContentVisible(true)
-               }
-            } else {
-               if (isVisibleState) {
-                  setContentVisible(false)
-               }
-            }
+            setContentVisible(isReady)
          }
       }
    }

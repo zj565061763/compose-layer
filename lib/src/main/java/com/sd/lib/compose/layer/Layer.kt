@@ -232,6 +232,7 @@ internal abstract class LayerImpl : Layer {
     */
    protected fun setContentVisible(visible: Boolean) {
       val oldVisible = _isVisibleState
+      if (oldVisible == visible) return
 
       if (visible) {
          if (_lifecycleState == LayerLifecycleState.Attached) {
