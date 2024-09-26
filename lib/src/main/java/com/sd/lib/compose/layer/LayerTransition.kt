@@ -111,7 +111,7 @@ data class LayerTransition(
          )
       }
 
-      fun scaleTopStart(
+      inline fun scaleTopStart(
          direction: LayoutDirection,
          ltrBuilder: () -> LayerTransition = { scaleTopLeft() },
          rtlBuilder: () -> LayerTransition = { scaleTopRight() },
@@ -119,7 +119,7 @@ data class LayerTransition(
          return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      fun scaleTopEnd(
+      inline fun scaleTopEnd(
          direction: LayoutDirection,
          ltrBuilder: () -> LayerTransition = { scaleTopRight() },
          rtlBuilder: () -> LayerTransition = { scaleTopLeft() },
@@ -127,7 +127,7 @@ data class LayerTransition(
          return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      fun scaleBottomStart(
+      inline fun scaleBottomStart(
          direction: LayoutDirection,
          ltrBuilder: () -> LayerTransition = { scaleBottomLeft() },
          rtlBuilder: () -> LayerTransition = { scaleBottomRight() },
@@ -135,7 +135,7 @@ data class LayerTransition(
          return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
       }
 
-      fun scaleBottomEnd(
+      inline fun scaleBottomEnd(
          direction: LayoutDirection,
          ltrBuilder: () -> LayerTransition = { scaleBottomRight() },
          rtlBuilder: () -> LayerTransition = { scaleBottomLeft() },
