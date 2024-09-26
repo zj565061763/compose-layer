@@ -257,6 +257,30 @@ internal abstract class LayerImpl : Layer {
       }
    }
 
+   private fun handleContentZeroSize() {
+      logMsg { "handleContentZeroSize isVisible:$_isVisibleState state:$_lifecycleState" }
+      if (!_isVisibleState) {
+         when (_lifecycleState) {
+            LayerLifecycleState.Attached -> {
+               if (_attachedFromDetaching) {
+                  logMsg { "attached from detaching set content visible" }
+                  setContentVisible(true)
+               }
+            }
+            LayerLifecycleState.Detaching -> {
+               layerContainer?.let { container ->
+                  if (container.detachLayer(this@LayerImpl)) {
+                     logMsg { "detachLayer" }
+                     setLifecycleState(LayerLifecycleState.Initialized)
+                     onDetached(container)
+                  }
+               }
+            }
+            else -> {}
+         }
+      }
+   }
+
    /**
     * 渲染Layer内容
     */
@@ -285,27 +309,7 @@ internal abstract class LayerImpl : Layer {
          modifier = modifier
             .onGloballyPositioned {
                if (it.size == IntSize.Zero) {
-                  logMsg { "ContentBox zero size isVisible:$_isVisibleState state:$_lifecycleState" }
-                  if (!_isVisibleState) {
-                     when (_lifecycleState) {
-                        LayerLifecycleState.Attached -> {
-                           if (_attachedFromDetaching) {
-                              logMsg { "attached from detaching set content visible" }
-                              setContentVisible(true)
-                           }
-                        }
-                        LayerLifecycleState.Detaching -> {
-                           layerContainer?.let { container ->
-                              if (container.detachLayer(this@LayerImpl)) {
-                                 logMsg { "detachLayer" }
-                                 setLifecycleState(LayerLifecycleState.Initialized)
-                                 onDetached(container)
-                              }
-                           }
-                        }
-                        else -> {}
-                     }
-                  }
+                  handleContentZeroSize()
                }
             }
             .clipToBounds()
