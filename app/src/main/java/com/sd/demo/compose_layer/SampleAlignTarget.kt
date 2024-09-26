@@ -67,10 +67,7 @@ private fun Content() {
       detachOnTouchOutside = null,
       debug = true,
    ) {
-      ColorBox(
-         color = Color.Red,
-         text = "Box",
-      )
+      ColorBox()
    }
 
    LaunchedEffect(layerState) {

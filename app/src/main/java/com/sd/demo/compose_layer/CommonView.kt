@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ColorBox(
-   color: Color,
-   text: String,
    modifier: Modifier = Modifier,
+   text: String = "Box",
+   color: Color = Color.Red,
 ) {
    Box(
       modifier = modifier

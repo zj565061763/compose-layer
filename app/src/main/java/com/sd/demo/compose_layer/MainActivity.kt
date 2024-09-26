@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
                   SampleDropDown::class.java,
                   SampleTargetOffset::class.java,
                   SampleFixOverflow::class.java,
+                  SampleZIndex::class.java,
                   SampleListMenu::class.java,
                ),
                onClickActivity = {

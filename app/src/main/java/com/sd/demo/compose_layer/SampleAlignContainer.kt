@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerState
@@ -51,10 +50,7 @@ private fun Content() {
       detachOnTouchOutside = true,
       debug = true,
    ) {
-      ColorBox(
-         color = Color.Red,
-         text = "Box",
-      )
+      ColorBox()
    }
 
    Box(modifier = Modifier.fillMaxSize()) {
