@@ -281,6 +281,7 @@ internal abstract class LayerImpl : Layer {
                         LayerLifecycleState.Attached -> {
                            if (_attachedFromDetaching) {
                               _attachedFromDetaching = false
+                              logMsg { "attached from detaching set content visible" }
                               setContentVisible(true)
                            }
                         }
