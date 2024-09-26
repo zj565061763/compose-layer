@@ -57,22 +57,6 @@ private fun Content() {
       )
    }
 
-   LaunchedEffect(layerState) {
-      // 监听Layer生命周期状态
-      snapshotFlow { layerState.lifecycleState }
-         .collect {
-            logMsg { "lifecycleState:${it}" }
-         }
-   }
-
-   LaunchedEffect(layerState) {
-      // 监听Layer可见状态
-      snapshotFlow { layerState.isVisibleState }
-         .collect {
-            logMsg { "isVisibleState:${it}" }
-         }
-   }
-
    Box(modifier = Modifier.fillMaxSize()) {
       ButtonsBox(
          modifier = Modifier.fillMaxSize(),
@@ -91,6 +75,14 @@ private fun Content() {
       ) {
          Text("Sync visible state")
       }
+   }
+
+   LaunchedEffect(layerState) {
+      // 监听Layer生命周期状态
+      snapshotFlow { layerState.lifecycleState }
+         .collect {
+            logMsg { "lifecycleState:${it}" }
+         }
    }
 }
 
