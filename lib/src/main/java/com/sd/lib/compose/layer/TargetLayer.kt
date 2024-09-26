@@ -374,10 +374,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
 
       fun layoutLastInfo(cs: Constraints): MeasureResult {
-         val backgroundInfo = _visibleBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val backgroundInfo = _lastBackgroundInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
          val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
-         val contentInfo = _visibleContentInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
+         val contentInfo = _lastContentInfo ?: PlaceInfo(IntOffset.Zero, cs.maxIntSize())
          val contentPlaceable = measureContent(cs.newMax(contentInfo.size))
 
          return layoutFinally(
@@ -401,11 +401,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          logMsg { "layoutFinally offset:${contentOffset} size:${contentPlaceable.intSize()}" }
          return measureScope.layout(cs.maxWidth, cs.maxHeight) {
             if (saveInfo) {
-               _visibleBackgroundInfo = PlaceInfo(
+               _lastBackgroundInfo = PlaceInfo(
                   offset = backgroundOffset,
                   size = backgroundPlaceable.intSize(),
                )
-               _visibleContentInfo = PlaceInfo(
+               _lastContentInfo = PlaceInfo(
                   offset = contentOffset,
                   size = contentPlaceable.intSize(),
                )
@@ -468,8 +468,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
       lateinit var measureScope: SubcomposeMeasureScope
 
-      private var _visibleBackgroundInfo: PlaceInfo? = null
-      private var _visibleContentInfo: PlaceInfo? = null
+      private var _lastBackgroundInfo: PlaceInfo? = null
+      private var _lastContentInfo: PlaceInfo? = null
 
       /**
        * 测量背景
@@ -714,7 +714,6 @@ private fun Aligner.Position.isCenterHorizontal(): Boolean {
       Aligner.Position.BottomCenter,
       Aligner.Position.Center,
       -> true
-
       else -> false
    }
 }
@@ -725,7 +724,6 @@ private fun Aligner.Position.isCenterVertical(): Boolean {
       Aligner.Position.EndCenter,
       Aligner.Position.Center,
       -> true
-
       else -> false
    }
 }
