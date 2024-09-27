@@ -90,9 +90,11 @@ private class InternalTargetLayerState(layer: TargetLayer) : TargetLayerState by
 
 @Immutable
 private data class UIState(
-   val alignment: TargetAlignment,
    val targetLayout: LayoutInfo,
    val containerLayout: LayoutInfo,
+   val alignment: TargetAlignment,
+   val alignmentOffsetX: TargetAlignmentOffset?,
+   val alignmentOffsetY: TargetAlignmentOffset?,
 )
 
 @Immutable
@@ -111,19 +113,16 @@ private val EmptyLayoutInfo = LayoutInfo(
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    private val _uiState = MutableStateFlow(
       UIState(
-         alignment = TargetAlignment.Center,
          targetLayout = EmptyLayoutInfo,
          containerLayout = EmptyLayoutInfo,
+         alignment = TargetAlignment.Center,
+         alignmentOffsetX = null,
+         alignmentOffsetY = null,
       )
    )
 
    /** 目标 */
    private var _target: LayerTarget? = null
-
-   /** X方向偏移量 */
-   private var _alignmentOffsetX: TargetAlignmentOffset? = null
-   /** Y方向偏移量 */
-   private var _alignmentOffsetY: TargetAlignmentOffset? = null
 
    /** 智能对齐 */
    private var _smartAlignments: SmartAliments? = null
@@ -137,21 +136,21 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       logMsg { "setTarget:$target" }
 
       val oldTarget = _target
-      unregisterTagTargetLayoutCallback(oldTarget)
+      unregisterTarget(oldTarget)
 
       _target = target
 
-      registerTagTargetLayoutCallback(target)
+      registerTarget(target)
       updateTargetLayout()
    }
 
-   private fun registerTagTargetLayoutCallback(target: LayerTarget?) {
+   private fun registerTarget(target: LayerTarget?) {
       if (target is LayerTarget.Tag) {
          layerContainer?.registerTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
       }
    }
 
-   private fun unregisterTagTargetLayoutCallback(target: LayerTarget?) {
+   private fun unregisterTarget(target: LayerTarget?) {
       if (target is LayerTarget.Tag) {
          layerContainer?.unregisterTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
       }
@@ -166,26 +165,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    override fun setAlignment(alignment: TargetAlignment) {
+      if (_uiState.value.alignment == alignment) return
       _uiState.update {
-         if (it.alignment != alignment) {
-            it.copy(alignment = alignment)
-         } else {
-            it
-         }
+         it.copy(alignment = alignment)
       }
    }
 
    override fun setAlignmentOffsetX(offset: TargetAlignmentOffset?) {
-      if (_alignmentOffsetX != offset) {
-         _alignmentOffsetX = offset
-         updateTargetLayout()
+      if (_uiState.value.alignmentOffsetX == offset) return
+      _uiState.update {
+         it.copy(alignmentOffsetX = offset)
       }
    }
 
    override fun setAlignmentOffsetY(offset: TargetAlignmentOffset?) {
-      if (_alignmentOffsetY != offset) {
-         _alignmentOffsetY = offset
-         updateTargetLayout()
+      if (_uiState.value.alignmentOffsetY == offset) return
+      _uiState.update {
+         it.copy(alignmentOffsetY = offset)
       }
    }
 
@@ -199,12 +195,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
    override fun onAttach(container: ContainerForLayer) {
       container.registerContainerLayoutCallback(_containerLayoutCallback)
-      registerTagTargetLayoutCallback(_target)
+      registerTarget(_target)
    }
 
    override fun onDetach(container: ContainerForLayer) {
       container.unregisterContainerLayoutCallback(_containerLayoutCallback)
-      unregisterTagTargetLayoutCallback(_target)
+      unregisterTarget(_target)
    }
 
    override fun onDetached(container: ContainerForLayer) {
@@ -222,30 +218,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     * 更新目标布局信息
     */
    private fun updateTargetLayout() {
-      var layout = when (val target = _target) {
-         is LayerTarget.Tag -> {
-            if (target.tag.isNullOrEmpty()) return
-            _tagTargetLayout.toLayoutInfo()
-         }
-         is LayerTarget.Offset -> {
-            val offset = target.offset ?: return
+      val layout = when (val target = _target) {
+         is LayerTarget.Tag -> _tagTargetLayout.toLayoutInfo()
+         is LayerTarget.Offset -> target.offset?.let { offset ->
             LayoutInfo(
                offset = offset,
                size = IntSize.Zero,
                isAttached = true,
             )
-         }
-         else -> return
-      }
-
-      val offsetX = _alignmentOffsetX
-      val offsetY = _alignmentOffsetY
-      if (offsetX != null || offsetY != null) {
-         val offset = IntOffset(
-            x = offsetX.pxValue(layout.size.width),
-            y = offsetY.pxValue(layout.size.height)
-         )
-         layout = layout.copy(offset = layout.offset + offset)
+         } ?: EmptyLayoutInfo
+         else -> EmptyLayoutInfo
       }
 
       _uiState.update {
@@ -339,18 +321,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          val rawPlaceable = measureRawContent(cs)
          val rawSize = rawPlaceable.intSize()
 
-         val (result, smartAlignment) = alignTarget(
-            alignment = uiState.alignment,
-            target = uiState.targetLayout,
-            container = uiState.containerLayout,
+         var result = alignTarget(
+            uiState = uiState,
             contentSize = rawSize,
             layoutDirection = layoutDirection,
-         ).findBestResult(this@TargetLayerImpl, _smartAlignments, layoutDirection)
+         )
 
-         _currentSmartAlignment = smartAlignment
+         _smartAlignments?.let {
+            val (bestResult, smartAlignment) = result.findBestResult(
+               layer = this@TargetLayerImpl,
+               smartAliments = it,
+               layoutDirection = layoutDirection,
+            )
+            result = bestResult
+            _currentSmartAlignment = smartAlignment
+         }
 
          val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl, layoutDirection)
-
          val contentPlaceable = measureContent(cs.newMax(fixSize))
 
          val backgroundInfo = backgroundPlaceInfo(
@@ -525,24 +512,35 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 }
 
 private fun alignTarget(
-   alignment: TargetAlignment,
-   target: LayoutInfo,
-   container: LayoutInfo,
+   uiState: UIState,
    contentSize: IntSize,
    layoutDirection: LayoutDirection,
 ): Aligner.Result {
+
+   var targetLayout = uiState.targetLayout
+   with(uiState) {
+      if (alignmentOffsetX != null || alignmentOffsetY != null) {
+         val layout = targetLayout
+         val offset = IntOffset(
+            x = alignmentOffsetX.pxValue(layout.size.width),
+            y = alignmentOffsetY.pxValue(layout.size.height)
+         )
+         targetLayout = layout.copy(offset = layout.offset + offset)
+      }
+   }
+
    return Aligner.Input(
-      position = alignment.toAlignerPosition(),
+      position = uiState.alignment.toAlignerPosition(),
 
-      targetX = target.offset.x,
-      targetY = target.offset.y,
-      targetWidth = target.size.width,
-      targetHeight = target.size.height,
+      targetX = targetLayout.offset.x,
+      targetY = targetLayout.offset.y,
+      targetWidth = targetLayout.size.width,
+      targetHeight = targetLayout.size.height,
 
-      containerX = container.offset.x,
-      containerY = container.offset.y,
-      containerWidth = container.size.width,
-      containerHeight = container.size.height,
+      containerX = uiState.containerLayout.offset.x,
+      containerY = uiState.containerLayout.offset.y,
+      containerWidth = uiState.containerLayout.size.width,
+      containerHeight = uiState.containerLayout.size.height,
 
       sourceWidth = contentSize.width,
       sourceHeight = contentSize.height,
@@ -551,12 +549,10 @@ private fun alignTarget(
 
 private fun Aligner.Result.findBestResult(
    layer: Layer,
-   alignments: SmartAliments?,
+   smartAliments: SmartAliments,
    layoutDirection: LayoutDirection,
 ): Pair<Aligner.Result, SmartAliment?> {
-   if (alignments == null) return this to null
-
-   val list = alignments.aliments
+   val list = smartAliments.aliments
    if (list.isEmpty()) return this to null
 
    val overflowDefault = sourceOverflow.totalOverflow()
@@ -760,7 +756,9 @@ private fun LayoutCoordinates?.isAttached(): Boolean {
    return this?.isAttached == true
 }
 
-private fun TargetAlignmentOffset?.pxValue(targetSize: Int): Int {
+private fun TargetAlignmentOffset?.pxValue(
+   targetSize: Int,
+): Int {
    return when (val offset = this) {
       null -> 0
       is TargetAlignmentOffset.PX -> offset.value
