@@ -425,7 +425,6 @@ internal abstract class LayerImpl : Layer {
       val contentLayout = _contentLayout
       if (contentLayout == null) {
          logMsg { "handleOnTouchBackground _contentLayout is null" }
-         requestDetach(LayerDetach.OnTouchBackground)
          return
       }
 
