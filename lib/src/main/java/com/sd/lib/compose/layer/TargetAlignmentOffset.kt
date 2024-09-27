@@ -20,10 +20,14 @@ sealed class TargetAlignmentOffset {
 
 /**
  * 把当前偏移量改为相对[TargetAlignment]偏移量
+ *
+ * @param 当[TargetAlignment]无法参考时，是否降级为参考普通坐标轴
  */
-fun TargetAlignmentOffset.relativeAlignment(): TargetAlignmentOffset {
-   return if (this is RelativeAlignment) this
-   else RelativeAlignment(this)
+fun TargetAlignmentOffset.relativeAlignment(
+   downgrade: Boolean = false,
+): TargetAlignmentOffset {
+   return if (this is RelativeAlignment) this.also { it.downgrade = downgrade }
+   else RelativeAlignment(this, downgrade)
 }
 
 internal fun TargetAlignmentOffset?.pxValue(
@@ -40,6 +44,7 @@ internal fun TargetAlignmentOffset?.pxValue(
 
 private data class RelativeAlignment(
    val raw: TargetAlignmentOffset,
+   var downgrade: Boolean,
 ) : TargetAlignmentOffset() {
    fun toPx(
       density: Float,
@@ -49,10 +54,10 @@ private data class RelativeAlignment(
    ): Int {
       val px = raw.toPx(density, targetSize)
       if (px == 0) return 0
-      return if (xy) alignment.handleX(px) else alignment.handleY(px)
+      return if (xy) alignment.handleX(px, downgrade) else alignment.handleY(px, downgrade)
    }
 
-   private fun TargetAlignment.handleX(px: Int): Int {
+   private fun TargetAlignment.handleX(px: Int, downgrade: Boolean): Int {
       return when (this) {
          TargetAlignment.TopEnd,
          TargetAlignment.BottomEnd,
@@ -61,11 +66,17 @@ private data class RelativeAlignment(
          TargetAlignment.StartBottom,
          TargetAlignment.Start,
          -> -px
+
+         TargetAlignment.TopCenter,
+         TargetAlignment.BottomCenter,
+         TargetAlignment.Center,
+         -> if (downgrade) px else 0
+
          else -> px
       }
    }
 
-   private fun TargetAlignment.handleY(px: Int): Int {
+   private fun TargetAlignment.handleY(px: Int, downgrade: Boolean): Int {
       return when (this) {
          TargetAlignment.TopStart,
          TargetAlignment.TopCenter,
@@ -74,6 +85,12 @@ private data class RelativeAlignment(
          TargetAlignment.StartBottom,
          TargetAlignment.EndBottom,
          -> -px
+
+         TargetAlignment.StartCenter,
+         TargetAlignment.EndCenter,
+         TargetAlignment.Center,
+         -> if (downgrade) px else 0
+
          else -> px
       }
    }
