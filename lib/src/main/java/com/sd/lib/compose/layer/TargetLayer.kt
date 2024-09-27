@@ -134,6 +134,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
    override fun setTarget(target: LayerTarget?) {
       if (_target == target) return
+      logMsg { "setTarget:$target" }
 
       val oldTarget = _target
       unregisterTagTargetLayoutCallback(oldTarget)
