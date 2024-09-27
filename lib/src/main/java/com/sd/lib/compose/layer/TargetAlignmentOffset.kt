@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Immutable
-import kotlin.math.roundToInt
 
 /**
  * 目标对齐位置偏移量
@@ -34,7 +33,9 @@ internal fun TargetAlignmentOffset?.pxValue(
    }
 }
 
-private data class RelativeAlignment(val raw: TargetAlignmentOffset) : TargetAlignmentOffset() {
+private data class RelativeAlignment(
+   val raw: TargetAlignmentOffset,
+) : TargetAlignmentOffset() {
    fun toPx(
       targetSize: Int,
       alignment: TargetAlignment,
@@ -76,7 +77,7 @@ private fun TargetAlignmentOffset?.toPx(targetSize: Int): Int {
    return when (val offset = this) {
       null -> 0
       is TargetAlignmentOffset.PX -> offset.value
-      is TargetAlignmentOffset.Target -> (offset.value * targetSize).roundToInt()
+      is TargetAlignmentOffset.Target -> (offset.value * targetSize).toInt()
       else -> error("Unsupported")
    }
 }
