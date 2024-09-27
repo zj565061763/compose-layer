@@ -26,8 +26,11 @@ sealed class TargetAlignmentOffset {
 fun TargetAlignmentOffset.relativeAlignment(
    downgrade: Boolean = false,
 ): TargetAlignmentOffset {
-   return if (this is RelativeAlignment) this.also { it.downgrade = downgrade }
-   else RelativeAlignment(this, downgrade)
+   return if (this is RelativeAlignment) {
+      this.takeIf { it.downgrade == downgrade } ?: this.copy(downgrade = downgrade)
+   } else {
+      RelativeAlignment(this, downgrade)
+   }
 }
 
 internal fun TargetAlignmentOffset?.pxValue(
@@ -44,7 +47,7 @@ internal fun TargetAlignmentOffset?.pxValue(
 
 private data class RelativeAlignment(
    val raw: TargetAlignmentOffset,
-   var downgrade: Boolean,
+   val downgrade: Boolean,
 ) : TargetAlignmentOffset() {
    fun toPx(
       density: Float,
