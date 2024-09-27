@@ -6,12 +6,12 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.SubcomposeMeasureScope
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
@@ -753,7 +753,7 @@ private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
 
 private fun LayoutCoordinates?.offset(): IntOffset {
    return if (this?.isAttached == true) {
-      this.localToWindow(Offset.Zero).round()
+      this.positionInWindow().round()
    } else {
       IntOffset.Zero
    }
