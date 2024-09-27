@@ -72,6 +72,28 @@ internal fun TargetAlignment.toAlignerPosition(): Aligner.Position {
    }
 }
 
+internal fun TargetAlignment.offsetTransition(direction: LayoutDirection): LayerTransition {
+   return when (this) {
+      TargetAlignment.TopStart,
+      TargetAlignment.StartTop,
+      -> LayerTransition.scaleBottomStart(direction)
+
+      TargetAlignment.TopEnd,
+      TargetAlignment.EndTop,
+      -> LayerTransition.scaleBottomEnd(direction)
+
+      TargetAlignment.BottomStart,
+      TargetAlignment.StartBottom,
+      -> LayerTransition.scaleTopStart(direction)
+
+      TargetAlignment.BottomEnd,
+      TargetAlignment.EndBottom,
+      -> LayerTransition.scaleTopEnd(direction)
+
+      else -> defaultTransition(direction)
+   }
+}
+
 internal fun TargetAlignment.defaultTransition(direction: LayoutDirection): LayerTransition {
    return when (this) {
       TargetAlignment.TopStart,
@@ -99,27 +121,5 @@ internal fun TargetAlignment.defaultTransition(direction: LayoutDirection): Laye
       -> LayerTransition.slideStartToEnd(direction)
 
       else -> LayerTransition.Default
-   }
-}
-
-internal fun TargetAlignment.offsetTransition(direction: LayoutDirection): LayerTransition {
-   return when (this) {
-      TargetAlignment.TopStart,
-      TargetAlignment.StartTop,
-      -> LayerTransition.scaleBottomStart(direction)
-
-      TargetAlignment.TopEnd,
-      TargetAlignment.EndTop,
-      -> LayerTransition.scaleBottomEnd(direction)
-
-      TargetAlignment.BottomStart,
-      TargetAlignment.StartBottom,
-      -> LayerTransition.scaleTopStart(direction)
-
-      TargetAlignment.BottomEnd,
-      TargetAlignment.EndBottom,
-      -> LayerTransition.scaleTopEnd(direction)
-
-      else -> defaultTransition(direction)
    }
 }
