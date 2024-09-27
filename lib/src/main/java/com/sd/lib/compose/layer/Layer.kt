@@ -50,8 +50,8 @@ enum class LayerDetach {
    /** 按返回键 */
    OnBackPress,
 
-   /** 触摸非内容区域 */
-   OnTouchOutside,
+   /** 触摸背景区域 */
+   OnTouchBackground,
 }
 
 interface LayerContentScope
@@ -69,9 +69,9 @@ internal interface Layer : LayerState {
    fun setDetachOnBackPress(value: Boolean?)
 
    /**
-    * 触摸非内容区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认值false
+    * 触摸背景区域是否移除Layer，true-移除；false-不移除；null-不处理，事件会透过背景，默认值false
     */
-   fun setDetachOnTouchOutside(value: Boolean?)
+   fun setDetachOnTouchBackground(value: Boolean?)
 
    /**
     * 背景颜色
@@ -120,7 +120,7 @@ internal abstract class LayerImpl : Layer {
    private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
 
    private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
-   private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
+   private var _detachOnTouchBackgroundState by mutableStateOf<Boolean?>(false)
    private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
    private var _zIndexState by mutableFloatStateOf(0f)
 
@@ -139,8 +139,8 @@ internal abstract class LayerImpl : Layer {
       _detachOnBackPressState = value
    }
 
-   final override fun setDetachOnTouchOutside(value: Boolean?) {
-      _detachOnTouchOutsideState = value
+   final override fun setDetachOnTouchBackground(value: Boolean?) {
+      _detachOnTouchBackgroundState = value
    }
 
    final override fun setBackgroundColor(color: Color) {
@@ -337,7 +337,7 @@ internal abstract class LayerImpl : Layer {
 
    @Composable
    protected fun BackgroundBox() {
-      Box(modifier = Modifier.handleOnTouchOutside(_detachOnTouchOutsideState)) {
+      Box {
          AnimatedVisibility(
             visible = _isVisibleState,
             enter = fadeIn(),
@@ -347,6 +347,7 @@ internal abstract class LayerImpl : Layer {
                modifier = Modifier
                   .fillMaxSize()
                   .background(_backgroundColorState)
+                  .handleOnTouchBackground(_detachOnTouchBackgroundState)
             )
          }
       }
@@ -372,16 +373,16 @@ internal abstract class LayerImpl : Layer {
    /** 内容布局 */
    private var _contentLayout: LayoutCoordinates? = null
 
-   /** 处理触摸非内容区域逻辑 */
-   private fun Modifier.handleOnTouchOutside(state: Boolean?): Modifier {
+   /** 处理触摸背景区域逻辑 */
+   private fun Modifier.handleOnTouchBackground(state: Boolean?): Modifier {
       if (state == null) return this
       return pointerInput(state) {
          detectTapGestures(
             onPress = { offset ->
                if (state) {
                   if (_contentLayout?.boundsInParent()?.contains(offset) == false) {
-                     logMsg { "OnTouchOutside" }
-                     _detachRequestCallback?.invoke(LayerDetach.OnTouchOutside)
+                     logMsg { "OnTouchBackground" }
+                     _detachRequestCallback?.invoke(LayerDetach.OnTouchBackground)
                   }
                }
             }

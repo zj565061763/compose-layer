@@ -64,7 +64,7 @@ private fun Content() {
       alignment = alignment ?: TargetAlignment.Center,
       backgroundColor = Color.Transparent,
       detachOnBackPress = null,
-      detachOnTouchOutside = null,
+      detachOnTouchBackground = null,
       debug = true,
    ) {
       ColorBox()

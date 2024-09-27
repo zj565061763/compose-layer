@@ -85,7 +85,7 @@ private fun Content() {
       attach = attach,
       onDetachRequest = { attach = false },
       alignment = TargetAlignment.BottomCenter,
-      detachOnTouchOutside = true,
+      detachOnTouchBackground = true,
       transition = LayerTransition(
          enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
          exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),

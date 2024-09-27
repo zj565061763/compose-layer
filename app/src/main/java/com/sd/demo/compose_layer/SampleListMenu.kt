@@ -84,8 +84,8 @@ private fun Content() {
       onDetachRequest = { attach = false },
       // 背景颜色透明
       backgroundColor = Color.Transparent,
-      // 触摸非内容区域请求移除回调
-      detachOnTouchOutside = true,
+      // 触摸背景区域请求移除回调
+      detachOnTouchBackground = true,
       // 设置居中对齐
       alignment = TargetAlignment.BottomCenter,
       // 如果默认的对齐方式溢出，会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置

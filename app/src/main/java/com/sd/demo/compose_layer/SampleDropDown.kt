@@ -66,7 +66,7 @@ private fun Content() {
       onDetachRequest = { attach = false },
       alignment = TargetAlignment.BottomCenter,
       clipBackgroundDirection = Directions.Top,
-      detachOnTouchOutside = true,
+      detachOnTouchBackground = true,
       debug = true,
    ) {
       VerticalList(

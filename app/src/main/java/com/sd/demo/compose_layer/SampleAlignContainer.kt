@@ -47,7 +47,7 @@ private fun Content() {
       attach = attach,
       onDetachRequest = { attach = false },
       alignment = alignment,
-      detachOnTouchOutside = true,
+      detachOnTouchBackground = true,
       debug = true,
    ) {
       ColorBox()
