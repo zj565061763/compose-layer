@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.SubcomposeMeasureScope
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -266,6 +267,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       uiState: UIState,
    ) {
       val state = remember { OffsetBoxState() }
+      val density = LocalDensity.current
       val layoutDirection = LocalLayoutDirection.current
 
       SubcomposeLayout(modifier) { cs ->
@@ -287,7 +289,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          }
 
          if (isReady) {
-            state.layoutDefault(cs, uiState, layoutDirection)
+            state.layoutDefault(cs, uiState, density.density, layoutDirection)
          } else {
             state.layoutLastInfo(cs)
          }.also {
@@ -301,6 +303,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       fun layoutDefault(
          cs: Constraints,
          uiState: UIState,
+         density: Float,
          layoutDirection: LayoutDirection,
       ): MeasureResult {
          logMsg { "layoutDefault start" }
@@ -311,6 +314,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
          var result = alignTarget(
             uiState = uiState,
             contentSize = rawSize,
+            density = density,
             layoutDirection = layoutDirection,
          )
 
@@ -320,6 +324,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                smartAliments = it,
                uiState = uiState,
                contentSize = rawSize,
+               density = density,
                layoutDirection = layoutDirection,
             )
             result = bestResult
@@ -503,6 +508,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 private fun alignTarget(
    uiState: UIState,
    contentSize: IntSize,
+   density: Float,
    layoutDirection: LayoutDirection,
 ): Aligner.Result {
    val alignment = uiState.alignment
@@ -512,8 +518,8 @@ private fun alignTarget(
       if (alignmentOffsetX != null || alignmentOffsetY != null) {
          val layout = targetLayout
          val offset = IntOffset(
-            x = alignmentOffsetX.pxValue(layout.size.width, alignment, xy = true),
-            y = alignmentOffsetY.pxValue(layout.size.height, alignment, xy = false)
+            x = alignmentOffsetX.pxValue(density, layout.size.width, alignment, xy = true),
+            y = alignmentOffsetY.pxValue(density, layout.size.height, alignment, xy = false)
          )
          targetLayout = layout.copy(offset = layout.offset + offset)
       }
@@ -542,6 +548,7 @@ private fun Aligner.Result.findBestResult(
    smartAliments: SmartAliments,
    uiState: UIState,
    contentSize: IntSize,
+   density: Float,
    layoutDirection: LayoutDirection,
 ): Pair<Aligner.Result, SmartAliment?> {
    val list = smartAliments.aliments
@@ -558,6 +565,7 @@ private fun Aligner.Result.findBestResult(
       val newResult = alignTarget(
          uiState = uiState.copy(alignment = item.alignment),
          contentSize = contentSize,
+         density = density,
          layoutDirection = layoutDirection,
       )
 
