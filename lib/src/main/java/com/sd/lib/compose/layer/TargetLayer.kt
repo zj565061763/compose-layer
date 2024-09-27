@@ -22,7 +22,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.math.roundToInt
 
 interface TargetLayerState : LayerState
 
@@ -36,18 +35,6 @@ sealed interface LayerTarget {
 
    /** 以[offset]为目标 */
    data class Offset(val offset: IntOffset?) : LayerTarget
-}
-
-/**
- * 目标对齐位置偏移量
- */
-@Immutable
-sealed interface TargetAlignmentOffset {
-   /** 按指定像素[value]偏移，支持正数和负数，以Y轴为例，大于0往下偏移，小于0往上偏移 */
-   data class PX(val value: Int) : TargetAlignmentOffset
-
-   /** 按目标大小倍数[value]偏移，支持正数和负数字，以Y轴为例，1表示往下偏移1倍目标的高度，-1表示往上偏移1倍目标的高度 */
-   data class Target(val value: Float) : TargetAlignmentOffset
 }
 
 internal interface TargetLayer : Layer, TargetLayerState {
@@ -516,21 +503,22 @@ private fun alignTarget(
    contentSize: IntSize,
    layoutDirection: LayoutDirection,
 ): Aligner.Result {
+   val alignment = uiState.alignment
 
    var targetLayout = uiState.targetLayout
    with(uiState) {
       if (alignmentOffsetX != null || alignmentOffsetY != null) {
          val layout = targetLayout
          val offset = IntOffset(
-            x = alignmentOffsetX.pxValue(layout.size.width),
-            y = alignmentOffsetY.pxValue(layout.size.height)
+            x = alignmentOffsetX.pxValue(layout.size.width, alignment, xy = true),
+            y = alignmentOffsetY.pxValue(layout.size.height, alignment, xy = false)
          )
          targetLayout = layout.copy(offset = layout.offset + offset)
       }
    }
 
    return Aligner.Input(
-      position = uiState.alignment.toAlignerPosition(),
+      position = alignment.toAlignerPosition(),
 
       targetX = targetLayout.offset.x,
       targetY = targetLayout.offset.y,
@@ -754,19 +742,6 @@ private fun LayoutCoordinates?.size(): IntSize {
 
 private fun LayoutCoordinates?.isAttached(): Boolean {
    return this?.isAttached == true
-}
-
-private fun TargetAlignmentOffset?.pxValue(
-   targetSize: Int,
-): Int {
-   return when (val offset = this) {
-      null -> 0
-      is TargetAlignmentOffset.PX -> offset.value
-      is TargetAlignmentOffset.Target -> {
-         val px = targetSize * offset.value
-         if (px.isInfinite()) 0 else px.roundToInt()
-      }
-   }
 }
 
 private fun Constraints.newMax(size: IntSize): Constraints {
