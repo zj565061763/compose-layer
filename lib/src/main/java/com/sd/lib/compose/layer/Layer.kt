@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
@@ -372,22 +372,27 @@ internal abstract class LayerImpl : Layer {
 
    /** 内容布局 */
    private var _contentLayout: LayoutCoordinates? = null
+   /** 背景布局 */
+   private lateinit var _backgroundLayout: LayoutCoordinates
 
    /** 处理触摸背景区域逻辑 */
    private fun Modifier.handleOnTouchBackground(state: Boolean?): Modifier {
       if (state == null) return this
-      return pointerInput(state) {
-         detectTapGestures(
-            onPress = { offset ->
-               if (state) {
-                  if (_contentLayout?.boundsInParent()?.contains(offset) == false) {
-                     logMsg { "OnTouchBackground" }
-                     _detachRequestCallback?.invoke(LayerDetach.OnTouchBackground)
+      return this
+         .onGloballyPositioned { _backgroundLayout = it }
+         .pointerInput(state) {
+            detectTapGestures(
+               onPress = { offset ->
+                  if (state) {
+                     val windowOffset = _backgroundLayout.localToWindow(offset)
+                     if (_contentLayout?.boundsInWindow()?.contains(windowOffset) == false) {
+                        logMsg { "OnTouchBackground" }
+                        _detachRequestCallback?.invoke(LayerDetach.OnTouchBackground)
+                     }
                   }
                }
-            }
-         )
-      }
+            )
+         }
    }
 
    private class LayerScopeImpl : LayerContentScope
