@@ -431,6 +431,8 @@ internal abstract class LayerImpl : Layer {
 
       val offsetInContainer = containerLayout.localPositionOf(backgroundLayout, offset)
       val contentBoundsInContainer = containerLayout.localBoundingBoxOf(contentLayout)
+      logMsg { "handleOnTouchBackground $offset -> $offsetInContainer $contentBoundsInContainer" }
+
       if (contentBoundsInContainer.contains(offsetInContainer)) {
          // 触摸内容区域，不处理
       } else {
