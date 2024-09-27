@@ -411,20 +411,20 @@ internal abstract class LayerImpl : Layer {
    /** 处理触摸背景区域逻辑 */
    private fun handleOnTouchBackground(offset: Offset) {
       val containerLayout = _containerLayout
-      if (containerLayout == null) {
-         logMsg { "_containerLayout is null" }
+      if (containerLayout == null || !containerLayout.isAttached) {
+         logMsg { "handleOnTouchBackground _containerLayout is null or detached" }
          return
       }
 
       val backgroundLayout = _backgroundLayout
       if (backgroundLayout == null) {
-         logMsg { "_backgroundLayout is null" }
+         logMsg { "handleOnTouchBackground _backgroundLayout is null" }
          return
       }
 
       val contentLayout = _contentLayout
       if (contentLayout == null) {
-         logMsg { "_contentLayout is null" }
+         logMsg { "handleOnTouchBackground _contentLayout is null" }
          requestDetach(LayerDetach.OnTouchBackground)
          return
       }
