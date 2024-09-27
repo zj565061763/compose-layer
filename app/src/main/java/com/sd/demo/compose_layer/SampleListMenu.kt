@@ -39,7 +39,9 @@ import com.sd.lib.compose.layer.LayerContainer
 import com.sd.lib.compose.layer.LayerTarget
 import com.sd.lib.compose.layer.SmartAliments
 import com.sd.lib.compose.layer.TargetAlignment
+import com.sd.lib.compose.layer.TargetAlignmentOffset
 import com.sd.lib.compose.layer.TargetLayer
+import com.sd.lib.compose.layer.relativeAlignment
 
 class SampleListMenu : ComponentActivity() {
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +92,10 @@ private fun Content() {
       alignment = TargetAlignment.BottomCenter,
       // 如果默认的对齐方式溢出，会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
       smartAlignments = SmartAliments.Default,
+      /** X轴相对[TargetAlignment]偏移22dp */
+      alignmentOffsetX = TargetAlignmentOffset.DP(22).relativeAlignment(),
+      /** Y轴相对[TargetAlignment]偏移22dp */
+      alignmentOffsetY = TargetAlignmentOffset.DP(22).relativeAlignment(),
       // 调试模式
       debug = true,
    ) {
