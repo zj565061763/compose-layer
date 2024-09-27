@@ -69,7 +69,7 @@ private fun Content() {
       detachOnTouchBackground = true,
       alignmentOffsetX = TargetAlignmentOffset.PX(100),
       alignmentOffsetY = TargetAlignmentOffset.Target(0.5f),
-      clipBackgroundDirection = Directions.Bottom + Directions.Start + Directions.End,
+      clipBackgroundDirection = Directions.Bottom + Directions.Start,
       debug = true,
    ) {
       VerticalList(
