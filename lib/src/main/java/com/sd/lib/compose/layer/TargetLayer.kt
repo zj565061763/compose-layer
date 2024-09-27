@@ -336,8 +336,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
          val backgroundInfo = backgroundPlaceInfo(
             cs = cs,
+            clipBackgroundDirection = _clipBackgroundDirection,
             contentOffset = fixOffset,
             contentSize = fixSize,
+            layoutDirection = layoutDirection,
          )
          val backgroundPlaceable = measureBackground(cs.newMax(backgroundInfo.size))
 
@@ -402,16 +404,20 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
       private fun backgroundPlaceInfo(
          cs: Constraints,
+         clipBackgroundDirection: Directions?,
          contentOffset: IntOffset,
          contentSize: IntSize,
+         layoutDirection: LayoutDirection,
       ): PlaceInfo {
-         val direction = _clipBackgroundDirection
-         if (direction == null || contentSize.width <= 0 || contentSize.height <= 0) {
+         if (clipBackgroundDirection == null || contentSize.width <= 0 || contentSize.height <= 0) {
             return PlaceInfo(
                offset = IntOffset.Zero,
                size = cs.maxIntSize(),
             )
          }
+
+         val direction = clipBackgroundDirection.takeIf { layoutDirection == LayoutDirection.Ltr }
+            ?: clipBackgroundDirection.rtl()
 
          val contentX = contentOffset.x.coerceAtLeast(0)
          val contentY = contentOffset.y.coerceAtLeast(0)
