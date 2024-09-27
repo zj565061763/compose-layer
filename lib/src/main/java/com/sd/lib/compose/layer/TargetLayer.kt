@@ -517,8 +517,9 @@ private fun alignTarget(
    with(uiState) {
       if (alignmentOffsetX != null || alignmentOffsetY != null) {
          val layout = targetLayout
+         val x = alignmentOffsetX.pxValue(density, layout.size.width, alignment, xy = true)
          val offset = IntOffset(
-            x = alignmentOffsetX.pxValue(density, layout.size.width, alignment, xy = true),
+            x = if (layoutDirection.isLtr()) x else -x,
             y = alignmentOffsetY.pxValue(density, layout.size.height, alignment, xy = false)
          )
          targetLayout = layout.copy(offset = layout.offset + offset)
