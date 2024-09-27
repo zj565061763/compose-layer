@@ -182,12 +182,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
    }
 
    override fun onAttach(container: ContainerForLayer) {
-      container.registerContainerLayoutCallback(_containerLayoutCallback)
+      super.onAttach(container)
       registerTarget(_target)
    }
 
    override fun onDetach(container: ContainerForLayer) {
-      container.unregisterContainerLayoutCallback(_containerLayoutCallback)
+      super.onDetach(container)
       unregisterTarget(_target)
    }
 
@@ -195,10 +195,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       _currentSmartAlignment = null
    }
 
-   /** 监听容器布局信息 */
-   private val _containerLayoutCallback: LayoutCoordinatesCallback = { layout ->
+   override fun onContainerLayoutCallback(layoutCoordinates: LayoutCoordinates?) {
+      super.onContainerLayoutCallback(layoutCoordinates)
       _uiState.update {
-         it.copy(containerLayout = layout.toLayoutInfo())
+         it.copy(containerLayout = layoutCoordinates.toLayoutInfo())
       }
    }
 

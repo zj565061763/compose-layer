@@ -2,6 +2,7 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.CallSuper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -16,10 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
@@ -186,9 +187,28 @@ internal abstract class LayerImpl : Layer {
       }
    }
 
-   protected open fun onAttach(container: ContainerForLayer) = Unit
-   protected open fun onDetach(container: ContainerForLayer) = Unit
+   @CallSuper
+   protected open fun onAttach(container: ContainerForLayer) {
+      container.registerContainerLayoutCallback(_containerLayoutCallback)
+   }
+
+   @CallSuper
+   protected open fun onDetach(container: ContainerForLayer) {
+      container.unregisterContainerLayoutCallback(_containerLayoutCallback)
+   }
+
    protected open fun onDetached(container: ContainerForLayer) = Unit
+
+   /** 容器布局信息 */
+   private var _containerLayout: LayoutCoordinates? = null
+   /** 监听容器布局信息 */
+   private val _containerLayoutCallback: LayoutCoordinatesCallback = { layoutCoordinates ->
+      _containerLayout = layoutCoordinates
+      onContainerLayoutCallback(layoutCoordinates)
+   }
+
+   /** 容器布局信息回调 */
+   protected open fun onContainerLayoutCallback(layoutCoordinates: LayoutCoordinates?) = Unit
 
    @Composable
    internal fun Init(
@@ -306,8 +326,7 @@ internal abstract class LayerImpl : Layer {
       if (_isVisibleState && _detachOnBackPressState != null) {
          BackHandler {
             if (_detachOnBackPressState == true) {
-               logMsg { "OnBackPress" }
-               _detachRequestCallback?.invoke(LayerDetach.OnBackPress)
+               requestDetach(LayerDetach.OnBackPress)
             }
          }
       }
@@ -347,7 +366,7 @@ internal abstract class LayerImpl : Layer {
                modifier = Modifier
                   .fillMaxSize()
                   .background(_backgroundColorState)
-                  .handleOnTouchBackground(_detachOnTouchBackgroundState)
+                  .handleDetachOnTouchBackground(_detachOnTouchBackgroundState)
             )
          }
       }
@@ -373,26 +392,55 @@ internal abstract class LayerImpl : Layer {
    /** 内容布局 */
    private var _contentLayout: LayoutCoordinates? = null
    /** 背景布局 */
-   private lateinit var _backgroundLayout: LayoutCoordinates
+   private var _backgroundLayout: LayoutCoordinates? = null
 
-   /** 处理触摸背景区域逻辑 */
-   private fun Modifier.handleOnTouchBackground(state: Boolean?): Modifier {
+   /** 监听触摸背景区域 */
+   private fun Modifier.handleDetachOnTouchBackground(state: Boolean?): Modifier {
       if (state == null) return this
       return this
          .onGloballyPositioned { _backgroundLayout = it }
          .pointerInput(state) {
-            detectTapGestures(
-               onPress = { offset ->
-                  if (state) {
-                     val windowOffset = _backgroundLayout.localToWindow(offset)
-                     if (_contentLayout?.boundsInWindow()?.contains(windowOffset) == false) {
-                        logMsg { "OnTouchBackground" }
-                        _detachRequestCallback?.invoke(LayerDetach.OnTouchBackground)
-                     }
-                  }
+            detectTapGestures(onPress = { offset ->
+               if (state) {
+                  handleOnTouchBackground(offset)
                }
-            )
+            })
          }
+   }
+
+   /** 处理触摸背景区域逻辑 */
+   private fun handleOnTouchBackground(offset: Offset) {
+      val containerLayout = _containerLayout
+      if (containerLayout == null) {
+         logMsg { "_containerLayout is null" }
+         return
+      }
+
+      val backgroundLayout = _backgroundLayout
+      if (backgroundLayout == null) {
+         logMsg { "_backgroundLayout is null" }
+         return
+      }
+
+      val contentLayout = _contentLayout
+      if (contentLayout == null) {
+         logMsg { "_contentLayout is null" }
+         requestDetach(LayerDetach.OnTouchBackground)
+         return
+      }
+
+      val offsetInContainer = containerLayout.localPositionOf(backgroundLayout, offset)
+      val contentBoundsInContainer = containerLayout.localBoundingBoxOf(contentLayout)
+      if (contentBoundsInContainer.contains(offsetInContainer)) {
+         // 触摸内容区域，不处理
+      } else {
+         requestDetach(LayerDetach.OnTouchBackground)
+      }
+   }
+
+   private fun requestDetach(layerDetach: LayerDetach) {
+      logMsg { "requestDetach:$layerDetach" }
+      _detachRequestCallback?.invoke(layerDetach)
    }
 
    private class LayerScopeImpl : LayerContentScope
