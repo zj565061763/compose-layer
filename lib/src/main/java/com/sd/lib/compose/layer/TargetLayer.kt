@@ -547,17 +547,16 @@ private fun Aligner.Result.findBestResult(
    val list = smartAliments.aliments
    if (list.isEmpty()) return this to null
 
-   val overflowDefault = sourceOverflow.totalOverflow()
-   if (overflowDefault == 0) return this to null
+   val defaultOverflow = sourceOverflow.totalOverflow()
+   if (defaultOverflow == 0) return this to null
 
    var bestResult = this
-   var minOverflow = overflowDefault
+   var minOverflow = defaultOverflow
    var smartAliment: SmartAliment? = null
 
    for (item in list) {
-      val newAlignment = item.alignment
       val newResult = alignTarget(
-         uiState = uiState.copy(alignment = newAlignment),
+         uiState = uiState.copy(alignment = item.alignment),
          contentSize = contentSize,
          layoutDirection = layoutDirection,
       )
@@ -569,7 +568,10 @@ private fun Aligner.Result.findBestResult(
          smartAliment = item
       }
 
-      if (newOverflow == 0) break
+      if (newOverflow == 0) {
+         // 没有溢出了，停止查找
+         break
+      }
    }
 
    return (bestResult to smartAliment).also {
