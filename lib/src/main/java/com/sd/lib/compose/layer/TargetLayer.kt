@@ -318,6 +318,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             val (bestResult, smartAlignment) = result.findBestResult(
                layer = this@TargetLayerImpl,
                smartAliments = it,
+               uiState = uiState,
+               contentSize = rawSize,
                layoutDirection = layoutDirection,
             )
             result = bestResult
@@ -538,6 +540,8 @@ private fun alignTarget(
 private fun Aligner.Result.findBestResult(
    layer: Layer,
    smartAliments: SmartAliments,
+   uiState: UIState,
+   contentSize: IntSize,
    layoutDirection: LayoutDirection,
 ): Pair<Aligner.Result, SmartAliment?> {
    val list = smartAliments.aliments
@@ -551,14 +555,20 @@ private fun Aligner.Result.findBestResult(
    var smartAliment: SmartAliment? = null
 
    for (item in list) {
-      val position = item.alignment.toAlignerPosition()
-      val newResult = this.input.copy(position = position).toResult(layoutDirection.isLtr())
+      val newAlignment = item.alignment
+      val newResult = alignTarget(
+         uiState = uiState.copy(alignment = newAlignment),
+         contentSize = contentSize,
+         layoutDirection = layoutDirection,
+      )
+
       val newOverflow = newResult.sourceOverflow.totalOverflow()
       if (newOverflow < minOverflow) {
-         minOverflow = newOverflow
          bestResult = newResult
+         minOverflow = newOverflow
          smartAliment = item
       }
+
       if (newOverflow == 0) break
    }
 
