@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
 
@@ -164,7 +165,7 @@ internal abstract class LayerImpl : Layer {
       when (val state = _lifecycleState) {
          LayerLifecycleState.Initialized,
          LayerLifecycleState.Detaching,
-         -> {
+            -> {
             val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
             logMsg { "attach" }
             container.attachLayer(this)
@@ -214,11 +215,13 @@ internal abstract class LayerImpl : Layer {
    internal fun Init(
       content: @Composable LayerContentScope.() -> Unit,
    ) {
-      val layerContainer = checkNotNull(LocalContainerForLayer.current) {
-         "Not in LayerContainer scope."
+      val container = LocalContainerForLayer.current
+      if (container == null) {
+         if (LocalInspectionMode.current) return
+         else error("Not in LayerContainer scope.")
       }
-      layerContainer.initLayer(this)
 
+      container.initLayer(this)
       _contentState.value = content
    }
 
