@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
@@ -34,8 +37,18 @@ class SampleTargetOffset : ComponentActivity() {
       super.onCreate(savedInstanceState)
       setContent {
          AppTheme {
-            LayerContainer {
-               Content()
+            var isRtl by remember { mutableStateOf(false) }
+            val direction = LayoutDirection.Rtl.takeIf { isRtl } ?: LayoutDirection.Ltr
+            CompositionLocalProvider(
+               LocalLayoutDirection provides direction
+            ) {
+               LayerContainer {
+                  Content(
+                     onClickChangeLayoutDirection = {
+                        isRtl = !isRtl
+                     }
+                  )
+               }
             }
          }
       }
@@ -43,7 +56,9 @@ class SampleTargetOffset : ComponentActivity() {
 }
 
 @Composable
-private fun Content() {
+private fun Content(
+   onClickChangeLayoutDirection: () -> Unit,
+) {
    val tag = "hello"
    var attach by remember { mutableStateOf(false) }
 
@@ -59,6 +74,12 @@ private fun Content() {
          modifier = Modifier.layerTag(tag)
       ) {
          Text("Click")
+      }
+
+      Button(
+         onClick = onClickChangeLayoutDirection,
+      ) {
+         Text("Change layout direction")
       }
    }
 
@@ -83,5 +104,7 @@ private fun Content() {
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content()
+   Content(
+      onClickChangeLayoutDirection = {},
+   )
 }
