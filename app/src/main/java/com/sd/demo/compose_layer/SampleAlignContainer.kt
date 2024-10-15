@@ -122,7 +122,5 @@ private fun ButtonsBox(
 @Preview
 @Composable
 private fun PreviewContent() {
-   LayerContainer {
-      Content()
-   }
+   Content()
 }
