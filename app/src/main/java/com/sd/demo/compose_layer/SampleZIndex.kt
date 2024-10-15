@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Layer
 import com.sd.lib.compose.layer.LayerContainer
@@ -91,4 +92,10 @@ private fun Layer2(
    ) {
       ColorBox(text = "I am Layer2", color = Color.Blue)
    }
+}
+
+@Preview
+@Composable
+private fun PreviewContent() {
+   Content()
 }

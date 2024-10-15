@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.Directions
@@ -77,4 +78,10 @@ private fun Content() {
          modifier = Modifier.width(200.dp),
       )
    }
+}
+
+@Preview
+@Composable
+private fun PreviewContent() {
+   Content()
 }

@@ -80,7 +80,5 @@ private fun Content() {
 @Preview
 @Composable
 private fun PreviewContent() {
-   LayerContainer {
-      Content()
-   }
+   Content()
 }
