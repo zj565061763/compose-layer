@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.zIndex
 
@@ -28,8 +29,12 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
    @Composable
    override fun LayerContent() {
-      SideEffect {
+      if (LocalInspectionMode.current) {
          setContentVisible(true)
+      } else {
+         SideEffect {
+            setContentVisible(true)
+         }
       }
 
       Box(
