@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.zIndex
 
 /**
@@ -252,6 +253,7 @@ fun targetLayer(
  * 为当前元素设置容器作用域内唯一的[tag]
  */
 fun Modifier.layerTag(tag: String): Modifier = composed {
+   if (LocalInspectionMode.current) return@composed this@layerTag
    require(tag.isNotEmpty()) { "tag is empty." }
 
    val container = checkNotNull(LocalContainerForComposable.current) {
