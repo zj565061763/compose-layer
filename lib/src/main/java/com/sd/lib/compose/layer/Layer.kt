@@ -299,24 +299,23 @@ internal abstract class LayerImpl : Layer {
 
    private fun handleContentZeroSize() {
       logMsg { "handleContentZeroSize isVisible:$_isVisibleState state:$_lifecycleState" }
-      if (!_isVisibleState) {
-         when (_lifecycleState) {
-            LayerLifecycleState.Attached -> {
-               if (_attachedFromDetaching) {
-                  logMsg { "attached from detaching set content visible" }
-                  setContentVisible(true)
-               }
+      if (_isVisibleState) return
+      when (_lifecycleState) {
+         LayerLifecycleState.Attached -> {
+            if (_attachedFromDetaching) {
+               logMsg { "attached from detaching set content visible" }
+               setContentVisible(true)
             }
-            LayerLifecycleState.Detaching -> {
-               val container = checkNotNull(layerContainer)
-               if (container.detachLayer(this@LayerImpl)) {
-                  logMsg { "detachLayer" }
-                  setLifecycleState(LayerLifecycleState.Initialized)
-                  onDetached(container)
-               }
-            }
-            else -> {}
          }
+         LayerLifecycleState.Detaching -> {
+            val container = checkNotNull(layerContainer)
+            if (container.detachLayer(this@LayerImpl)) {
+               logMsg { "detachLayer" }
+               setLifecycleState(LayerLifecycleState.Initialized)
+               onDetached(container)
+            }
+         }
+         else -> {}
       }
    }
 
