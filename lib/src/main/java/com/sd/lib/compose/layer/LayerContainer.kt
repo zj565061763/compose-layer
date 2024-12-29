@@ -13,11 +13,8 @@ internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
 internal interface ContainerForComposable {
   fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
-
   fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates)
-
   fun removeTarget(tag: String)
-
   fun destroy()
 
   @Composable
