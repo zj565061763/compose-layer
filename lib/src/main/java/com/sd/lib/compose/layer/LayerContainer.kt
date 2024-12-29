@@ -86,7 +86,7 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
 }
 
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
-  private val _attachedLayers: MutableList<LayerImpl> = mutableStateListOf()
+  private val _attachedLayers = mutableStateListOf<LayerImpl>()
 
   private val _containerLayoutCallbacks: MutableSet<LayoutCoordinatesCallback> = mutableSetOf()
   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<LayoutCoordinatesCallback>> = mutableMapOf()
