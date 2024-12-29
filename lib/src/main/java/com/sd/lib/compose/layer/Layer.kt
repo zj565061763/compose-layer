@@ -219,10 +219,10 @@ internal abstract class LayerImpl : Layer {
     if (container == null) {
       if (LocalInspectionMode.current) return
       else error("Not in LayerContainer scope.")
+    } else {
+      container.initLayer(this)
+      _contentState.value = content
     }
-
-    container.initLayer(this)
-    _contentState.value = content
   }
 
   internal fun destroy() {
