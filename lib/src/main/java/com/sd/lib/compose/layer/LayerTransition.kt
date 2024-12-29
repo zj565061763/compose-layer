@@ -19,146 +19,146 @@ import androidx.compose.ui.unit.LayoutDirection
 
 @Immutable
 data class LayerTransition(
-   val enter: EnterTransition,
-   val exit: ExitTransition,
+  val enter: EnterTransition,
+  val exit: ExitTransition,
 ) {
-   companion object {
-      /** 默认淡入淡出动画 */
-      val Default = LayerTransition(
-         enter = fadeIn(),
-         exit = fadeOut(),
+  companion object {
+    /** 默认淡入淡出动画 */
+    val Default = LayerTransition(
+      enter = fadeIn(),
+      exit = fadeOut(),
+    )
+
+    /** 无动画 */
+    val None = LayerTransition(
+      enter = EnterTransition.None,
+      exit = ExitTransition.None,
+    )
+
+    /** 从上向下滑动 */
+    fun slideTopToBottom(
+      enter: EnterTransition = slideInVertically(slideAnimationSpec) { -it },
+      exit: ExitTransition = slideOutVertically(slideAnimationSpec) { -it },
+    ): LayerTransition = LayerTransition(enter, exit)
+
+    /** 从下向上滑动 */
+    fun slideBottomToTop(
+      enter: EnterTransition = slideInVertically(slideAnimationSpec) { it },
+      exit: ExitTransition = slideOutVertically(slideAnimationSpec) { it },
+    ): LayerTransition = LayerTransition(enter, exit)
+
+    /** 从左向右滑动 */
+    fun slideLeftToRight(
+      enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { -it },
+      exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { -it },
+    ): LayerTransition = LayerTransition(enter, exit)
+
+    /** 从右向左滑动 */
+    fun slideRightToLeft(
+      enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { it },
+      exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { it },
+    ): LayerTransition = LayerTransition(enter, exit)
+
+    inline fun slideStartToEnd(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { slideLeftToRight() },
+      rtlBuilder: () -> LayerTransition = { slideRightToLeft() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
+
+    inline fun slideEndToStart(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { slideRightToLeft() },
+      rtlBuilder: () -> LayerTransition = { slideLeftToRight() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
+
+    /** 左上角锚点缩放 */
+    fun scaleTopLeft(): LayerTransition {
+      val transformOrigin = TransformOrigin(0.0f, 0.0f)
+      return LayerTransition(
+        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
       )
+    }
 
-      /** 无动画 */
-      val None = LayerTransition(
-         enter = EnterTransition.None,
-         exit = ExitTransition.None,
+    /** 右上角锚点缩放 */
+    fun scaleTopRight(): LayerTransition {
+      val transformOrigin = TransformOrigin(1.0f, 0.0f)
+      return LayerTransition(
+        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
       )
+    }
 
-      /** 从上向下滑动 */
-      fun slideTopToBottom(
-         enter: EnterTransition = slideInVertically(slideAnimationSpec) { -it },
-         exit: ExitTransition = slideOutVertically(slideAnimationSpec) { -it },
-      ): LayerTransition = LayerTransition(enter, exit)
+    /** 左下角锚点缩放 */
+    fun scaleBottomLeft(): LayerTransition {
+      val transformOrigin = TransformOrigin(0.0f, 1.0f)
+      return LayerTransition(
+        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
+      )
+    }
 
-      /** 从下向上滑动 */
-      fun slideBottomToTop(
-         enter: EnterTransition = slideInVertically(slideAnimationSpec) { it },
-         exit: ExitTransition = slideOutVertically(slideAnimationSpec) { it },
-      ): LayerTransition = LayerTransition(enter, exit)
+    /** 右下角锚点缩放 */
+    fun scaleBottomRight(): LayerTransition {
+      val transformOrigin = TransformOrigin(1.0f, 1.0f)
+      return LayerTransition(
+        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
+      )
+    }
 
-      /** 从左向右滑动 */
-      fun slideLeftToRight(
-         enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { -it },
-         exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { -it },
-      ): LayerTransition = LayerTransition(enter, exit)
+    inline fun scaleTopStart(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { scaleTopLeft() },
+      rtlBuilder: () -> LayerTransition = { scaleTopRight() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
 
-      /** 从右向左滑动 */
-      fun slideRightToLeft(
-         enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { it },
-         exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { it },
-      ): LayerTransition = LayerTransition(enter, exit)
+    inline fun scaleTopEnd(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { scaleTopRight() },
+      rtlBuilder: () -> LayerTransition = { scaleTopLeft() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
 
-      inline fun slideStartToEnd(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { slideLeftToRight() },
-         rtlBuilder: () -> LayerTransition = { slideRightToLeft() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
+    inline fun scaleBottomStart(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { scaleBottomLeft() },
+      rtlBuilder: () -> LayerTransition = { scaleBottomRight() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
 
-      inline fun slideEndToStart(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { slideRightToLeft() },
-         rtlBuilder: () -> LayerTransition = { slideLeftToRight() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
-
-      /** 左上角锚点缩放 */
-      fun scaleTopLeft(): LayerTransition {
-         val transformOrigin = TransformOrigin(0.0f, 0.0f)
-         return LayerTransition(
-            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-         )
-      }
-
-      /** 右上角锚点缩放 */
-      fun scaleTopRight(): LayerTransition {
-         val transformOrigin = TransformOrigin(1.0f, 0.0f)
-         return LayerTransition(
-            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-         )
-      }
-
-      /** 左下角锚点缩放 */
-      fun scaleBottomLeft(): LayerTransition {
-         val transformOrigin = TransformOrigin(0.0f, 1.0f)
-         return LayerTransition(
-            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-         )
-      }
-
-      /** 右下角锚点缩放 */
-      fun scaleBottomRight(): LayerTransition {
-         val transformOrigin = TransformOrigin(1.0f, 1.0f)
-         return LayerTransition(
-            enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-            exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-         )
-      }
-
-      inline fun scaleTopStart(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { scaleTopLeft() },
-         rtlBuilder: () -> LayerTransition = { scaleTopRight() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
-
-      inline fun scaleTopEnd(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { scaleTopRight() },
-         rtlBuilder: () -> LayerTransition = { scaleTopLeft() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
-
-      inline fun scaleBottomStart(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { scaleBottomLeft() },
-         rtlBuilder: () -> LayerTransition = { scaleBottomRight() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
-
-      inline fun scaleBottomEnd(
-         direction: LayoutDirection,
-         ltrBuilder: () -> LayerTransition = { scaleBottomRight() },
-         rtlBuilder: () -> LayerTransition = { scaleBottomLeft() },
-      ): LayerTransition {
-         return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
-      }
-   }
+    inline fun scaleBottomEnd(
+      direction: LayoutDirection,
+      ltrBuilder: () -> LayerTransition = { scaleBottomRight() },
+      rtlBuilder: () -> LayerTransition = { scaleBottomLeft() },
+    ): LayerTransition {
+      return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
+    }
+  }
 }
 
 private val slideAnimationSpec: FiniteAnimationSpec<IntOffset>
-   get() = tween(200)
+  get() = tween(200)
 
 private val scaleAnimationSpec: FiniteAnimationSpec<Float>
-   get() = tween(200)
+  get() = tween(200)
 
 @PublishedApi
 internal inline fun layoutDirectionTransition(
-   direction: LayoutDirection,
-   ltrBuilder: () -> LayerTransition,
-   rtlBuilder: () -> LayerTransition,
+  direction: LayoutDirection,
+  ltrBuilder: () -> LayerTransition,
+  rtlBuilder: () -> LayerTransition,
 ): LayerTransition {
-   return when (direction) {
-      LayoutDirection.Ltr -> ltrBuilder()
-      LayoutDirection.Rtl -> rtlBuilder()
-   }
+  return when (direction) {
+    LayoutDirection.Ltr -> ltrBuilder()
+    LayoutDirection.Rtl -> rtlBuilder()
+  }
 }

@@ -26,101 +26,101 @@ import com.sd.lib.compose.layer.LayerState
 import com.sd.lib.compose.layer.layer
 
 class SampleAlignContainer : ComponentActivity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      setContent {
-         AppTheme {
-            LayerContainer {
-               Content()
-            }
-         }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        LayerContainer {
+          Content()
+        }
       }
-   }
+    }
+  }
 }
 
 @Composable
 private fun Content() {
-   var attach by remember { mutableStateOf(false) }
-   var alignment by remember { mutableStateOf(Alignment.Center) }
+  var attach by remember { mutableStateOf(false) }
+  var alignment by remember { mutableStateOf(Alignment.Center) }
 
-   /** 创建Layer，并返回[LayerState] */
-   val layerState = layer(
-      attach = attach,
-      onDetachRequest = { attach = false },
-      alignment = alignment,
-      detachOnTouchBackground = true,
-      debug = true,
-   ) {
-      ColorBox()
-   }
+  /** 创建Layer，并返回[LayerState] */
+  val layerState = layer(
+    attach = attach,
+    onDetachRequest = { attach = false },
+    alignment = alignment,
+    detachOnTouchBackground = true,
+    debug = true,
+  ) {
+    ColorBox()
+  }
 
-   Box(modifier = Modifier.fillMaxSize()) {
-      ButtonsBox(
-         modifier = Modifier.fillMaxSize(),
-         onClick = {
-            alignment = it
-            attach = true
-         }
-      )
-
-      // 演示跟踪Layer可见状态动画
-      AnimatedVisibility(
-         modifier = Modifier.align(Alignment.Center),
-         visible = layerState.isVisibleState,
-         enter = scaleIn(),
-         exit = scaleOut(),
-      ) {
-         Text("Sync visible state")
+  Box(modifier = Modifier.fillMaxSize()) {
+    ButtonsBox(
+      modifier = Modifier.fillMaxSize(),
+      onClick = {
+        alignment = it
+        attach = true
       }
-   }
+    )
 
-   LaunchedEffect(layerState) {
-      // 监听Layer生命周期状态
-      snapshotFlow { layerState.lifecycleState }
-         .collect {
-            logMsg { "lifecycleState:${it}" }
-         }
-   }
+    // 演示跟踪Layer可见状态动画
+    AnimatedVisibility(
+      modifier = Modifier.align(Alignment.Center),
+      visible = layerState.isVisibleState,
+      enter = scaleIn(),
+      exit = scaleOut(),
+    ) {
+      Text("Sync visible state")
+    }
+  }
+
+  LaunchedEffect(layerState) {
+    // 监听Layer生命周期状态
+    snapshotFlow { layerState.lifecycleState }
+      .collect {
+        logMsg { "lifecycleState:${it}" }
+      }
+  }
 }
 
 @Composable
 private fun ButtonsBox(
-   modifier: Modifier = Modifier,
-   onClick: (Alignment) -> Unit,
+  modifier: Modifier = Modifier,
+  onClick: (Alignment) -> Unit,
 ) {
-   Box(modifier = modifier) {
-      Button(
-         modifier = Modifier.align(Alignment.TopCenter),
-         onClick = { onClick(Alignment.TopCenter) },
-      ) {
-         Text(text = "TopCenter")
-      }
+  Box(modifier = modifier) {
+    Button(
+      modifier = Modifier.align(Alignment.TopCenter),
+      onClick = { onClick(Alignment.TopCenter) },
+    ) {
+      Text(text = "TopCenter")
+    }
 
-      Button(
-         modifier = Modifier.align(Alignment.BottomCenter),
-         onClick = { onClick(Alignment.BottomCenter) },
-      ) {
-         Text(text = "BottomCenter")
-      }
+    Button(
+      modifier = Modifier.align(Alignment.BottomCenter),
+      onClick = { onClick(Alignment.BottomCenter) },
+    ) {
+      Text(text = "BottomCenter")
+    }
 
-      Button(
-         modifier = Modifier.align(Alignment.CenterStart),
-         onClick = { onClick(Alignment.CenterStart) },
-      ) {
-         Text(text = "CenterStart")
-      }
+    Button(
+      modifier = Modifier.align(Alignment.CenterStart),
+      onClick = { onClick(Alignment.CenterStart) },
+    ) {
+      Text(text = "CenterStart")
+    }
 
-      Button(
-         modifier = Modifier.align(Alignment.CenterEnd),
-         onClick = { onClick(Alignment.CenterEnd) },
-      ) {
-         Text(text = "CenterEnd")
-      }
-   }
+    Button(
+      modifier = Modifier.align(Alignment.CenterEnd),
+      onClick = { onClick(Alignment.CenterEnd) },
+    ) {
+      Text(text = "CenterEnd")
+    }
+  }
 }
 
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content()
+  Content()
 }

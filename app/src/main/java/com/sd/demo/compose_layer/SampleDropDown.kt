@@ -29,56 +29,56 @@ import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
 
 class SampleDropDown : ComponentActivity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      setContent {
-         AppTheme {
-            LayerContainer {
-               Content()
-            }
-         }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        LayerContainer {
+          Content()
+        }
       }
-   }
+    }
+  }
 }
 
 @Composable
 private fun Content() {
-   val tag = "hello"
-   var attach by remember { mutableStateOf(false) }
+  val tag = "hello"
+  var attach by remember { mutableStateOf(false) }
 
-   Column(
-      modifier = Modifier
-         .fillMaxSize()
-         .padding(horizontal = 10.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-   ) {
-      Spacer(modifier = Modifier.height(300.dp))
-      Button(
-         onClick = { attach = !attach },
-         modifier = Modifier.layerTag(tag)
-      ) {
-         Text(if (attach) "Close" else "Open")
-      }
-   }
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(horizontal = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Spacer(modifier = Modifier.height(300.dp))
+    Button(
+      onClick = { attach = !attach },
+      modifier = Modifier.layerTag(tag)
+    ) {
+      Text(if (attach) "Close" else "Open")
+    }
+  }
 
-   TargetLayer(
-      target = LayerTarget.Tag(tag),
-      attach = attach,
-      onDetachRequest = { attach = false },
-      alignment = TargetAlignment.BottomCenter,
-      clipBackgroundDirection = Directions.Top,
-      detachOnTouchBackground = true,
-      debug = true,
-   ) {
-      VerticalList(
-         count = 5,
-         modifier = Modifier.width(200.dp),
-      )
-   }
+  TargetLayer(
+    target = LayerTarget.Tag(tag),
+    attach = attach,
+    onDetachRequest = { attach = false },
+    alignment = TargetAlignment.BottomCenter,
+    clipBackgroundDirection = Directions.Top,
+    detachOnTouchBackground = true,
+    debug = true,
+  ) {
+    VerticalList(
+      count = 5,
+      modifier = Modifier.width(200.dp),
+    )
+  }
 }
 
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content()
+  Content()
 }

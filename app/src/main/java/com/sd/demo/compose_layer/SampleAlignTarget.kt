@@ -40,215 +40,215 @@ import com.sd.lib.compose.layer.layerTag
 import com.sd.lib.compose.layer.targetLayer
 
 class SampleAlignTarget : ComponentActivity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      setContent {
-         AppTheme {
-            LayerContainer {
-               Content()
-            }
-         }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        LayerContainer {
+          Content()
+        }
       }
-   }
+    }
+  }
 }
 
 @Composable
 private fun Content() {
-   val tag = "hello"
-   var attach by remember { mutableStateOf(false) }
-   var alignment: TargetAlignment? by remember { mutableStateOf(null) }
+  val tag = "hello"
+  var attach by remember { mutableStateOf(false) }
+  var alignment: TargetAlignment? by remember { mutableStateOf(null) }
 
-   val layerState = targetLayer(
-      target = LayerTarget.Tag(tag),
-      attach = attach,
-      onDetachRequest = { attach = false },
-      alignment = alignment ?: TargetAlignment.Center,
-      backgroundColor = Color.Transparent,
-      detachOnBackPress = null,
-      detachOnTouchBackground = null,
-      debug = true,
-   ) {
-      ColorBox()
-   }
+  val layerState = targetLayer(
+    target = LayerTarget.Tag(tag),
+    attach = attach,
+    onDetachRequest = { attach = false },
+    alignment = alignment ?: TargetAlignment.Center,
+    backgroundColor = Color.Transparent,
+    detachOnBackPress = null,
+    detachOnTouchBackground = null,
+    debug = true,
+  ) {
+    ColorBox()
+  }
 
-   LaunchedEffect(layerState) {
-      // 监听Layer生命周期状态
-      snapshotFlow { layerState.lifecycleState }
-         .collect {
-            logMsg { "lifecycleState:${it}" }
-         }
-   }
+  LaunchedEffect(layerState) {
+    // 监听Layer生命周期状态
+    snapshotFlow { layerState.lifecycleState }
+      .collect {
+        logMsg { "lifecycleState:${it}" }
+      }
+  }
 
-   LaunchedEffect(layerState) {
-      // 监听Layer可见状态
-      snapshotFlow { layerState.isVisibleState }
-         .collect {
-            logMsg { "isVisibleState:${it}" }
-         }
-   }
+  LaunchedEffect(layerState) {
+    // 监听Layer可见状态
+    snapshotFlow { layerState.isVisibleState }
+      .collect {
+        logMsg { "isVisibleState:${it}" }
+      }
+  }
 
-   Box(modifier = Modifier.fillMaxSize()) {
-      TargetView(tag = tag)
-      ButtonsView(
-         currentAlignment = alignment,
-         onClickDetach = { attach = false },
-         onClick = {
-            alignment = it
-            attach = true
-         },
-      )
-   }
+  Box(modifier = Modifier.fillMaxSize()) {
+    TargetView(tag = tag)
+    ButtonsView(
+      currentAlignment = alignment,
+      onClickDetach = { attach = false },
+      onClick = {
+        alignment = it
+        attach = true
+      },
+    )
+  }
 }
 
 @Composable
 private fun TargetView(
-   modifier: Modifier = Modifier,
-   tag: String,
+  modifier: Modifier = Modifier,
+  tag: String,
 ) {
-   var showTarget by remember { mutableStateOf(true) }
+  var showTarget by remember { mutableStateOf(true) }
 
-   Column(
-      modifier = modifier
-         .fillMaxSize()
-         .verticalScroll(rememberScrollState()),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center,
-   ) {
-      Box(modifier = Modifier.height(400.dp))
+  Column(
+    modifier = modifier
+      .fillMaxSize()
+      .verticalScroll(rememberScrollState()),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    Box(modifier = Modifier.height(400.dp))
 
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-         Button(onClick = {
-            showTarget = !showTarget
-         }) {
-            Text(if (showTarget) "Hide Target" else "Show Target")
-         }
-
-         if (showTarget) {
-            Box(
-               modifier = Modifier
-                  .size(150.dp)
-                  .background(Color.LightGray)
-                  .layerTag(tag)
-            ) {
-               Text(text = "Target", modifier = Modifier.align(Alignment.Center))
-            }
-         }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Button(onClick = {
+        showTarget = !showTarget
+      }) {
+        Text(if (showTarget) "Hide Target" else "Show Target")
       }
 
-      Box(modifier = Modifier.height(2000.dp))
-   }
+      if (showTarget) {
+        Box(
+          modifier = Modifier
+            .size(150.dp)
+            .background(Color.LightGray)
+            .layerTag(tag)
+        ) {
+          Text(text = "Target", modifier = Modifier.align(Alignment.Center))
+        }
+      }
+    }
+
+    Box(modifier = Modifier.height(2000.dp))
+  }
 }
 
 @Composable
 private fun ButtonsView(
-   modifier: Modifier = Modifier,
-   currentAlignment: TargetAlignment?,
-   onClickDetach: () -> Unit,
-   onClick: (TargetAlignment) -> Unit,
+  modifier: Modifier = Modifier,
+  currentAlignment: TargetAlignment?,
+  onClickDetach: () -> Unit,
+  onClick: (TargetAlignment) -> Unit,
 ) {
-   Column(
-      modifier = modifier
-         .fillMaxWidth()
-         .systemBarsPadding(),
-      horizontalAlignment = Alignment.CenterHorizontally,
-   ) {
-      // Top
-      ButtonRow(
-         list = listOf(
-            TargetAlignment.TopStart,
-            TargetAlignment.TopCenter,
-            TargetAlignment.TopEnd,
-         ),
-         currentAlignment = currentAlignment,
-         onClick = onClick,
-      )
+  Column(
+    modifier = modifier
+      .fillMaxWidth()
+      .systemBarsPadding(),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    // Top
+    ButtonRow(
+      list = listOf(
+        TargetAlignment.TopStart,
+        TargetAlignment.TopCenter,
+        TargetAlignment.TopEnd,
+      ),
+      currentAlignment = currentAlignment,
+      onClick = onClick,
+    )
 
-      // Bottom
-      ButtonRow(
-         list = listOf(
-            TargetAlignment.BottomStart,
-            TargetAlignment.BottomCenter,
-            TargetAlignment.BottomEnd,
-         ),
-         currentAlignment = currentAlignment,
-         onClick = onClick,
-      )
+    // Bottom
+    ButtonRow(
+      list = listOf(
+        TargetAlignment.BottomStart,
+        TargetAlignment.BottomCenter,
+        TargetAlignment.BottomEnd,
+      ),
+      currentAlignment = currentAlignment,
+      onClick = onClick,
+    )
 
-      // Center
-      ButtonRow(
-         list = listOf(
-            TargetAlignment.Top,
-            TargetAlignment.Bottom,
-            TargetAlignment.Center,
-            TargetAlignment.Start,
-            TargetAlignment.End,
-         ),
-         currentAlignment = currentAlignment,
-         onClick = onClick,
-      )
+    // Center
+    ButtonRow(
+      list = listOf(
+        TargetAlignment.Top,
+        TargetAlignment.Bottom,
+        TargetAlignment.Center,
+        TargetAlignment.Start,
+        TargetAlignment.End,
+      ),
+      currentAlignment = currentAlignment,
+      onClick = onClick,
+    )
 
-      // Start
-      ButtonRow(
-         list = listOf(
-            TargetAlignment.StartTop,
-            TargetAlignment.StartCenter,
-            TargetAlignment.StartBottom,
-         ),
-         currentAlignment = currentAlignment,
-         onClick = onClick,
-      )
+    // Start
+    ButtonRow(
+      list = listOf(
+        TargetAlignment.StartTop,
+        TargetAlignment.StartCenter,
+        TargetAlignment.StartBottom,
+      ),
+      currentAlignment = currentAlignment,
+      onClick = onClick,
+    )
 
-      // End
-      ButtonRow(
-         list = listOf(
-            TargetAlignment.EndTop,
-            TargetAlignment.EndCenter,
-            TargetAlignment.EndBottom,
-         ),
-         currentAlignment = currentAlignment,
-         onClick = onClick,
-      )
+    // End
+    ButtonRow(
+      list = listOf(
+        TargetAlignment.EndTop,
+        TargetAlignment.EndCenter,
+        TargetAlignment.EndBottom,
+      ),
+      currentAlignment = currentAlignment,
+      onClick = onClick,
+    )
 
-      Button(
-         onClick = { onClickDetach() },
-         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error
-         )
-      ) {
-         Text(text = "Detach")
-      }
-   }
+    Button(
+      onClick = { onClickDetach() },
+      colors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.error
+      )
+    ) {
+      Text(text = "Detach")
+    }
+  }
 }
 
 @Composable
 private fun ButtonRow(
-   modifier: Modifier = Modifier,
-   list: List<TargetAlignment>,
-   currentAlignment: TargetAlignment?,
-   onClick: (TargetAlignment) -> Unit,
+  modifier: Modifier = Modifier,
+  list: List<TargetAlignment>,
+  currentAlignment: TargetAlignment?,
+  onClick: (TargetAlignment) -> Unit,
 ) {
-   Row(
-      modifier = modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center,
-   ) {
-      list.forEach { item ->
-         Button(
-            onClick = { onClick(item) },
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(0.dp)
-         ) {
-            Text(
-               text = item.name,
-               color = if (item == currentAlignment) Color.Red else Color.White
-            )
-         }
+  Row(
+    modifier = modifier.fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center,
+  ) {
+    list.forEach { item ->
+      Button(
+        onClick = { onClick(item) },
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(0.dp)
+      ) {
+        Text(
+          text = item.name,
+          color = if (item == currentAlignment) Color.Red else Color.White
+        )
       }
-   }
+    }
+  }
 }
 
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content()
+  Content()
 }

@@ -33,78 +33,78 @@ import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
 
 class SampleTargetOffset : ComponentActivity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      setContent {
-         AppTheme {
-            var isRtl by remember { mutableStateOf(false) }
-            val direction = LayoutDirection.Rtl.takeIf { isRtl } ?: LayoutDirection.Ltr
-            CompositionLocalProvider(
-               LocalLayoutDirection provides direction
-            ) {
-               LayerContainer {
-                  Content(
-                     onClickChangeLayoutDirection = {
-                        isRtl = !isRtl
-                     }
-                  )
-               }
-            }
-         }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        var isRtl by remember { mutableStateOf(false) }
+        val direction = LayoutDirection.Rtl.takeIf { isRtl } ?: LayoutDirection.Ltr
+        CompositionLocalProvider(
+          LocalLayoutDirection provides direction
+        ) {
+          LayerContainer {
+            Content(
+              onClickChangeLayoutDirection = {
+                isRtl = !isRtl
+              }
+            )
+          }
+        }
       }
-   }
+    }
+  }
 }
 
 @Composable
 private fun Content(
-   onClickChangeLayoutDirection: () -> Unit,
+  onClickChangeLayoutDirection: () -> Unit,
 ) {
-   val tag = "hello"
-   var attach by remember { mutableStateOf(false) }
+  val tag = "hello"
+  var attach by remember { mutableStateOf(false) }
 
-   Column(
-      modifier = Modifier
-         .fillMaxSize()
-         .padding(horizontal = 10.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-   ) {
-      Spacer(modifier = Modifier.height(500.dp))
-      Button(
-         onClick = { attach = true },
-         modifier = Modifier.layerTag(tag)
-      ) {
-         Text("Click")
-      }
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(horizontal = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Spacer(modifier = Modifier.height(500.dp))
+    Button(
+      onClick = { attach = true },
+      modifier = Modifier.layerTag(tag)
+    ) {
+      Text("Click")
+    }
 
-      Button(
-         onClick = onClickChangeLayoutDirection,
-      ) {
-         Text("Change layout direction")
-      }
-   }
+    Button(
+      onClick = onClickChangeLayoutDirection,
+    ) {
+      Text("Change layout direction")
+    }
+  }
 
-   TargetLayer(
-      target = LayerTarget.Tag(tag),
-      attach = attach,
-      onDetachRequest = { attach = false },
-      alignment = TargetAlignment.TopCenter,
-      detachOnTouchBackground = true,
-      alignmentOffsetX = TargetAlignmentOffset.PX(100),
-      alignmentOffsetY = TargetAlignmentOffset.Target(0.5f),
-      clipBackgroundDirection = Directions.Bottom + Directions.Start,
-      debug = true,
-   ) {
-      VerticalList(
-         count = 5,
-         modifier = Modifier.width(200.dp),
-      )
-   }
+  TargetLayer(
+    target = LayerTarget.Tag(tag),
+    attach = attach,
+    onDetachRequest = { attach = false },
+    alignment = TargetAlignment.TopCenter,
+    detachOnTouchBackground = true,
+    alignmentOffsetX = TargetAlignmentOffset.PX(100),
+    alignmentOffsetY = TargetAlignmentOffset.Target(0.5f),
+    clipBackgroundDirection = Directions.Bottom + Directions.Start,
+    debug = true,
+  ) {
+    VerticalList(
+      count = 5,
+      modifier = Modifier.width(200.dp),
+    )
+  }
 }
 
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content(
-      onClickChangeLayoutDirection = {},
-   )
+  Content(
+    onClickChangeLayoutDirection = {},
+  )
 }

@@ -20,31 +20,31 @@ import androidx.compose.ui.zIndex
  */
 @Composable
 fun LayerContainer(
-   modifier: Modifier = Modifier,
-   content: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+  content: @Composable () -> Unit,
 ) {
-   val container = remember { newLayerContainer() }
+  val container = remember { newLayerContainer() }
 
-   DisposableEffect(container) {
-      onDispose {
-         container.destroy()
-      }
-   }
+  DisposableEffect(container) {
+    onDispose {
+      container.destroy()
+    }
+  }
 
-   CompositionLocalProvider(
-      LocalContainerForComposable provides container,
-      LocalContainerForLayer provides container,
-   ) {
-      Box(
-         modifier = modifier
-            .onGloballyPositioned {
-               container.updateContainerLayout(it)
-            },
-      ) {
-         content()
-         container.Layers()
-      }
-   }
+  CompositionLocalProvider(
+    LocalContainerForComposable provides container,
+    LocalContainerForLayer provides container,
+  ) {
+    Box(
+      modifier = modifier
+        .onGloballyPositioned {
+          container.updateContainerLayout(it)
+        },
+    ) {
+      content()
+      container.Layers()
+    }
+  }
 }
 
 //-------------------- Layer --------------------
@@ -54,29 +54,29 @@ fun LayerContainer(
  */
 @Composable
 fun Layer(
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: Alignment = Alignment.Center,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: Alignment = Alignment.Center,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 ) {
-   layer(
-      attach = attach,
-      onDetachRequest = onDetachRequest,
-      debug = debug,
-      detachOnBackPress = detachOnBackPress,
-      detachOnTouchBackground = detachOnTouchBackground,
-      backgroundColor = backgroundColor,
-      alignment = alignment,
-      transition = transition,
-      zIndex = zIndex,
-      content = content,
-   )
+  layer(
+    attach = attach,
+    onDetachRequest = onDetachRequest,
+    debug = debug,
+    detachOnBackPress = detachOnBackPress,
+    detachOnTouchBackground = detachOnTouchBackground,
+    backgroundColor = backgroundColor,
+    alignment = alignment,
+    transition = transition,
+    zIndex = zIndex,
+    content = content,
+  )
 }
 
 /**
@@ -95,44 +95,44 @@ fun Layer(
  */
 @Composable
 fun layer(
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: Alignment = Alignment.Center,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: Alignment = Alignment.Center,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 ): LayerState {
-   val layer = remember { NormalLayerImpl() }.apply {
-      this.debug = debug
-      this.Init(content)
-      this.setDetachRequestCallback(onDetachRequest)
-      this.setDetachOnBackPress(detachOnBackPress)
-      this.setDetachOnTouchBackground(detachOnTouchBackground)
-      this.setBackgroundColor(backgroundColor)
-      this.setAlignment(alignment)
-      this.setTransition(transition)
-      this.setZIndex(zIndex)
-   }
+  val layer = remember { NormalLayerImpl() }.apply {
+    this.debug = debug
+    this.Init(content)
+    this.setDetachRequestCallback(onDetachRequest)
+    this.setDetachOnBackPress(detachOnBackPress)
+    this.setDetachOnTouchBackground(detachOnTouchBackground)
+    this.setBackgroundColor(backgroundColor)
+    this.setAlignment(alignment)
+    this.setTransition(transition)
+    this.setZIndex(zIndex)
+  }
 
-   DisposableEffect(layer) {
-      onDispose {
-         layer.destroy()
-      }
-   }
+  DisposableEffect(layer) {
+    onDispose {
+      layer.destroy()
+    }
+  }
 
-   LaunchedEffect(layer, attach) {
-      if (attach) {
-         layer.attach()
-      } else {
-         layer.detach()
-      }
-   }
+  LaunchedEffect(layer, attach) {
+    if (attach) {
+      layer.attach()
+    } else {
+      layer.detach()
+    }
+  }
 
-   return remember(layer) { layer.toLayerState() }
+  return remember(layer) { layer.toLayerState() }
 }
 
 //-------------------- TargetLayer --------------------
@@ -142,39 +142,39 @@ fun layer(
  */
 @Composable
 fun TargetLayer(
-   target: LayerTarget?,
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: TargetAlignment = TargetAlignment.Center,
-   alignmentOffsetX: TargetAlignmentOffset? = null,
-   alignmentOffsetY: TargetAlignmentOffset? = null,
-   smartAlignments: SmartAliments? = null,
-   clipBackgroundDirection: Directions? = null,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  target: LayerTarget?,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: TargetAlignment = TargetAlignment.Center,
+  alignmentOffsetX: TargetAlignmentOffset? = null,
+  alignmentOffsetY: TargetAlignmentOffset? = null,
+  smartAlignments: SmartAliments? = null,
+  clipBackgroundDirection: Directions? = null,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 ) {
-   targetLayer(
-      target = target,
-      attach = attach,
-      onDetachRequest = onDetachRequest,
-      debug = debug,
-      detachOnBackPress = detachOnBackPress,
-      detachOnTouchBackground = detachOnTouchBackground,
-      backgroundColor = backgroundColor,
-      alignment = alignment,
-      alignmentOffsetX = alignmentOffsetX,
-      alignmentOffsetY = alignmentOffsetY,
-      smartAlignments = smartAlignments,
-      clipBackgroundDirection = clipBackgroundDirection,
-      transition = transition,
-      zIndex = zIndex,
-      content = content,
-   )
+  targetLayer(
+    target = target,
+    attach = attach,
+    onDetachRequest = onDetachRequest,
+    debug = debug,
+    detachOnBackPress = detachOnBackPress,
+    detachOnTouchBackground = detachOnTouchBackground,
+    backgroundColor = backgroundColor,
+    alignment = alignment,
+    alignmentOffsetX = alignmentOffsetX,
+    alignmentOffsetY = alignmentOffsetY,
+    smartAlignments = smartAlignments,
+    clipBackgroundDirection = clipBackgroundDirection,
+    transition = transition,
+    zIndex = zIndex,
+    content = content,
+  )
 }
 
 /**
@@ -199,76 +199,76 @@ fun TargetLayer(
  */
 @Composable
 fun targetLayer(
-   target: LayerTarget?,
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: TargetAlignment = TargetAlignment.Center,
-   alignmentOffsetX: TargetAlignmentOffset? = null,
-   alignmentOffsetY: TargetAlignmentOffset? = null,
-   smartAlignments: SmartAliments? = null,
-   clipBackgroundDirection: Directions? = null,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  target: LayerTarget?,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: TargetAlignment = TargetAlignment.Center,
+  alignmentOffsetX: TargetAlignmentOffset? = null,
+  alignmentOffsetY: TargetAlignmentOffset? = null,
+  smartAlignments: SmartAliments? = null,
+  clipBackgroundDirection: Directions? = null,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayerState {
-   val layer = remember { TargetLayerImpl() }.apply {
-      this.debug = debug
-      this.Init(content)
-      this.setDetachRequestCallback(onDetachRequest)
-      this.setDetachOnBackPress(detachOnBackPress)
-      this.setDetachOnTouchBackground(detachOnTouchBackground)
-      this.setBackgroundColor(backgroundColor)
-      this.setTarget(target)
-      this.setAlignment(alignment)
-      this.setAlignmentOffsetX(alignmentOffsetX)
-      this.setAlignmentOffsetY(alignmentOffsetY)
-      this.setSmartAlignments(smartAlignments)
-      this.setClipBackgroundDirection(clipBackgroundDirection)
-      this.setTransition(transition)
-      this.setZIndex(zIndex)
-   }
+  val layer = remember { TargetLayerImpl() }.apply {
+    this.debug = debug
+    this.Init(content)
+    this.setDetachRequestCallback(onDetachRequest)
+    this.setDetachOnBackPress(detachOnBackPress)
+    this.setDetachOnTouchBackground(detachOnTouchBackground)
+    this.setBackgroundColor(backgroundColor)
+    this.setTarget(target)
+    this.setAlignment(alignment)
+    this.setAlignmentOffsetX(alignmentOffsetX)
+    this.setAlignmentOffsetY(alignmentOffsetY)
+    this.setSmartAlignments(smartAlignments)
+    this.setClipBackgroundDirection(clipBackgroundDirection)
+    this.setTransition(transition)
+    this.setZIndex(zIndex)
+  }
 
-   DisposableEffect(layer) {
-      onDispose {
-         layer.destroy()
-      }
-   }
+  DisposableEffect(layer) {
+    onDispose {
+      layer.destroy()
+    }
+  }
 
-   LaunchedEffect(layer, attach) {
-      if (attach) {
-         layer.attach()
-      } else {
-         layer.detach()
-      }
-   }
+  LaunchedEffect(layer, attach) {
+    if (attach) {
+      layer.attach()
+    } else {
+      layer.detach()
+    }
+  }
 
-   return remember(layer) { layer.toTargetLayerState() }
+  return remember(layer) { layer.toTargetLayerState() }
 }
 
 /**
  * 为当前元素设置容器作用域内唯一的[tag]
  */
 fun Modifier.layerTag(tag: String): Modifier = composed {
-   if (LocalInspectionMode.current) return@composed this@layerTag
-   require(tag.isNotEmpty()) { "tag is empty." }
+  if (LocalInspectionMode.current) return@composed this@layerTag
+  require(tag.isNotEmpty()) { "tag is empty." }
 
-   val container = checkNotNull(LocalContainerForComposable.current) {
-      "Not in LayerContainer scope."
-   }
+  val container = checkNotNull(LocalContainerForComposable.current) {
+    "Not in LayerContainer scope."
+  }
 
-   DisposableEffect(container, tag) {
-      onDispose {
-         container.removeTarget(tag)
-      }
-   }
+  DisposableEffect(container, tag) {
+    onDispose {
+      container.removeTarget(tag)
+    }
+  }
 
-   onGloballyPositioned {
-      container.addTarget(tag, it)
-   }
+  onGloballyPositioned {
+    container.addTarget(tag, it)
+  }
 }
 
 internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }

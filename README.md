@@ -13,10 +13,10 @@
 
 ```kotlin
 AppTheme {
-   // 添加layer容器
-   LayerContainer {
-      Content()
-   }
+  // 添加layer容器
+  LayerContainer {
+    Content()
+  }
 }
 ```
 
@@ -39,16 +39,16 @@ AppTheme {
  */
 @Composable
 fun Layer(
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: Alignment = Alignment.Center,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: Alignment = Alignment.Center,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 )
 ```
 
@@ -77,21 +77,21 @@ fun Layer(
  */
 @Composable
 fun TargetLayer(
-   target: LayerTarget?,
-   attach: Boolean,
-   onDetachRequest: (LayerDetach) -> Unit,
-   debug: Boolean = false,
-   detachOnBackPress: Boolean? = true,
-   detachOnTouchBackground: Boolean? = false,
-   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
-   alignment: TargetAlignment = TargetAlignment.Center,
-   alignmentOffsetX: TargetAlignmentOffset? = null,
-   alignmentOffsetY: TargetAlignmentOffset? = null,
-   smartAlignments: SmartAliments? = null,
-   clipBackgroundDirection: Directions? = null,
-   transition: LayerTransition? = null,
-   zIndex: Float = 0f,
-   content: @Composable LayerContentScope.() -> Unit,
+  target: LayerTarget?,
+  attach: Boolean,
+  onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean = false,
+  detachOnBackPress: Boolean? = true,
+  detachOnTouchBackground: Boolean? = false,
+  backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
+  alignment: TargetAlignment = TargetAlignment.Center,
+  alignmentOffsetX: TargetAlignmentOffset? = null,
+  alignmentOffsetY: TargetAlignmentOffset? = null,
+  smartAlignments: SmartAliments? = null,
+  clipBackgroundDirection: Directions? = null,
+  transition: LayerTransition? = null,
+  zIndex: Float = 0f,
+  content: @Composable LayerContentScope.() -> Unit,
 )
 ```
 
@@ -100,11 +100,11 @@ fun TargetLayer(
 ```kotlin
 @Immutable
 sealed interface LayerTarget {
-   /** 以[tag]为目标 */
-   data class Tag(val tag: String?) : LayerTarget
+  /** 以[tag]为目标 */
+  data class Tag(val tag: String?) : LayerTarget
 
-   /** 以[offset]为目标 */
-   data class Offset(val offset: IntOffset?) : LayerTarget
+  /** 以[offset]为目标 */
+  data class Offset(val offset: IntOffset?) : LayerTarget
 }
 ```
 
@@ -112,43 +112,43 @@ sealed interface LayerTarget {
 
 ```kotlin
 enum class TargetAlignment {
-   /** 顶部开始方向对齐 */
-   TopStart,
-   /** 顶部中间对齐 */
-   TopCenter,
-   /** 顶部结束方向对齐 */
-   TopEnd,
-   /** 顶部对齐，不计算x坐标，默认x坐标为0 */
-   Top,
+  /** 顶部开始方向对齐 */
+  TopStart,
+  /** 顶部中间对齐 */
+  TopCenter,
+  /** 顶部结束方向对齐 */
+  TopEnd,
+  /** 顶部对齐，不计算x坐标，默认x坐标为0 */
+  Top,
 
-   /** 底部开始方向对齐 */
-   BottomStart,
-   /** 底部中间对齐 */
-   BottomCenter,
-   /** 底部结束方向对齐 */
-   BottomEnd,
-   /** 底部对齐，不计算x坐标，默认x坐标为0 */
-   Bottom,
+  /** 底部开始方向对齐 */
+  BottomStart,
+  /** 底部中间对齐 */
+  BottomCenter,
+  /** 底部结束方向对齐 */
+  BottomEnd,
+  /** 底部对齐，不计算x坐标，默认x坐标为0 */
+  Bottom,
 
-   /** 开始方向顶部对齐 */
-   StartTop,
-   /** 开始方向中间对齐 */
-   StartCenter,
-   /** 开始方向底部对齐 */
-   StartBottom,
-   /** 开始方向对齐，不计算y坐标，默认y坐标为0 */
-   Start,
+  /** 开始方向顶部对齐 */
+  StartTop,
+  /** 开始方向中间对齐 */
+  StartCenter,
+  /** 开始方向底部对齐 */
+  StartBottom,
+  /** 开始方向对齐，不计算y坐标，默认y坐标为0 */
+  Start,
 
-   /** 结束方向顶部对齐 */
-   EndTop,
-   /** 结束方向中间对齐 */
-   EndCenter,
-   /** 结束方向底部对齐 */
-   EndBottom,
-   /** 结束方向对齐，不计算y坐标，默认y坐标为0 */
-   End,
+  /** 结束方向顶部对齐 */
+  EndTop,
+  /** 结束方向中间对齐 */
+  EndCenter,
+  /** 结束方向底部对齐 */
+  EndBottom,
+  /** 结束方向对齐，不计算y坐标，默认y坐标为0 */
+  End,
 
-   /** 中间对齐 */
-   Center,
+  /** 中间对齐 */
+  Center,
 }
 ```

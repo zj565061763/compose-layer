@@ -33,75 +33,75 @@ import com.sd.lib.compose.layer.TargetLayer
 import com.sd.lib.compose.layer.layerTag
 
 class SampleFixOverflow : ComponentActivity() {
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      setContent {
-         AppTheme {
-            LayerContainer {
-               Content()
-            }
-         }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        LayerContainer {
+          Content()
+        }
       }
-   }
+    }
+  }
 }
 
 @Composable
 private fun Content() {
-   var attach by remember { mutableStateOf(false) }
-   var tag by remember { mutableStateOf("") }
+  var attach by remember { mutableStateOf(false) }
+  var tag by remember { mutableStateOf("") }
 
-   Box(modifier = Modifier.fillMaxSize()) {
-      Row(
-         modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter)
-            .offset(y = (-300).dp),
-         verticalAlignment = Alignment.CenterVertically,
-         horizontalArrangement = Arrangement.SpaceEvenly,
+  Box(modifier = Modifier.fillMaxSize()) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .align(Alignment.BottomCenter)
+        .offset(y = (-300).dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+      Button(
+        onClick = {
+          tag = "button1"
+          attach = true
+        },
+        modifier = Modifier.layerTag("button1")
       ) {
-         Button(
-            onClick = {
-               tag = "button1"
-               attach = true
-            },
-            modifier = Modifier.layerTag("button1")
-         ) {
-            Text("button1")
-         }
-
-         Button(
-            onClick = {
-               tag = "button2"
-               attach = true
-            },
-            modifier = Modifier.layerTag("button2")
-         ) {
-            Text("button2")
-         }
+        Text("button1")
       }
-   }
 
-   TargetLayer(
-      target = LayerTarget.Tag(tag),
-      attach = attach,
-      onDetachRequest = { attach = false },
-      alignment = TargetAlignment.BottomCenter,
-      detachOnTouchBackground = true,
-      transition = LayerTransition(
-         enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
-         exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
-      ),
-      debug = true,
-   ) {
-      VerticalList(
-         count = 50,
-         modifier = Modifier.navigationBarsPadding(),
-      )
-   }
+      Button(
+        onClick = {
+          tag = "button2"
+          attach = true
+        },
+        modifier = Modifier.layerTag("button2")
+      ) {
+        Text("button2")
+      }
+    }
+  }
+
+  TargetLayer(
+    target = LayerTarget.Tag(tag),
+    attach = attach,
+    onDetachRequest = { attach = false },
+    alignment = TargetAlignment.BottomCenter,
+    detachOnTouchBackground = true,
+    transition = LayerTransition(
+      enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)),
+      exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 0f)),
+    ),
+    debug = true,
+  ) {
+    VerticalList(
+      count = 50,
+      modifier = Modifier.navigationBarsPadding(),
+    )
+  }
 }
 
 @Preview
 @Composable
 private fun PreviewContent() {
-   Content()
+  Content()
 }
