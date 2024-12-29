@@ -39,8 +39,8 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
     Box(
       modifier = Modifier
-         .fillMaxSize()
-         .zIndex(zIndexState)
+        .fillMaxSize()
+        .zIndex(zIndexState)
     ) {
       BackgroundBox()
       ContentBox(Modifier.align(_alignment))
@@ -49,7 +49,7 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
   @Composable
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
-    transition?.let { return it }
+    if (transition != null) return transition
     val direction = LocalLayoutDirection.current
     return when (_alignment) {
       Alignment.TopCenter -> LayerTransition.slideTopToBottom()
