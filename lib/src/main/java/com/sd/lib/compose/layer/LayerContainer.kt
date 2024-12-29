@@ -65,10 +65,9 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
   }
 
   final override fun removeTarget(tag: String) {
+    if (destroyed) return
     if (_targetsLayout.remove(tag) != null) {
-      if (!destroyed) {
-        onUpdateTargetLayout(tag, null)
-      }
+      onUpdateTargetLayout(tag, null)
     }
   }
 
