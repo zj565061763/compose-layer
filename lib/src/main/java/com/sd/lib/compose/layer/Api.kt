@@ -36,10 +36,9 @@ fun LayerContainer(
     LocalContainerForLayer provides container,
   ) {
     Box(
-      modifier = modifier
-        .onGloballyPositioned {
-          container.updateContainerLayout(it)
-        },
+      modifier = modifier.onGloballyPositioned {
+        container.updateContainerLayout(it)
+      },
     ) {
       content()
       container.Layers()
