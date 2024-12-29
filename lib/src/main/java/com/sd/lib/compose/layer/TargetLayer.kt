@@ -318,7 +318,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         layoutDirection = layoutDirection,
       )
 
-      _smartAlignments?.let {
+      _smartAlignments?.also {
         val (bestResult, smartAlignment) = result.findBestResult(
           layer = this@TargetLayerImpl,
           smartAliments = it,
