@@ -344,13 +344,13 @@ internal abstract class LayerImpl : Layer {
   protected fun ContentBox(modifier: Modifier = Modifier) {
     Box(
       modifier = modifier
-         .onGloballyPositioned {
-            _contentLayout = it
-            if (it.size == IntSize.Zero) {
-               handleContentZeroSize()
-            }
-         }
-         .clipToBounds()
+        .onGloballyPositioned {
+          _contentLayout = it
+          if (it.size == IntSize.Zero) {
+            handleContentZeroSize()
+          }
+        }
+        .clipToBounds()
     ) {
       AnimatedContent()
     }
@@ -366,9 +366,9 @@ internal abstract class LayerImpl : Layer {
       ) {
         Box(
           modifier = Modifier
-             .fillMaxSize()
-             .background(_backgroundColorState)
-             .handleDetachOnTouchBackground(_detachOnTouchBackgroundState)
+            .fillMaxSize()
+            .background(_backgroundColorState)
+            .handleDetachOnTouchBackground(_detachOnTouchBackgroundState)
         )
       }
     }
@@ -400,14 +400,14 @@ internal abstract class LayerImpl : Layer {
   private fun Modifier.handleDetachOnTouchBackground(state: Boolean?): Modifier {
     if (state == null) return this
     return this
-       .onGloballyPositioned { _backgroundLayout = it }
-       .pointerInput(state) {
-          detectTapGestures(onPress = { offset ->
-             if (state) {
-                handleOnTouchBackground(offset)
-             }
-          })
-       }
+      .onGloballyPositioned { _backgroundLayout = it }
+      .pointerInput(state) {
+        detectTapGestures(onPress = { offset ->
+          if (state) {
+            handleOnTouchBackground(offset)
+          }
+        })
+      }
   }
 
   /** 处理触摸背景区域逻辑 */
