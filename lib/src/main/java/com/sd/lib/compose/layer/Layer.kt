@@ -402,7 +402,7 @@ internal abstract class LayerImpl : Layer {
       enter = transition.enter,
       exit = transition.exit,
     ) {
-      _contentState.value.invoke(_layerScope)
+      RawContent()
     }
   }
 
@@ -417,11 +417,13 @@ internal abstract class LayerImpl : Layer {
     return this
       .onGloballyPositioned { _backgroundLayout = it }
       .pointerInput(state) {
-        detectTapGestures(onPress = { offset ->
-          if (state) {
-            handleOnTouchBackground(offset)
+        detectTapGestures(
+          onPress = { offset ->
+            if (state) {
+              handleOnTouchBackground(offset)
+            }
           }
-        })
+        )
       }
   }
 
