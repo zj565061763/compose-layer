@@ -50,12 +50,11 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
   @Composable
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
     if (transition != null) return transition
-    val direction = LocalLayoutDirection.current
     return when (_alignment) {
       Alignment.TopCenter -> LayerTransition.slideTopToBottom()
       Alignment.BottomCenter -> LayerTransition.slideBottomToTop()
-      Alignment.CenterStart -> LayerTransition.slideStartToEnd(direction)
-      Alignment.CenterEnd -> LayerTransition.slideEndToStart(direction)
+      Alignment.CenterStart -> LayerTransition.slideStartToEnd(LocalLayoutDirection.current)
+      Alignment.CenterEnd -> LayerTransition.slideEndToStart(LocalLayoutDirection.current)
       else -> LayerTransition.Default
     }
   }
