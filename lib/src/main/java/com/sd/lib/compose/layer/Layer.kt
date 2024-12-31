@@ -331,9 +331,18 @@ internal abstract class LayerImpl : Layer {
   @Composable
   fun Content() {
     LayerContent()
-    if (_isVisibleState && _detachOnBackPressState != null) {
+    HandleDetachOnBackPress()
+  }
+
+  /**
+   * 处理返回逻辑
+   */
+  @Composable
+  private fun HandleDetachOnBackPress() {
+    val detachOnBackPress = _detachOnBackPressState ?: return
+    if (_isVisibleState) {
       BackHandler {
-        if (_detachOnBackPressState == true) {
+        if (detachOnBackPress) {
           requestDetach(LayerDetach.OnBackPress)
         }
       }
