@@ -7,15 +7,15 @@ import androidx.compose.ui.util.fastRoundToInt
  * 目标对齐位置偏移量
  */
 @Immutable
-sealed class TargetAlignmentOffset {
+sealed interface TargetAlignmentOffset {
   /** 按指定像素[value]偏移，支持正数和负数，以Y轴为例，大于0往下偏移，小于0往上偏移 */
-  data class PX(val value: Int) : TargetAlignmentOffset()
+  data class PX(val value: Int) : TargetAlignmentOffset
 
   /** 按指定DP[value]偏移，支持正数和负数，以Y轴为例，大于0往下偏移，小于0往上偏移 */
-  data class DP(val value: Int) : TargetAlignmentOffset()
+  data class DP(val value: Int) : TargetAlignmentOffset
 
   /** 按目标大小倍数[value]偏移，支持正数和负数字，以Y轴为例，1表示往下偏移1倍目标的高度，-1表示往上偏移1倍目标的高度 */
-  data class Target(val value: Float) : TargetAlignmentOffset()
+  data class Target(val value: Float) : TargetAlignmentOffset
 }
 
 /**
@@ -48,7 +48,8 @@ internal fun TargetAlignmentOffset?.pxValue(
 private data class RelativeAlignment(
   val raw: TargetAlignmentOffset,
   val downgrade: Boolean,
-) : TargetAlignmentOffset() {
+) : TargetAlignmentOffset {
+
   fun toPx(
     density: Float,
     targetSize: Int,
