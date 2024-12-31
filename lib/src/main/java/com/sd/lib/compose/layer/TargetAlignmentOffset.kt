@@ -27,7 +27,7 @@ fun TargetAlignmentOffset.relativeAlignment(
   downgrade: Boolean = false,
 ): TargetAlignmentOffset {
   return if (this is RelativeAlignment) {
-    this.takeIf { it.downgrade == downgrade } ?: this.copy(downgrade = downgrade)
+    this.copy(downgrade = downgrade)
   } else {
     RelativeAlignment(this, downgrade)
   }
