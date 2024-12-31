@@ -119,7 +119,7 @@ fun layer(
 
   DisposableEffect(layer) {
     onDispose {
-      layer.destroy()
+      layer.release()
     }
   }
 
@@ -233,7 +233,7 @@ fun targetLayer(
 
   DisposableEffect(layer) {
     onDispose {
-      layer.destroy()
+      layer.release()
     }
   }
 

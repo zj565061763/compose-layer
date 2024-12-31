@@ -23,7 +23,7 @@ internal interface ContainerForComposable {
 
 internal interface ContainerForLayer {
   fun initLayer(layer: LayerImpl)
-  fun destroyLayer(layer: LayerImpl)
+  fun releaseLayer(layer: LayerImpl)
 
   fun attachLayer(layer: LayerImpl)
   fun detachLayer(layer: LayerImpl): Boolean
@@ -103,15 +103,15 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
   override fun initLayer(layer: LayerImpl) {
     if (destroyed) return
     if (layer.layerContainer === this) return
-    layer.destroy()
+    layer.release()
     layer.onInit(this)
     check(layer.layerContainer === this)
   }
 
-  override fun destroyLayer(layer: LayerImpl) {
+  override fun releaseLayer(layer: LayerImpl) {
     if (layer.layerContainer === this) {
       _attachedLayers.remove(layer)
-      layer.onDestroy(this)
+      layer.onRelease(this)
       check(layer.layerContainer == null)
     }
   }
@@ -169,7 +169,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
   override fun destroy() {
     super.destroy()
     _attachedLayers.toTypedArray().forEach {
-      destroyLayer(it)
+      releaseLayer(it)
     }
     _attachedLayers.clear()
     _containerLayoutCallbacks.clear()

@@ -225,8 +225,8 @@ internal abstract class LayerImpl : Layer {
     }
   }
 
-  internal fun destroy() {
-    layerContainer?.destroyLayer(this)
+  internal fun release() {
+    layerContainer?.releaseLayer(this)
   }
 
   /**
@@ -242,8 +242,8 @@ internal abstract class LayerImpl : Layer {
   /**
    * Layer释放回调
    */
-  internal fun onDestroy(container: ContainerForLayer) {
-    logMsg { "onDestroy $container" }
+  internal fun onRelease(container: ContainerForLayer) {
+    logMsg { "onRelease $container" }
     check(layerContainer === container)
     detach()
     layerContainer = null
