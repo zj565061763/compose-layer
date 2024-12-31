@@ -35,8 +35,8 @@ interface LayerState {
 }
 
 enum class LayerLifecycleState {
-  /** 原始状态，对象刚创建出来 */
-  None,
+  /** 对象刚创建出来 */
+  Created,
 
   /** 已经初始化完毕，可以被添加到容器 */
   Initialized,
@@ -66,7 +66,7 @@ internal interface Layer : LayerState {
   val zIndexState: Float
 
   /**
-   * 按返回键是否请求移除Layer，true-请求移除；false-请求不移除；null-不处理返回键逻辑，默认true
+   * 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑，默认true
    */
   fun setDetachOnBackPress(value: Boolean?)
 
@@ -115,7 +115,7 @@ internal abstract class LayerImpl : Layer {
   internal var layerContainer: ContainerForLayer? = null
     private set
 
-  private var _lifecycleState by mutableStateOf(LayerLifecycleState.None)
+  private var _lifecycleState by mutableStateOf(LayerLifecycleState.Created)
   private var _isVisibleState by mutableStateOf(false)
 
   private val _layerScope = LayerScopeImpl()
@@ -247,7 +247,7 @@ internal abstract class LayerImpl : Layer {
     check(layerContainer === container)
     detach()
     layerContainer = null
-    setLifecycleState(LayerLifecycleState.None)
+    setLifecycleState(LayerLifecycleState.Created)
   }
 
   private fun setLifecycleState(state: LayerLifecycleState) {
