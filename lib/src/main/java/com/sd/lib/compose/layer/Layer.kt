@@ -299,7 +299,11 @@ internal abstract class LayerImpl : Layer {
 
   private fun handleContentZeroSize() {
     logMsg { "handleContentZeroSize isVisible:$_isVisibleState state:$_lifecycleState" }
-    if (_isVisibleState) return
+    if (_isVisibleState) {
+      // 如果是可见状态，不处理
+      return
+    }
+
     when (_lifecycleState) {
       LayerLifecycleState.Attached -> {
         if (_attachedFromDetaching) {
@@ -307,6 +311,7 @@ internal abstract class LayerImpl : Layer {
           setContentVisible(true)
         }
       }
+
       LayerLifecycleState.Detaching -> {
         val container = checkNotNull(layerContainer)
         if (container.detachLayer(this@LayerImpl)) {
@@ -315,6 +320,7 @@ internal abstract class LayerImpl : Layer {
           onDetached(container)
         }
       }
+
       else -> {}
     }
   }
