@@ -168,9 +168,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
   override fun destroy() {
     super.destroy()
-    _attachedLayers.toTypedArray().forEach {
-      releaseLayer(it)
-    }
+    _attachedLayers.toTypedArray().forEach { releaseLayer(it) }
     _attachedLayers.clear()
     _containerLayoutCallbacks.clear()
     _targetLayoutCallbacks.clear()
