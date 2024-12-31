@@ -350,7 +350,7 @@ internal abstract class LayerImpl : Layer {
   }
 
   @Composable
-  abstract fun LayerContent()
+  protected abstract fun LayerContent()
 
   @Composable
   protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
