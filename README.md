@@ -7,7 +7,7 @@
 
 # 演示效果
 
-![](https://github.com/zj565061763/compose-layer/blob/dev/screenshots/align_target.gif?raw=true)
+![](screenshots/align_target.gif)
 
 # Layer容器
 
