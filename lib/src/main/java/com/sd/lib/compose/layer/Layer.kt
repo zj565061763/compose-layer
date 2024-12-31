@@ -230,7 +230,7 @@ internal abstract class LayerImpl : Layer {
   }
 
   /**
-   * Layer被添加到[container]
+   * Layer初始化回调
    */
   internal fun onInit(container: ContainerForLayer) {
     logMsg { "onInit $container" }
@@ -240,7 +240,7 @@ internal abstract class LayerImpl : Layer {
   }
 
   /**
-   * Layer从[container]上被移除
+   * Layer释放回调
    */
   internal fun onDestroy(container: ContainerForLayer) {
     logMsg { "onDestroy $container" }
