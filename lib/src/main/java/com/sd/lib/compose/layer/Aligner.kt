@@ -132,7 +132,6 @@ internal interface Aligner {
   }
 
   companion object {
-    @JvmStatic
     fun overflow(
       parentX: Int,
       parentY: Int,

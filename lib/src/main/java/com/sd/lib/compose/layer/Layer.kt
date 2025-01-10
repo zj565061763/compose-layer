@@ -2,7 +2,6 @@ package com.sd.lib.compose.layer
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.annotation.CallSuper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -170,6 +169,7 @@ internal abstract class LayerImpl : Layer {
         logMsg { "attach" }
         container.attachLayer(this)
         setLifecycleState(LayerLifecycleState.Attached)
+        container.registerContainerLayoutCallback(_containerLayoutCallback)
         onAttach(container)
       }
       else -> {
@@ -184,19 +184,14 @@ internal abstract class LayerImpl : Layer {
       logMsg { "detach" }
       setLifecycleState(LayerLifecycleState.Detaching)
       setContentVisible(false)
+      container.unregisterContainerLayoutCallback(_containerLayoutCallback)
       onDetach(container)
     }
   }
 
-  @CallSuper
-  protected open fun onAttach(container: ContainerForLayer) {
-    container.registerContainerLayoutCallback(_containerLayoutCallback)
-  }
+  protected open fun onAttach(container: ContainerForLayer) = Unit
 
-  @CallSuper
-  protected open fun onDetach(container: ContainerForLayer) {
-    container.unregisterContainerLayoutCallback(_containerLayoutCallback)
-  }
+  protected open fun onDetach(container: ContainerForLayer) = Unit
 
   protected open fun onDetached(container: ContainerForLayer) = Unit
 

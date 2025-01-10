@@ -3,6 +3,7 @@ package com.sd.lib.compose.layer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -182,12 +182,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   override fun onAttach(container: ContainerForLayer) {
-    super.onAttach(container)
     registerTarget(_target)
   }
 
   override fun onDetach(container: ContainerForLayer) {
-    super.onDetach(container)
     unregisterTarget(_target)
   }
 
@@ -238,7 +236,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
 
     logMsg { "getLayerTransition from default" }
-    val uiState by _uiState.collectAsStateWithLifecycle()
+    val uiState by _uiState.collectAsState()
     return uiState.alignment.transition(direction)
   }
 
@@ -252,7 +250,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
   @Composable
   override fun LayerContent() {
-    val uiState by _uiState.collectAsStateWithLifecycle()
+    val uiState by _uiState.collectAsState()
     OffsetBox(
       modifier = Modifier
         .fillMaxSize()
