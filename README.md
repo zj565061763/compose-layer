@@ -1,4 +1,10 @@
-[![](https://jitpack.io/v/zj565061763/compose-layer.svg)](https://jitpack.io/#zj565061763/compose-layer)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.zj565061763.android/compose-layer)](https://central.sonatype.com/search?q=g:io.github.zj565061763.android+compose-layer)
+
+# Gradle
+
+```kotlin
+implementation("io.github.zj565061763.android:compose-layer:$version")
+```
 
 # About
 
