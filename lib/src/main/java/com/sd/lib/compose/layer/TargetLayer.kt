@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.round
-import androidx.compose.ui.zIndex
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -152,6 +152,13 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     updateTargetLayout()
   }
 
+  /** 监听容器布局信息 */
+  private val _containerLayoutCallback: LayoutCoordinatesCallback = { layoutCoordinates ->
+    _uiState.update {
+      it.copy(containerLayout = layoutCoordinates.toLayoutInfo())
+    }
+  }
+
   override fun setAlignment(alignment: TargetAlignment) {
     if (_uiState.value.alignment == alignment) return
     _uiState.update {
@@ -182,22 +189,17 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   override fun onAttach(container: ContainerForLayer) {
+    container.registerContainerLayoutCallback(_containerLayoutCallback)
     registerTarget(_target)
   }
 
   override fun onDetach(container: ContainerForLayer) {
+    container.unregisterContainerLayoutCallback(_containerLayoutCallback)
     unregisterTarget(_target)
   }
 
   override fun onDetached(container: ContainerForLayer) {
     _currentSmartAlignment = null
-  }
-
-  override fun onContainerLayoutCallback(layoutCoordinates: LayoutCoordinates?) {
-    super.onContainerLayoutCallback(layoutCoordinates)
-    _uiState.update {
-      it.copy(containerLayout = layoutCoordinates.toLayoutInfo())
-    }
   }
 
   /**
@@ -249,12 +251,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   @Composable
-  override fun LayerContent() {
+  override fun BoxScope.LayerContent() {
     val uiState by _uiState.collectAsState()
     OffsetBox(
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(zIndexState),
+      modifier = Modifier.fillMaxSize(),
       uiState = uiState,
     )
   }

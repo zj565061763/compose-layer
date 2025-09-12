@@ -1,7 +1,5 @@
 package com.sd.lib.compose.layer
 
-import androidx.annotation.CallSuper
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -38,7 +36,7 @@ internal interface ContainerForLayer {
 internal typealias LayoutCoordinatesCallback = (LayoutCoordinates?) -> Unit
 
 private abstract class ComposableLayerContainer : ContainerForComposable {
-  protected var destroyed = false
+  var destroyed = false
     private set
 
   /** 容器布局信息 */
@@ -68,18 +66,17 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
     }
   }
 
-  @CallSuper
   override fun destroy() {
     destroyed = true
     _containerLayout = null
     _targetsLayout.clear()
   }
 
-  protected fun getContainerLayout(): LayoutCoordinates? = _containerLayout
-  protected fun getTargetLayout(tag: String): LayoutCoordinates? = _targetsLayout[tag]
+  fun getContainerLayout(): LayoutCoordinates? = _containerLayout
+  fun getTargetLayout(tag: String): LayoutCoordinates? = _targetsLayout[tag]
 
-  protected abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
-  protected abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
+  abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
+  abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
 }
 
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
@@ -176,12 +173,8 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
   @Composable
   override fun Layers() {
-    Box {
-      _attachedLayers.forEach { layer ->
-        key(layer) {
-          layer.Content()
-        }
-      }
+    _attachedLayers.forEach { layer ->
+      key(layer) { layer.Content() }
     }
   }
 }

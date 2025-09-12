@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -11,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.zIndex
 
 internal interface NormalLayer : Layer {
   /**
@@ -28,7 +26,7 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
   }
 
   @Composable
-  override fun LayerContent() {
+  override fun BoxScope.LayerContent() {
     if (LocalInspectionMode.current) {
       setContentVisible(true)
     } else {
@@ -37,14 +35,8 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
       }
     }
 
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(zIndexState)
-    ) {
-      BackgroundBox()
-      ContentBox(Modifier.align(_alignment))
-    }
+    BackgroundBox()
+    ContentBox(Modifier.align(_alignment))
   }
 
   @Composable

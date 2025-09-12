@@ -45,15 +45,14 @@ android {
 }
 
 dependencies {
-  implementation(libs.androidx.compose.foundation)
-  implementation(libs.androidx.compose.ui.tooling.preview)
-  debugImplementation(libs.androidx.compose.ui.tooling)
-  debugImplementation(libs.androidx.compose.ui.test.manifest)
-  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+  val composeBom = platform(libs.androidx.compose.bom)
+  implementation(composeBom)
+  testImplementation(composeBom)
+  androidTestImplementation(composeBom)
 
   implementation(libs.androidx.compose.material3)
-  implementation(libs.androidx.compose.material.ripple)
-  implementation(libs.androidx.compose.material.icons.core)
+  implementation(libs.androidx.compose.ui.tooling.preview)
+  debugImplementation(libs.androidx.compose.ui.tooling)
 
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.lifecycle.viewmodelCompose)

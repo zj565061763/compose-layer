@@ -1,6 +1,5 @@
 package com.sd.lib.compose.layer
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -8,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,12 +16,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
 
@@ -34,11 +31,11 @@ interface LayerState {
 }
 
 enum class LayerLifecycleState {
-  /** 对象刚创建出来 */
-  Created,
+  /** 初始状态 */
+  Initial,
 
-  /** 已经初始化完毕，可以被添加到容器 */
-  Initialized,
+  /** 准备完毕，可以被添加到容器 */
+  Ready,
 
   /** 即将被移除 */
   Detaching,
@@ -51,8 +48,8 @@ enum class LayerDetach {
   /** 按返回键 */
   OnBackPress,
 
-  /** 触摸背景区域 */
-  OnTouchBackground,
+  /** 触摸非内容区域 */
+  OnTouchOutside,
 }
 
 interface LayerContentScope
@@ -61,47 +58,28 @@ internal interface Layer : LayerState {
   /** 是否调试模式，tag:FLayer */
   var debug: Boolean
 
-  /** [Modifier.zIndex] */
-  val zIndexState: Float
-
-  /**
-   * 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑，默认true
-   */
+  /** 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑 */
   fun setDetachOnBackPress(value: Boolean?)
 
-  /**
-   * 触摸背景区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理，事件会透过背景，默认false
-   */
-  fun setDetachOnTouchBackground(value: Boolean?)
+  /** 触摸非内容区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理 */
+  fun setDetachOnTouchOutside(value: Boolean?)
 
-  /**
-   * 背景颜色
-   */
+  /** 背景颜色 */
   fun setBackgroundColor(color: Color)
 
-  /**
-   * 设置移除请求回调
-   */
+  /** 移除请求回调 */
   fun setDetachRequestCallback(callback: (LayerDetach) -> Unit)
 
-  /**
-   * 动画（非响应式）
-   */
+  /** 动画（非响应式） */
   fun setTransition(transition: LayerTransition?)
 
-  /**
-   * [Modifier.zIndex]
-   */
+  /** [Modifier.zIndex] */
   fun setZIndex(zIndex: Float)
 
-  /**
-   * 添加到容器
-   */
+  /** 添加到容器 */
   fun attach()
 
-  /**
-   * 从容器上移除
-   */
+  /** 从容器上移除 */
   fun detach()
 }
 
@@ -114,14 +92,14 @@ internal abstract class LayerImpl : Layer {
   internal var layerContainer: ContainerForLayer? = null
     private set
 
-  private var _lifecycleState by mutableStateOf(LayerLifecycleState.Created)
+  private var _lifecycleState by mutableStateOf(LayerLifecycleState.Initial)
   private var _isVisibleState by mutableStateOf(false)
 
   private val _layerScope = LayerScopeImpl()
   private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
 
   private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
-  private var _detachOnTouchBackgroundState by mutableStateOf<Boolean?>(false)
+  private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
   private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
   private var _zIndexState by mutableFloatStateOf(0f)
 
@@ -132,7 +110,6 @@ internal abstract class LayerImpl : Layer {
   private var _attachedFromDetaching = false
 
   final override var debug: Boolean = false
-  final override val zIndexState: Float get() = _zIndexState
   final override val isVisibleState: Boolean get() = _isVisibleState
   final override val lifecycleState: LayerLifecycleState get() = _lifecycleState
 
@@ -140,8 +117,8 @@ internal abstract class LayerImpl : Layer {
     _detachOnBackPressState = value
   }
 
-  final override fun setDetachOnTouchBackground(value: Boolean?) {
-    _detachOnTouchBackgroundState = value
+  final override fun setDetachOnTouchOutside(value: Boolean?) {
+    _detachOnTouchOutsideState = value
   }
 
   final override fun setBackgroundColor(color: Color) {
@@ -162,14 +139,13 @@ internal abstract class LayerImpl : Layer {
 
   final override fun attach() {
     when (val state = _lifecycleState) {
-      LayerLifecycleState.Initialized,
+      LayerLifecycleState.Ready,
       LayerLifecycleState.Detaching,
         -> {
-        val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
         logMsg { "attach" }
+        val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
         container.attachLayer(this)
         setLifecycleState(LayerLifecycleState.Attached)
-        container.registerContainerLayoutCallback(_containerLayoutCallback)
         onAttach(container)
       }
       else -> {
@@ -180,11 +156,10 @@ internal abstract class LayerImpl : Layer {
 
   final override fun detach() {
     if (_lifecycleState == LayerLifecycleState.Attached) {
-      val container = checkNotNull(layerContainer) { "LayerContainer is null when detach" }
       logMsg { "detach" }
+      val container = checkNotNull(layerContainer) { "LayerContainer is null when detach" }
       setLifecycleState(LayerLifecycleState.Detaching)
       setContentVisible(false)
-      container.unregisterContainerLayoutCallback(_containerLayoutCallback)
       onDetach(container)
     }
   }
@@ -195,54 +170,34 @@ internal abstract class LayerImpl : Layer {
 
   protected open fun onDetached(container: ContainerForLayer) = Unit
 
-  /** 容器布局信息 */
-  private var _containerLayout: LayoutCoordinates? = null
-  /** 监听容器布局信息 */
-  private val _containerLayoutCallback: LayoutCoordinatesCallback = { layoutCoordinates ->
-    _containerLayout = layoutCoordinates
-    onContainerLayoutCallback(layoutCoordinates)
-  }
-
-  /** 容器布局信息回调 */
-  protected open fun onContainerLayoutCallback(layoutCoordinates: LayoutCoordinates?) = Unit
-
   @Composable
   internal fun Init(
     content: @Composable LayerContentScope.() -> Unit,
   ) {
-    val container = LocalContainerForLayer.current
-    if (container == null) {
-      if (LocalInspectionMode.current) return
-      else error("Not in LayerContainer scope.")
-    } else {
-      container.initLayer(this)
-      _contentState.value = content
-    }
+    val container = LocalContainerForLayer.current ?: error("Not in LayerContainer scope.")
+    container.initLayer(this)
+    _contentState.value = content
   }
 
   internal fun release() {
     layerContainer?.releaseLayer(this)
   }
 
-  /**
-   * Layer初始化回调
-   */
+  /** 初始化回调 */
   internal fun onInit(container: ContainerForLayer) {
     logMsg { "onInit $container" }
     check(layerContainer == null)
     layerContainer = container
-    setLifecycleState(LayerLifecycleState.Initialized)
+    setLifecycleState(LayerLifecycleState.Ready)
   }
 
-  /**
-   * Layer释放回调
-   */
+  /** 释放回调 */
   internal fun onRelease(container: ContainerForLayer) {
     logMsg { "onRelease $container" }
     check(layerContainer === container)
     detach()
     layerContainer = null
-    setLifecycleState(LayerLifecycleState.Created)
+    setLifecycleState(LayerLifecycleState.Initial)
   }
 
   private fun setLifecycleState(state: LayerLifecycleState) {
@@ -261,9 +216,7 @@ internal abstract class LayerImpl : Layer {
     }
   }
 
-  /**
-   * 设置内容可见状态
-   */
+  /** 设置内容可见状态 */
   protected fun setContentVisible(visible: Boolean) {
     val oldVisible = _isVisibleState
     if (oldVisible == visible) return
@@ -311,7 +264,7 @@ internal abstract class LayerImpl : Layer {
         val container = checkNotNull(layerContainer)
         if (container.detachLayer(this@LayerImpl)) {
           logMsg { "detachLayer" }
-          setLifecycleState(LayerLifecycleState.Initialized)
+          setLifecycleState(LayerLifecycleState.Ready)
           onDetached(container)
         }
       }
@@ -320,18 +273,69 @@ internal abstract class LayerImpl : Layer {
     }
   }
 
-  /**
-   * 渲染Layer内容
-   */
+  /** 渲染Layer内容 */
   @Composable
   fun Content() {
-    LayerContent()
-    HandleDetachOnBackPress()
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(_zIndexState)
+    ) {
+      OnTouchOutsideBox()
+      LayerContent()
+      HandleDetachOnBackPress()
+    }
   }
 
-  /**
-   * 处理返回逻辑
-   */
+  @Composable
+  protected abstract fun BoxScope.LayerContent()
+
+  @Composable
+  protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
+
+  @Composable
+  protected fun BackgroundBox() {
+    Box(modifier = Modifier.fillMaxSize()) {
+      AnimatedVisibility(
+        modifier = Modifier.fillMaxSize(),
+        visible = _isVisibleState,
+        enter = fadeIn(),
+        exit = fadeOut(),
+      ) {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(_backgroundColorState)
+        )
+      }
+    }
+  }
+
+  @Composable
+  protected fun ContentBox(modifier: Modifier = Modifier) {
+    Box(
+      modifier = modifier
+        .onGloballyPositioned { if (it.size == IntSize.Zero) handleContentZeroSize() }
+        .clipToBounds()
+        .pointerInput(Unit) { detectTapGestures() }
+    ) {
+      val transition = getLayerTransition(_layerTransition)
+      AnimatedVisibility(
+        visible = _isVisibleState,
+        enter = transition.enter,
+        exit = transition.exit,
+      ) {
+        RawContent()
+      }
+    }
+  }
+
+  @Composable
+  protected fun RawContent() {
+    _contentState.value.invoke(_layerScope)
+  }
+
+  /** 返回键逻辑 */
   @Composable
   private fun HandleDetachOnBackPress() {
     val detachOnBackPress = _detachOnBackPressState ?: return
@@ -344,112 +348,24 @@ internal abstract class LayerImpl : Layer {
     }
   }
 
+  /** 触摸非内容区域 */
   @Composable
-  protected abstract fun LayerContent()
-
-  @Composable
-  protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
-
-  @Composable
-  protected fun ContentBox(modifier: Modifier = Modifier) {
-    Box(
-      modifier = modifier
-        .onGloballyPositioned {
-          _contentLayout = it
-          if (it.size == IntSize.Zero) {
-            handleContentZeroSize()
+  private fun BoxScope.OnTouchOutsideBox() {
+    val state = _detachOnTouchOutsideState ?: return
+    if (_isVisibleState) {
+      Box(
+        modifier = Modifier
+          .matchParentSize()
+          .pointerInput(state) {
+            detectTapGestures(
+              onPress = {
+                if (state) {
+                  requestDetach(LayerDetach.OnTouchOutside)
+                }
+              }
+            )
           }
-        }
-        .clipToBounds()
-    ) {
-      AnimatedContent()
-    }
-  }
-
-  @Composable
-  protected fun BackgroundBox() {
-    Box {
-      AnimatedVisibility(
-        visible = _isVisibleState,
-        enter = fadeIn(),
-        exit = fadeOut(),
-      ) {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(_backgroundColorState)
-            .handleDetachOnTouchBackground(_detachOnTouchBackgroundState)
-        )
-      }
-    }
-  }
-
-  @Composable
-  protected fun RawContent() {
-    _contentState.value.invoke(_layerScope)
-  }
-
-  @Composable
-  private fun AnimatedContent() {
-    val transition = getLayerTransition(_layerTransition)
-    AnimatedVisibility(
-      visible = _isVisibleState,
-      enter = transition.enter,
-      exit = transition.exit,
-    ) {
-      RawContent()
-    }
-  }
-
-  /** 内容布局 */
-  private var _contentLayout: LayoutCoordinates? = null
-  /** 背景布局 */
-  private var _backgroundLayout: LayoutCoordinates? = null
-
-  /** 监听触摸背景区域 */
-  private fun Modifier.handleDetachOnTouchBackground(state: Boolean?): Modifier {
-    if (state == null) return this
-    return this
-      .onGloballyPositioned { _backgroundLayout = it }
-      .pointerInput(state) {
-        detectTapGestures(
-          onPress = { offset ->
-            if (state) {
-              handleOnTouchBackground(offset)
-            }
-          }
-        )
-      }
-  }
-
-  /** 处理触摸背景区域逻辑 */
-  private fun handleOnTouchBackground(offset: Offset) {
-    val containerLayout = _containerLayout
-    if (containerLayout == null || !containerLayout.isAttached) {
-      logMsg { "handleOnTouchBackground _containerLayout is null or detached" }
-      return
-    }
-
-    val backgroundLayout = _backgroundLayout
-    if (backgroundLayout == null) {
-      logMsg { "handleOnTouchBackground _backgroundLayout is null" }
-      return
-    }
-
-    val contentLayout = _contentLayout
-    if (contentLayout == null) {
-      logMsg { "handleOnTouchBackground _contentLayout is null" }
-      return
-    }
-
-    val offsetInContainer = containerLayout.localPositionOf(backgroundLayout, offset)
-    val contentBoundsInContainer = containerLayout.localBoundingBoxOf(contentLayout)
-    logMsg { "handleOnTouchBackground $offset -> $offsetInContainer $contentBoundsInContainer" }
-
-    if (contentBoundsInContainer.contains(offsetInContainer)) {
-      // 触摸内容区域，不处理
-    } else {
-      requestDetach(LayerDetach.OnTouchBackground)
+      )
     }
   }
 
@@ -461,8 +377,8 @@ internal abstract class LayerImpl : Layer {
   private class LayerScopeImpl : LayerContentScope
 }
 
-internal inline fun Layer.logMsg(block: () -> String) {
+internal fun Layer.logMsg(block: () -> String) {
   if (debug) {
-    Log.d("FLayer", block())
+    println("FLayer ${block()}")
   }
 }
