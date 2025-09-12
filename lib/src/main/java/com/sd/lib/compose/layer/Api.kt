@@ -2,6 +2,7 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -36,7 +37,9 @@ fun LayerContainer(
     LocalContainerForLayer provides container,
   ) {
     Box(
-      modifier = modifier.onGloballyPositioned { container.updateContainerLayout(it) },
+      modifier = modifier
+        .fillMaxSize()
+        .onGloballyPositioned { container.updateContainerLayout(it) },
       contentAlignment = Alignment.Center,
     ) {
       content()
