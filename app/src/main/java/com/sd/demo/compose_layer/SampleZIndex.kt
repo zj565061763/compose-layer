@@ -44,8 +44,14 @@ private fun Content(
   var layer1 by remember { mutableStateOf(false) }
   var layer2 by remember { mutableStateOf(false) }
 
-  Layer1(layer1) { layer1 = false }
-  Layer2(layer2) { layer2 = false }
+  Layer1(
+    attach = layer1,
+    onDetachRequest = { layer1 = false },
+  )
+  Layer2(
+    attach = layer2,
+    onDetachRequest = { layer2 = false },
+  )
 
   val coroutineScope = rememberCoroutineScope()
 
@@ -73,7 +79,6 @@ private fun Layer1(
   Layer(
     attach = attach,
     onDetachRequest = onDetachRequest,
-    detachOnTouchBackground = true,
     zIndex = 99f,
   ) {
     ColorBox(text = "Layer1", color = Color.Red)
@@ -88,7 +93,6 @@ private fun Layer2(
   Layer(
     attach = attach,
     onDetachRequest = onDetachRequest,
-    detachOnTouchBackground = true,
   ) {
     ColorBox(text = "I am Layer2", color = Color.Blue)
   }

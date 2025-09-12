@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -65,7 +64,7 @@ private fun Content() {
     alignment = alignment ?: TargetAlignment.Center,
     backgroundColor = Color.Transparent,
     detachOnBackPress = null,
-    detachOnTouchBackground = null,
+    detachOnTouchOutside = null,
     debug = true,
   ) {
     ColorBox()
@@ -147,9 +146,7 @@ private fun ButtonsView(
   onClick: (TargetAlignment) -> Unit,
 ) {
   Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .systemBarsPadding(),
+    modifier = modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     // Top

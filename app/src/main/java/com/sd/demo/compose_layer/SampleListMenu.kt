@@ -87,14 +87,14 @@ private fun Content() {
     onDetachRequest = { attach = false },
     // 背景颜色透明
     backgroundColor = Color.Transparent,
-    // 触摸背景区域请求移除回调
-    detachOnTouchBackground = true,
     // 设置居中对齐
     alignment = TargetAlignment.BottomCenter,
     // 如果默认的对齐方式溢出，会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
     smartAlignments = SmartAliments.Default,
     /** X轴相对[TargetAlignment]偏移22dp */
+    /** X轴相对[TargetAlignment]偏移22dp */
     alignmentOffsetX = TargetAlignmentOffset.DP(22).relativeAlignment(),
+    /** Y轴相对[TargetAlignment]偏移22dp */
     /** Y轴相对[TargetAlignment]偏移22dp */
     alignmentOffsetY = TargetAlignmentOffset.DP(22).relativeAlignment(),
     // 调试模式
@@ -149,7 +149,7 @@ private fun Menus(
       .width(200.dp)
       .background(MaterialTheme.colorScheme.surfaceContainer)
   ) {
-    remember { listOf("标为未读", "置顶该聊天", "删除该聊天") }
+    remember { listOf("Menu1", "Menu2", "Menu3") }
       .forEach { item ->
         Box(
           modifier = Modifier

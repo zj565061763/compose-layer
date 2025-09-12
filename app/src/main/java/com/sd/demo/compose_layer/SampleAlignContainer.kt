@@ -8,6 +8,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.sd.demo.compose_layer.ui.theme.AppTheme
 import com.sd.lib.compose.layer.LayerContainer
@@ -37,7 +39,6 @@ class SampleAlignContainer : ComponentActivity() {
     }
   }
 }
-
 @Composable
 private fun Content() {
   var attach by remember { mutableStateOf(false) }
@@ -48,10 +49,11 @@ private fun Content() {
     attach = attach,
     onDetachRequest = { attach = false },
     alignment = alignment,
-    detachOnTouchBackground = true,
     debug = true,
   ) {
-    ColorBox()
+    Box(modifier = Modifier.safeDrawingPadding()) {
+      ColorBox()
+    }
   }
 
   Box(modifier = Modifier.fillMaxSize()) {
@@ -70,7 +72,10 @@ private fun Content() {
       enter = scaleIn(),
       exit = scaleOut(),
     ) {
-      Text("Sync visible state")
+      Text(
+        text = "Sync visible state",
+        color = Color.Red,
+      )
     }
   }
 
@@ -121,6 +126,8 @@ private fun ButtonsBox(
 
 @Preview
 @Composable
-private fun PreviewContent() {
-  Content()
+private fun Preview() {
+  LayerContainer {
+    Content()
+  }
 }
