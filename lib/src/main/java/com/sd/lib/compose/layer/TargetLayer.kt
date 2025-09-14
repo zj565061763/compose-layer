@@ -227,9 +227,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
     val direction = LocalLayoutDirection.current
 
-    _currentSmartAlignment?.also {
-      logMsg { "getLayerTransition from smartAlignment $it" }
-      return it.transition ?: it.alignment.transition(direction)
+    _currentSmartAlignment?.also { sa ->
+      logMsg { "getLayerTransition from smartAlignment $sa" }
+      return sa.transition ?: sa.alignment.transition(direction)
     }
 
     if (transition != null) {
