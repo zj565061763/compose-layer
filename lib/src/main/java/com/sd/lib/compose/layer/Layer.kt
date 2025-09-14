@@ -143,15 +143,13 @@ internal abstract class LayerImpl : Layer {
       LayerLifecycleState.Ready,
       LayerLifecycleState.Detaching,
         -> {
-        logMsg { "attach" }
+        logMsg { "attach $state" }
         val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
         container.attachLayer(this)
         setLifecycleState(LayerLifecycleState.Attached)
         onAttach(container)
       }
-      else -> {
-        logMsg { "attach ignored with state:$state" }
-      }
+      else -> {}
     }
   }
 
