@@ -281,9 +281,9 @@ internal abstract class LayerImpl : Layer {
         .fillMaxSize()
         .zIndex(_zIndexState)
     ) {
-      OnTouchOutsideBox()
+      HandleOnTouchOutside()
       LayerContent()
-      HandleDetachOnBackPress()
+      HandleOnBackPress()
     }
   }
   @Composable
@@ -334,9 +334,9 @@ internal abstract class LayerImpl : Layer {
     _contentState.value.invoke(_layerScope)
   }
 
-  /** 触摸非内容区域 */
+  /** 触摸非内容区域逻辑 */
   @Composable
-  private fun BoxScope.OnTouchOutsideBox() {
+  private fun BoxScope.HandleOnTouchOutside() {
     if (!_isVisibleState) return
     val detachOnTouchOutside = _detachOnTouchOutsideState ?: return
     Box(
@@ -356,7 +356,7 @@ internal abstract class LayerImpl : Layer {
 
   /** 返回键逻辑 */
   @Composable
-  private fun HandleDetachOnBackPress() {
+  private fun HandleOnBackPress() {
     if (!_isVisibleState) return
     val detachOnBackPress = _detachOnBackPressState ?: return
     BackHandler {
