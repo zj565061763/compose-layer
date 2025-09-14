@@ -23,16 +23,16 @@ data class LayerTransition(
   val exit: ExitTransition,
 ) {
   companion object {
-    /** 默认淡入淡出动画 */
-    val Default = LayerTransition(
-      enter = fadeIn(),
-      exit = fadeOut(),
-    )
-
     /** 无动画 */
     val None = LayerTransition(
       enter = EnterTransition.None,
       exit = ExitTransition.None,
+    )
+
+    /** 淡入淡出动画 */
+    val Fade = LayerTransition(
+      enter = fadeIn(),
+      exit = fadeOut(),
     )
 
     /** 从上向下滑动 */

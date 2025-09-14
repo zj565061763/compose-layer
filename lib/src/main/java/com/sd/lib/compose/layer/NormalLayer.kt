@@ -33,7 +33,7 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
       Alignment.BottomCenter -> LayerTransition.slideBottomToTop()
       Alignment.CenterStart -> LayerTransition.slideStartToEnd(LocalLayoutDirection.current)
       Alignment.CenterEnd -> LayerTransition.slideEndToStart(LocalLayoutDirection.current)
-      else -> LayerTransition.Default
+      else -> LayerTransition.Fade
     }
   }
 
