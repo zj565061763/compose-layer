@@ -273,8 +273,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       val cs = cs.copy(minWidth = 0, minHeight = 0)
       state.measureScope = this
 
-      val isReady = uiState.targetLayout.isAttached
-        && uiState.containerLayout.isAttached
+      val isReady = with(uiState) {
+        targetLayout.isAttached && containerLayout.isAttached
+      }
 
       logMsg {
         """
