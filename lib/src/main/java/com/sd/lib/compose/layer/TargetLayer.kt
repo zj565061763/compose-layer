@@ -460,9 +460,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     private var _lastBackgroundInfo: PlaceInfo? = null
     private var _lastContentInfo: PlaceInfo? = null
 
-    /**
-     * 测量背景
-     */
+    /** 测量背景 */
     private fun measureBackground(constraints: Constraints): Placeable {
       return measureScope.subcompose(SlotId.Background) {
         BackgroundBox()
@@ -472,9 +470,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
     }
 
-    /**
-     * 测量内容
-     */
+    /** 测量内容 */
     private fun measureContent(constraints: Constraints): Placeable {
       return measureScope.subcompose(SlotId.Content) {
         ContentBox()
@@ -484,9 +480,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       }
     }
 
-    /**
-     * 测量原始内容
-     */
+    /** 测量原始内容 */
     private fun measureRawContent(constraints: Constraints): Placeable {
       return measureScope.subcompose(SlotId.RawContent) {
         RawContent()
