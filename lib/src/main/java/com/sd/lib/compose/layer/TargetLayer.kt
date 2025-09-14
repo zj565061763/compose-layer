@@ -87,15 +87,15 @@ private data class UIState(
 
 @Immutable
 private data class LayoutInfo(
+  val isAttached: Boolean,
   val offset: IntOffset,
   val size: IntSize,
-  val isAttached: Boolean,
 )
 
 private val EmptyLayoutInfo = LayoutInfo(
+  isAttached = false,
   offset = IntOffset.Zero,
   size = IntSize.Zero,
-  isAttached = false,
 )
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
@@ -210,9 +210,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       is LayerTarget.Tag -> _tagTargetLayout.toLayoutInfo()
       is LayerTarget.Offset -> target.offset?.let { offset ->
         LayoutInfo(
+          isAttached = true,
           offset = offset,
           size = IntSize.Zero,
-          isAttached = true,
         )
       } ?: EmptyLayoutInfo
       else -> EmptyLayoutInfo
@@ -737,9 +737,9 @@ private fun Aligner.Position.isCenterVertical(): Boolean {
 
 private fun LayoutCoordinates?.toLayoutInfo(): LayoutInfo {
   return LayoutInfo(
+    isAttached = this?.isAttached == true,
     offset = offset(),
     size = size(),
-    isAttached = isAttached(),
   )
 }
 
@@ -759,16 +759,10 @@ private fun LayoutCoordinates?.size(): IntSize {
   }
 }
 
-private fun LayoutCoordinates?.isAttached(): Boolean {
-  return this?.isAttached == true
-}
-
 private fun Constraints.newMax(size: IntSize): Constraints {
   return this.copy(maxWidth = size.width, maxHeight = size.height)
 }
 
 private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
-
 private fun Placeable.intSize(): IntSize = IntSize(width, height)
-
 private fun LayoutDirection.isLtr(): Boolean = this == LayoutDirection.Ltr
