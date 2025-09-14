@@ -287,10 +287,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
             """.trimIndent()
       }
 
-      if (isReady) {
-        state.layoutDefault(cs, uiState, density.density, layoutDirection)
-      } else {
-        state.layoutLastInfo(cs)
+      when (isReady) {
+        true -> state.layoutDefault(cs, uiState, density.density, layoutDirection)
+        false -> state.layoutLastInfo(cs)
       }.also {
         setContentVisible(isReady)
       }
