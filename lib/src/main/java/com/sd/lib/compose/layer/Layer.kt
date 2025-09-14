@@ -286,12 +286,11 @@ internal abstract class LayerImpl : Layer {
       HandleDetachOnBackPress()
     }
   }
+  @Composable
+  protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
 
   @Composable
   protected abstract fun BoxScope.LayerContent()
-
-  @Composable
-  protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
 
   @Composable
   protected fun BackgroundBox() {
@@ -335,37 +334,35 @@ internal abstract class LayerImpl : Layer {
     _contentState.value.invoke(_layerScope)
   }
 
-  /** 返回键逻辑 */
-  @Composable
-  private fun HandleDetachOnBackPress() {
-    val detachOnBackPress = _detachOnBackPressState ?: return
-    if (_isVisibleState) {
-      BackHandler {
-        if (detachOnBackPress) {
-          requestDetach(LayerDetach.OnBackPress)
-        }
-      }
-    }
-  }
-
   /** 触摸非内容区域 */
   @Composable
   private fun BoxScope.OnTouchOutsideBox() {
-    val state = _detachOnTouchOutsideState ?: return
-    if (_isVisibleState) {
-      Box(
-        modifier = Modifier
-          .matchParentSize()
-          .pointerInput(state) {
-            detectTapGestures(
-              onPress = {
-                if (state) {
-                  requestDetach(LayerDetach.OnTouchOutside)
-                }
+    if (!_isVisibleState) return
+    val detachOnTouchOutside = _detachOnTouchOutsideState ?: return
+    Box(
+      modifier = Modifier
+        .matchParentSize()
+        .pointerInput(detachOnTouchOutside) {
+          detectTapGestures(
+            onPress = {
+              if (detachOnTouchOutside) {
+                requestDetach(LayerDetach.OnTouchOutside)
               }
-            )
-          }
-      )
+            }
+          )
+        }
+    )
+  }
+
+  /** 返回键逻辑 */
+  @Composable
+  private fun HandleDetachOnBackPress() {
+    if (!_isVisibleState) return
+    val detachOnBackPress = _detachOnBackPressState ?: return
+    BackHandler {
+      if (detachOnBackPress) {
+        requestDetach(LayerDetach.OnBackPress)
+      }
     }
   }
 

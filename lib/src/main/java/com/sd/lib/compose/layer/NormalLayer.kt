@@ -26,6 +26,18 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
   }
 
   @Composable
+  override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
+    if (transition != null) return transition
+    return when (_alignment) {
+      Alignment.TopCenter -> LayerTransition.slideTopToBottom()
+      Alignment.BottomCenter -> LayerTransition.slideBottomToTop()
+      Alignment.CenterStart -> LayerTransition.slideStartToEnd(LocalLayoutDirection.current)
+      Alignment.CenterEnd -> LayerTransition.slideEndToStart(LocalLayoutDirection.current)
+      else -> LayerTransition.Default
+    }
+  }
+
+  @Composable
   override fun BoxScope.LayerContent() {
     if (LocalInspectionMode.current) {
       setContentVisible(true)
@@ -37,17 +49,5 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
     BackgroundBox()
     ContentBox(Modifier.align(_alignment))
-  }
-
-  @Composable
-  override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
-    if (transition != null) return transition
-    return when (_alignment) {
-      Alignment.TopCenter -> LayerTransition.slideTopToBottom()
-      Alignment.BottomCenter -> LayerTransition.slideBottomToTop()
-      Alignment.CenterStart -> LayerTransition.slideStartToEnd(LocalLayoutDirection.current)
-      Alignment.CenterEnd -> LayerTransition.slideEndToStart(LocalLayoutDirection.current)
-      else -> LayerTransition.Default
-    }
   }
 }
