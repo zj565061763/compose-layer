@@ -120,6 +120,6 @@ internal fun TargetAlignment.defaultTransition(direction: LayoutDirection): Laye
     TargetAlignment.End,
       -> LayerTransition.slideStartToEnd(direction)
 
-    else -> LayerTransition.Fade
+    TargetAlignment.Center -> LayerTransition.Fade
   }
 }
