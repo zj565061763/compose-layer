@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -375,8 +376,8 @@ internal abstract class LayerImpl : Layer {
   private class LayerScopeImpl : LayerContentScope
 }
 
-internal fun Layer.logMsg(block: () -> String) {
+internal inline fun Layer.logMsg(block: () -> String) {
   if (debug) {
-    println("FLayer ${block()}")
+    Log.d("FLayer", block())
   }
 }
