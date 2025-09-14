@@ -160,23 +160,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   override fun setAlignment(alignment: TargetAlignment) {
-    if (_uiState.value.alignment == alignment) return
-    _uiState.update {
-      it.copy(alignment = alignment)
+    _uiState.update { state ->
+      if (state.alignment == alignment) state
+      else state.copy(alignment = alignment)
     }
   }
 
   override fun setAlignmentOffsetX(offset: TargetAlignmentOffset?) {
-    if (_uiState.value.alignmentOffsetX == offset) return
-    _uiState.update {
-      it.copy(alignmentOffsetX = offset)
+    _uiState.update { state ->
+      if (state.alignmentOffsetX == offset) state
+      else state.copy(alignmentOffsetX = offset)
     }
   }
 
   override fun setAlignmentOffsetY(offset: TargetAlignmentOffset?) {
-    if (_uiState.value.alignmentOffsetY == offset) return
-    _uiState.update {
-      it.copy(alignmentOffsetY = offset)
+    _uiState.update { state ->
+      if (state.alignmentOffsetY == offset) state
+      else state.copy(alignmentOffsetY = offset)
     }
   }
 
