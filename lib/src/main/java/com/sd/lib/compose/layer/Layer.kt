@@ -286,6 +286,7 @@ internal abstract class LayerImpl : Layer {
       HandleOnBackPress()
     }
   }
+
   @Composable
   protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
 
