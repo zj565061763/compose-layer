@@ -21,7 +21,7 @@ sealed interface TargetAlignmentOffset {
 /**
  * 把当前偏移量改为相对[TargetAlignment]偏移量
  *
- * @param 当[TargetAlignment]无法参考时，是否降级为参考普通坐标轴
+ * @param downgrade 当[TargetAlignment]无法参考时，是否降级为参考普通坐标轴
  */
 fun TargetAlignmentOffset.relativeAlignment(
   downgrade: Boolean = false,

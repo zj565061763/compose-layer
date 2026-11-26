@@ -12,7 +12,10 @@ sealed class Directions(
   data object End : Directions(END)
 
   operator fun plus(directions: Directions): Directions {
-    return Combine(flag or directions.flag)
+    val newFlag = flag or directions.flag
+    if ((newFlag == flag) && (this !is RTLDirections)) return this
+    if ((newFlag == directions.flag) && (directions !is RTLDirections)) return directions
+    return Combine(newFlag)
   }
 
   internal fun hasTop() = TOP and flag != 0
@@ -20,7 +23,7 @@ sealed class Directions(
   internal open fun hasStart() = START and flag != 0
   internal open fun hasEnd() = END and flag != 0
 
-  private class Combine(direction: Int) : Directions(direction)
+  private data class Combine(val direction: Int) : Directions(direction)
 
   companion object {
     private const val TOP = 1
@@ -31,8 +34,7 @@ sealed class Directions(
 }
 
 internal fun Directions.rtl(): Directions {
-  return if (this is RTLDirections) this
-  else RTLDirections(flag)
+  return (this as? RTLDirections) ?: RTLDirections(flag)
 }
 
 private class RTLDirections(flag: Int) : Directions(flag) {
