@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -192,5 +193,27 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     _attachedLayers.forEach { layer ->
       key(layer) { layer.Content() }
     }
+    HandleBackPress()
+  }
+
+  /** 按zIndex与挂载顺序由顶层Layer处理返回键 */
+  @Composable
+  private fun HandleBackPress() {
+    val target = findBackPressLayer() ?: return
+    BackHandler {
+      target.handleBackPress()
+    }
+  }
+
+  private fun findBackPressLayer(): LayerImpl? {
+    var target: LayerImpl? = null
+    for (layer in _attachedLayers) {
+      if (layer.shouldHandleBackPress()) {
+        if ((target == null) || (layer.zIndex >= target.zIndex)) {
+          target = layer
+        }
+      }
+    }
+    return target
   }
 }

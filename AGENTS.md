@@ -42,7 +42,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 - `LocalInspectionMode` 预览模式下 `Modifier.layerTag` 直接跳过容器注册，避免预览报错。
 - `LayerImpl` 生命周期按 `Initial -> Ready -> Attached -> Detaching -> Ready` 流转，调用 `detach()` 时先进入 `Detaching` 并将 `_isVisibleState` 置为 `false` 执行退场动画，待 `ContentBox` 动画结束且尺寸变为 `IntSize.Zero` 时才由 `handleContentZeroSize()` 从容器移除并回到 `Ready`。
 - `Detaching` 退场中途再次调用 `attach()` 会标记 `_attachedFromDetaching = true` 并切回 `Attached`，若退场动画恰好落到零尺寸则由 `handleContentZeroSize()` 兜底恢复 `_isVisibleState = true`。
-- `detachOnBackPress` 与 `detachOnTouchOutside` 仅在 `_isVisibleState == true` 时生效，`true` 回调 `onDetachRequest`，`false` 消费事件但不请求移除，`null` 不注册拦截以透传事件。
+- `detachOnBackPress` 与 `detachOnTouchOutside` 仅在 `_isVisibleState == true` 时生效，`true` 回调 `onDetachRequest`，`false` 消费事件但不请求移除，`null` 不注册拦截以透传事件；多个 `Layer` 同时挂载时，容器按 `zIndex`（相同 `zIndex` 后挂载者优先）由最顶层需拦截返回键的 `Layer` 处理返回事件。
 - `ContentBox` 内置空 `pointerInput` 消费内容区点击事件，防止点击穿透到下方的外部触摸拦截层。
 - `ContentBox` 默认使用 `CapturedAnimatedVisibility` 执行内容动画（`captureOnDetach = true`），退场开始时立即移除子内容组合并基于捕获帧播放退场动画；设为 `false` 时使用 `AnimatedVisibility`。
 - 容器与 `Tag` 目标均通过 `LayoutCoordinates.positionInWindow().round()` 采集窗口坐标，因此 `LayerTarget.Offset` 传入的坐标也必须基于 Window 坐标系（如 `localToWindow` 转换结果）。

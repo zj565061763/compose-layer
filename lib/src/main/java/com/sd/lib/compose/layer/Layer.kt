@@ -1,7 +1,6 @@
 package com.sd.lib.compose.layer
 
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.CapturedAnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -114,6 +113,8 @@ internal abstract class LayerImpl : Layer {
 
   /** 是否在移除的过程中被重新添加 */
   private var _attachedFromDetaching = false
+
+  internal val zIndex: Float get() = _zIndexState
 
   final override var debug: Boolean = false
   final override val isVisibleState: Boolean get() = _isVisibleState
@@ -287,11 +288,10 @@ internal abstract class LayerImpl : Layer {
     Box(
       modifier = Modifier
         .fillMaxSize()
-        .zIndex(_zIndexState)
+        .zIndex(_zIndexState),
     ) {
       HandleOnTouchOutside()
       LayerContent()
-      HandleOnBackPress()
     }
   }
 
@@ -373,15 +373,16 @@ internal abstract class LayerImpl : Layer {
     )
   }
 
-  /** 返回键逻辑 */
-  @Composable
-  private fun HandleOnBackPress() {
+  /** 是否需要拦截返回键 */
+  internal fun shouldHandleBackPress(): Boolean {
+    return _isVisibleState && (_detachOnBackPressState != null)
+  }
+
+  /** 处理返回键事件 */
+  internal fun handleBackPress() {
     if (!_isVisibleState) return
-    val detachOnBackPress = _detachOnBackPressState ?: return
-    BackHandler {
-      if (detachOnBackPress) {
-        requestDetach(LayerDetach.OnBackPress)
-      }
+    if (_detachOnBackPressState == true) {
+      requestDetach(LayerDetach.OnBackPress)
     }
   }
 
