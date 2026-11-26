@@ -3,6 +3,7 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.CapturedAnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -74,6 +75,9 @@ internal interface Layer : LayerState {
   /** 动画（非响应式） */
   fun setTransition(transition: LayerTransition?)
 
+  /** 移除时是否捕获最后一帧执行退出动画 */
+  fun setCaptureOnDetach(value: Boolean)
+
   /** [Modifier.zIndex] */
   fun setZIndex(zIndex: Float)
 
@@ -102,6 +106,7 @@ internal abstract class LayerImpl : Layer {
   private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
   private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
   private var _backgroundColorState by mutableStateOf(Color.Black.copy(alpha = 0.3f))
+  private var _captureOnDetachState by mutableStateOf(true)
   private var _zIndexState by mutableFloatStateOf(0f)
 
   private var _layerTransition: LayerTransition? = null
@@ -132,6 +137,10 @@ internal abstract class LayerImpl : Layer {
 
   final override fun setTransition(transition: LayerTransition?) {
     _layerTransition = transition
+  }
+
+  final override fun setCaptureOnDetach(value: Boolean) {
+    _captureOnDetachState = value
   }
 
   final override fun setZIndex(zIndex: Float) {
@@ -319,12 +328,22 @@ internal abstract class LayerImpl : Layer {
         .pointerInput(Unit) { detectTapGestures() }
     ) {
       val transition = getLayerTransition(_layerTransition)
-      AnimatedVisibility(
-        visible = _isVisibleState,
-        enter = transition.enter,
-        exit = transition.exit,
-      ) {
-        RawContent()
+      if (_captureOnDetachState) {
+        CapturedAnimatedVisibility(
+          visible = _isVisibleState,
+          enter = transition.enter,
+          exit = transition.exit,
+        ) {
+          RawContent()
+        }
+      } else {
+        AnimatedVisibility(
+          visible = _isVisibleState,
+          enter = transition.enter,
+          exit = transition.exit,
+        ) {
+          RawContent()
+        }
       }
     }
   }

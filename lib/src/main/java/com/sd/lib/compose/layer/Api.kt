@@ -1,5 +1,7 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.CapturedAnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,6 +72,7 @@ fun Layer(
   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
   alignment: Alignment = Alignment.Center,
   transition: LayerTransition? = null,
+  captureOnDetach: Boolean = true,
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ) {
@@ -82,6 +85,7 @@ fun Layer(
     backgroundColor = backgroundColor,
     alignment = alignment,
     transition = transition,
+    captureOnDetach = captureOnDetach,
     zIndex = zIndex,
     content = content,
   )
@@ -98,6 +102,7 @@ fun Layer(
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
  * @param transition 动画（非响应式）
+ * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-使用[CapturedAnimatedVisibility]；false-使用[AnimatedVisibility]，默认true
  * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
@@ -111,6 +116,7 @@ fun layer(
   backgroundColor: Color = Color.Black.copy(alpha = 0.3f),
   alignment: Alignment = Alignment.Center,
   transition: LayerTransition? = null,
+  captureOnDetach: Boolean = true,
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): LayerState {
@@ -123,7 +129,11 @@ fun layer(
     this.setBackgroundColor(backgroundColor)
     this.setAlignment(alignment)
     this.setTransition(transition)
+    this.setCaptureOnDetach(captureOnDetach)
     this.setZIndex(zIndex)
+    if (!attach) {
+      this.detach()
+    }
   }
 
   DisposableEffect(layer) {
@@ -163,6 +173,7 @@ fun TargetLayer(
   smartAlignments: SmartAliments? = null,
   clipBackgroundDirection: Directions? = null,
   transition: LayerTransition? = null,
+  captureOnDetach: Boolean = true,
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ) {
@@ -180,6 +191,7 @@ fun TargetLayer(
     smartAlignments = smartAlignments,
     clipBackgroundDirection = clipBackgroundDirection,
     transition = transition,
+    captureOnDetach = captureOnDetach,
     zIndex = zIndex,
     content = content,
   )
@@ -202,6 +214,7 @@ fun TargetLayer(
  * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
  * @param clipBackgroundDirection 裁切背景的方向[Directions]（非响应式）
  * @param transition 动画（非响应式）
+ * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-使用[CapturedAnimatedVisibility]；false-使用[AnimatedVisibility]，默认true
  * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
@@ -220,6 +233,7 @@ fun targetLayer(
   smartAlignments: SmartAliments? = null,
   clipBackgroundDirection: Directions? = null,
   transition: LayerTransition? = null,
+  captureOnDetach: Boolean = true,
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayerState {
@@ -237,7 +251,11 @@ fun targetLayer(
     this.setSmartAlignments(smartAlignments)
     this.setClipBackgroundDirection(clipBackgroundDirection)
     this.setTransition(transition)
+    this.setCaptureOnDetach(captureOnDetach)
     this.setZIndex(zIndex)
+    if (!attach) {
+      this.detach()
+    }
   }
 
   DisposableEffect(layer) {

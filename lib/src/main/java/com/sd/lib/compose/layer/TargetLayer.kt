@@ -274,7 +274,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       state.measureScope = this
 
       val isReady = with(uiState) {
-        targetLayout.isAttached && containerLayout.isAttached
+        (lifecycleState == LayerLifecycleState.Attached) &&
+          targetLayout.isAttached &&
+          containerLayout.isAttached
       }
 
       logMsg {
