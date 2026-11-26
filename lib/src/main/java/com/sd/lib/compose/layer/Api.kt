@@ -20,17 +20,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.node.ObserverModifierNode
 import androidx.compose.ui.node.UnplacedAwareModifierNode
 import androidx.compose.ui.node.currentValueOf
-import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.zIndex
 
-/**
- * 显示Layer的容器
- */
+/** 显示Layer的容器 */
 @Composable
 fun LayerContainer(
   modifier: Modifier = Modifier,
@@ -68,9 +64,7 @@ fun LayerContainer(
 
 //-------------------- Layer --------------------
 
-/**
- * [layer]
- */
+/** [layer] */
 @Composable
 fun Layer(
   attach: Boolean,
@@ -164,9 +158,7 @@ fun layer(
 
 //-------------------- TargetLayer --------------------
 
-/**
- * [targetLayer]
- */
+/** [targetLayer] */
 @Composable
 fun TargetLayer(
   target: LayerTarget?,
@@ -312,8 +304,7 @@ private class LayerTagNode(
 ) : Modifier.Node(),
   GlobalPositionAwareModifierNode,
   UnplacedAwareModifierNode,
-  CompositionLocalConsumerModifierNode,
-  ObserverModifierNode {
+  CompositionLocalConsumerModifierNode {
 
   private var _tag: String = tag
   private var _container: ContainerForComposable? = null
@@ -326,18 +317,19 @@ private class LayerTagNode(
     _tag = tag
     if (container != null) {
       require(tag.isNotEmpty()) { "tag is empty." }
-      if (isAttached) {
-        sideEffect { syncTarget() }
+      _coordinates?.takeIf { it.isAttached }?.also {
+        container.addTarget(tag = tag, owner = this, layoutCoordinates = it)
       }
     }
   }
 
+  @Suppress("SuspiciousCompositionLocalModifierRead")
   override fun onAttach() {
-    updateContainer()
-  }
-
-  override fun onObservedReadsChanged() {
-    updateContainer()
+    if (currentValueOf(LocalInspectionMode)) return
+    require(_tag.isNotEmpty()) { "tag is empty." }
+    _container = checkNotNull(currentValueOf(LocalContainerForComposable)) {
+      "Not in LayerContainer scope."
+    }
   }
 
   override fun onDetach() {
@@ -354,48 +346,6 @@ private class LayerTagNode(
   override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
     _coordinates = coordinates
     _container?.addTarget(tag = _tag, owner = this, layoutCoordinates = coordinates)
-  }
-
-  /** 解析并监听当前容器作用域 */
-  private fun updateContainer() {
-    var inspectionMode = false
-    var newContainer: ContainerForComposable? = null
-    observeReads {
-      inspectionMode = currentValueOf(LocalInspectionMode)
-      if (!inspectionMode) {
-        newContainer = currentValueOf(LocalContainerForComposable)
-      }
-    }
-
-    val oldContainer = _container
-    if (oldContainer === newContainer) {
-      if (!inspectionMode) {
-        require(_tag.isNotEmpty()) { "tag is empty." }
-        checkNotNull(newContainer) { "Not in LayerContainer scope." }
-      }
-      return
-    }
-
-    oldContainer?.removeTarget(tag = _tag, owner = this)
-    if (inspectionMode) {
-      _container = null
-      return
-    }
-
-    require(_tag.isNotEmpty()) { "tag is empty." }
-    _container = checkNotNull(newContainer) { "Not in LayerContainer scope." }
-    if (isAttached) {
-      sideEffect { syncTarget() }
-    }
-  }
-
-  /** 用已挂载的布局坐标向容器同步当前[tag][_tag] */
-  private fun syncTarget() {
-    if (!isAttached) return
-    val coordinates = _coordinates ?: return
-    if (coordinates.isAttached) {
-      _container?.addTarget(tag = _tag, owner = this, layoutCoordinates = coordinates)
-    }
   }
 }
 

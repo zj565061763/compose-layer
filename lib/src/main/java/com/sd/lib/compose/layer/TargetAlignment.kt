@@ -2,9 +2,7 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.ui.unit.LayoutDirection
 
-/**
- * 目标对齐位置
- */
+/** 目标对齐位置 */
 enum class TargetAlignment {
   /** 顶部开始方向对齐 */
   TopStart,

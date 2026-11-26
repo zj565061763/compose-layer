@@ -2,6 +2,7 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Immutable
 
+/** 智能对齐候选位置列表 */
 @Immutable
 data class SmartAliments(
   val aliments: List<SmartAliment>,
@@ -19,6 +20,7 @@ data class SmartAliments(
   }
 }
 
+/** 智能对齐单项配置 */
 @Immutable
 data class SmartAliment(
   /** 要对齐的位置 */

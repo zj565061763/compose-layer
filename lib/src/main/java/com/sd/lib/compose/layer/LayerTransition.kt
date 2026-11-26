@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 
+/** Layer进出场过渡动画 */
 @Immutable
 data class LayerTransition(
   val enter: EnterTransition,
@@ -39,26 +40,35 @@ data class LayerTransition(
     fun slideTopToBottom(
       enter: EnterTransition = slideInVertically(slideAnimationSpec) { -it },
       exit: ExitTransition = slideOutVertically(slideAnimationSpec) { -it },
-    ): LayerTransition = LayerTransition(enter, exit)
+    ): LayerTransition {
+      return LayerTransition(enter, exit)
+    }
 
     /** 从下向上滑动 */
     fun slideBottomToTop(
       enter: EnterTransition = slideInVertically(slideAnimationSpec) { it },
       exit: ExitTransition = slideOutVertically(slideAnimationSpec) { it },
-    ): LayerTransition = LayerTransition(enter, exit)
+    ): LayerTransition {
+      return LayerTransition(enter, exit)
+    }
 
     /** 从左向右滑动 */
     fun slideLeftToRight(
       enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { -it },
       exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { -it },
-    ): LayerTransition = LayerTransition(enter, exit)
+    ): LayerTransition {
+      return LayerTransition(enter, exit)
+    }
 
     /** 从右向左滑动 */
     fun slideRightToLeft(
       enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { it },
       exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { it },
-    ): LayerTransition = LayerTransition(enter, exit)
+    ): LayerTransition {
+      return LayerTransition(enter, exit)
+    }
 
+    /** 从开始方向向结束方向滑动 */
     inline fun slideStartToEnd(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { slideLeftToRight() },
@@ -67,6 +77,7 @@ data class LayerTransition(
       return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
     }
 
+    /** 从结束方向向开始方向滑动 */
     inline fun slideEndToStart(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { slideRightToLeft() },
@@ -111,6 +122,7 @@ data class LayerTransition(
       )
     }
 
+    /** 顶部开始角锚点缩放 */
     inline fun scaleTopStart(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { scaleTopLeft() },
@@ -119,6 +131,7 @@ data class LayerTransition(
       return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
     }
 
+    /** 顶部结束角锚点缩放 */
     inline fun scaleTopEnd(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { scaleTopRight() },
@@ -127,6 +140,7 @@ data class LayerTransition(
       return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
     }
 
+    /** 底部开始角锚点缩放 */
     inline fun scaleBottomStart(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { scaleBottomLeft() },
@@ -135,6 +149,7 @@ data class LayerTransition(
       return layoutDirectionTransition(direction, ltrBuilder, rtlBuilder)
     }
 
+    /** 底部结束角锚点缩放 */
     inline fun scaleBottomEnd(
       direction: LayoutDirection,
       ltrBuilder: () -> LayerTransition = { scaleBottomRight() },

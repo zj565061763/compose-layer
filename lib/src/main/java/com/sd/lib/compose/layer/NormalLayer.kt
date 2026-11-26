@@ -12,9 +12,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 internal interface NormalLayer : Layer {
-  /**
-   * 对齐容器位置，默认[Alignment.Center]
-   */
+  /** 对齐容器位置，默认[Alignment.Center] */
   fun setAlignment(alignment: Alignment)
 }
 

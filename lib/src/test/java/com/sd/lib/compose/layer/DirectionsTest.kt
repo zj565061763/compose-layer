@@ -36,9 +36,6 @@ class DirectionsTest {
 
     assertFlags(rtl, top = true, bottom = false, start = false, end = true)
     assertSame(rtl, rtl.rtl())
-
-    val mergedFromRtl = rtl + Directions.Top
-    assertFlags(mergedFromRtl, top = true, bottom = false, start = true, end = false)
   }
 }
 

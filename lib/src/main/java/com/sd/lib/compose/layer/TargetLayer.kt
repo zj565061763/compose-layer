@@ -23,11 +23,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.round
 
+/** TargetLayer状态 */
 interface TargetLayerState : LayerState
 
-/**
- * 要对齐的目标
- */
+/** 要对齐的目标 */
 @Immutable
 sealed interface LayerTarget {
   /** 以[tag]为目标 */
@@ -38,24 +37,16 @@ sealed interface LayerTarget {
 }
 
 internal interface TargetLayer : Layer, TargetLayerState {
-  /**
-   * 要对齐的目标
-   */
+  /** 要对齐的目标 */
   fun setTarget(target: LayerTarget?)
 
-  /**
-   * 对齐目标位置，默认[TargetAlignment.Center]
-   */
+  /** 对齐目标位置，默认[TargetAlignment.Center] */
   fun setAlignment(alignment: TargetAlignment)
 
-  /**
-   * 对齐目标X方向偏移量
-   */
+  /** 对齐目标X方向偏移量 */
   fun setAlignmentOffsetX(offset: TargetAlignmentOffset?)
 
-  /**
-   * 对齐目标Y方向偏移量
-   */
+  /** 对齐目标Y方向偏移量 */
   fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
   /**
@@ -68,7 +59,9 @@ internal interface TargetLayer : Layer, TargetLayerState {
   fun setClipBackgroundDirection(direction: Directions?)
 }
 
-internal fun TargetLayer.toTargetLayerState(): TargetLayerState = InternalTargetLayerState(this)
+internal fun TargetLayer.toTargetLayerState(): TargetLayerState {
+  return InternalTargetLayerState(this)
+}
 private class InternalTargetLayerState(layer: TargetLayer) : TargetLayerState by layer
 
 //---------- Impl ----------
@@ -791,6 +784,14 @@ private fun Constraints.newMax(size: IntSize): Constraints {
   return this.copy(maxWidth = size.width, maxHeight = size.height)
 }
 
-private fun Constraints.maxIntSize(): IntSize = IntSize(maxWidth, maxHeight)
-private fun Placeable.intSize(): IntSize = IntSize(width, height)
-private fun LayoutDirection.isLtr(): Boolean = this == LayoutDirection.Ltr
+private fun Constraints.maxIntSize(): IntSize {
+  return IntSize(maxWidth, maxHeight)
+}
+
+private fun Placeable.intSize(): IntSize {
+  return IntSize(width, height)
+}
+
+private fun LayoutDirection.isLtr(): Boolean {
+  return this == LayoutDirection.Ltr
+}

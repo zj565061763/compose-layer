@@ -6,7 +6,9 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.layout.LayoutCoordinates
 
-internal fun newLayerContainer(): LayerContainer = LayerContainerImpl()
+internal fun newLayerContainer(): LayerContainer {
+  return LayerContainerImpl()
+}
 
 internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
@@ -54,13 +56,15 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
 
   final override fun addTarget(tag: String, owner: Any, layoutCoordinates: LayoutCoordinates) {
     if (destroyed) return
-    _targetsLayout[tag]?.also { old ->
+    val old = _targetsLayout[tag]
+    if (old != null) {
       check(old.owner === owner) { "Tag:$tag already exist." }
+      if (old.layoutCoordinates !== layoutCoordinates) {
+        _targetsLayout[tag] = TargetHolder(owner = owner, layoutCoordinates = layoutCoordinates)
+      }
+    } else {
+      _targetsLayout[tag] = TargetHolder(owner = owner, layoutCoordinates = layoutCoordinates)
     }
-    _targetsLayout[tag] = TargetHolder(
-      owner = owner,
-      layoutCoordinates = layoutCoordinates,
-    )
     onUpdateTargetLayout(tag, layoutCoordinates)
   }
 
@@ -103,13 +107,13 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
   private val _targetLayoutCallbacks: MutableMap<String, MutableSet<LayoutCoordinatesCallback>> = mutableMapOf()
 
   override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
-    _containerLayoutCallbacks.toTypedArray().forEach {
+    _containerLayoutCallbacks.forEach {
       it.invoke(layoutCoordinates)
     }
   }
 
   override fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?) {
-    _targetLayoutCallbacks[tag]?.toTypedArray()?.forEach {
+    _targetLayoutCallbacks[tag]?.forEach {
       it.invoke(layoutCoordinates)
     }
   }

@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
 
+/** Layer状态 */
 interface LayerState {
   /** Layer可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
   val isVisibleState: Boolean
@@ -31,6 +32,7 @@ interface LayerState {
   val lifecycleState: LayerLifecycleState
 }
 
+/** Layer生命周期状态 */
 enum class LayerLifecycleState {
   /** 初始状态 */
   Initial,
@@ -45,6 +47,7 @@ enum class LayerLifecycleState {
   Attached,
 }
 
+/** Layer触发移除的原因 */
 enum class LayerDetach {
   /** 按返回键 */
   OnBackPress,
@@ -53,6 +56,7 @@ enum class LayerDetach {
   OnTouchOutside,
 }
 
+/** Layer内容作用域 */
 interface LayerContentScope
 
 internal interface Layer : LayerState {
@@ -87,7 +91,9 @@ internal interface Layer : LayerState {
   fun detach()
 }
 
-internal fun Layer.toLayerState(): LayerState = InternalLayerState(this)
+internal fun Layer.toLayerState(): LayerState {
+  return InternalLayerState(this)
+}
 private class InternalLayerState(layer: Layer) : LayerState by layer
 
 //---------- Impl ----------
@@ -179,11 +185,11 @@ internal abstract class LayerImpl : Layer {
     }
   }
 
-  protected open fun onAttach(container: ContainerForLayer) = Unit
+  protected open fun onAttach(container: ContainerForLayer) {}
 
-  protected open fun onDetach(container: ContainerForLayer) = Unit
+  protected open fun onDetach(container: ContainerForLayer) {}
 
-  protected open fun onDetached(container: ContainerForLayer) = Unit
+  protected open fun onDetached(container: ContainerForLayer) {}
 
   @Composable
   internal fun Init(

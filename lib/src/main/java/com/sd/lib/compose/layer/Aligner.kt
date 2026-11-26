@@ -1,8 +1,6 @@
 package com.sd.lib.compose.layer
 
-/**
- * 对齐接口
- */
+/** 对齐接口 */
 internal interface Aligner {
 
   enum class Position {
@@ -76,9 +74,7 @@ internal interface Aligner {
     /** 源相对于源容器的y值 */
     val y: Int,
   ) {
-    /**
-     * 源相对于源容器的溢出信息
-     */
+    /** 源相对于源容器的溢出信息 */
     val sourceOverflow: Overflow
       get() = Overflow(
         start = -x,
@@ -88,18 +84,14 @@ internal interface Aligner {
       )
   }
 
-  /**
-   * 4条边距离源容器4条边的值。值大于0表示溢出，值小于0表示未溢出。
-   */
+  /** 4条边距离源容器4条边的值，大于0表示溢出，小于0表示未溢出 */
   data class Overflow(
     val start: Int,
     val end: Int,
     val top: Int,
     val bottom: Int,
   ) {
-    /**
-     * 4条边溢出容器的总值
-     */
+    /** 4条边溢出容器的总值 */
     fun totalOverflow(): Int {
       var size = 0
       if (top > 0) size += top

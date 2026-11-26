@@ -2,26 +2,46 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Immutable
 
+/** 方向定义，可通过[plus]组合多个方向 */
 @Immutable
 sealed class Directions(
   internal val flag: Int,
 ) {
+  /** 顶部方向 */
   data object Top : Directions(TOP)
+
+  /** 底部方向 */
   data object Bottom : Directions(BOTTOM)
+
+  /** 开始方向 */
   data object Start : Directions(START)
+
+  /** 结束方向 */
   data object End : Directions(END)
 
+  /** 组合多个方向 */
   operator fun plus(directions: Directions): Directions {
     val newFlag = flag or directions.flag
-    if ((newFlag == flag) && (this !is RTLDirections)) return this
-    if ((newFlag == directions.flag) && (directions !is RTLDirections)) return directions
+    if (newFlag == flag) return this
+    if (newFlag == directions.flag) return directions
     return Combine(newFlag)
   }
 
-  internal fun hasTop() = TOP and flag != 0
-  internal fun hasBottom() = BOTTOM and flag != 0
-  internal open fun hasStart() = START and flag != 0
-  internal open fun hasEnd() = END and flag != 0
+  internal fun hasTop(): Boolean {
+    return TOP and flag != 0
+  }
+
+  internal fun hasBottom(): Boolean {
+    return BOTTOM and flag != 0
+  }
+
+  internal open fun hasStart(): Boolean {
+    return START and flag != 0
+  }
+
+  internal open fun hasEnd(): Boolean {
+    return END and flag != 0
+  }
 
   private data class Combine(val direction: Int) : Directions(direction)
 
