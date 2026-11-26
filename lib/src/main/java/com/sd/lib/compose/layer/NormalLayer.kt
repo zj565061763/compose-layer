@@ -37,11 +37,12 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
   @Composable
   override fun BoxScope.LayerContent() {
+    val isReady = lifecycleState == LayerLifecycleState.Attached
     if (LocalInspectionMode.current) {
-      setContentVisible(true)
+      setContentVisible(isReady)
     } else {
       SideEffect {
-        setContentVisible(true)
+        setContentVisible(isReady)
       }
     }
 

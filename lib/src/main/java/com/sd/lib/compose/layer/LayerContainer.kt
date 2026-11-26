@@ -194,18 +194,20 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
 
   @Composable
   override fun Layers() {
+    HandleBackPress()
     _attachedLayers.forEach { layer ->
       key(layer) { layer.Content() }
     }
-    HandleBackPress()
   }
 
   /** 按zIndex与挂载顺序由顶层Layer处理返回键 */
   @Composable
   private fun HandleBackPress() {
     val target = findBackPressLayer() ?: return
-    BackHandler {
-      target.handleBackPress()
+    key(target) {
+      BackHandler {
+        target.handleBackPress()
+      }
     }
   }
 

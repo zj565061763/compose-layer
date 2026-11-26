@@ -15,11 +15,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
 
@@ -195,7 +197,8 @@ internal abstract class LayerImpl : Layer {
   internal fun Init(
     content: @Composable LayerContentScope.() -> Unit,
   ) {
-    val container = LocalContainerForLayer.current ?: error("Not in LayerContainer scope.")
+    val container = LocalContainerForLayer.current
+      ?: if (LocalInspectionMode.current) return else error("Not in LayerContainer scope.")
     container.initLayer(this)
     _contentState.value = content
   }
@@ -416,6 +419,6 @@ internal abstract class LayerImpl : Layer {
 
 internal inline fun Layer.logMsg(block: () -> String) {
   if (debug) {
-    Log.d("FLayer", block())
+    Log.d("FLayer", Snapshot.withoutReadObservation(block))
   }
 }

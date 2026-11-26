@@ -29,10 +29,10 @@ interface TargetLayerState : LayerState
 /** 要对齐的目标 */
 @Immutable
 sealed interface LayerTarget {
-  /** 以[tag]为目标 */
+  /** 以[tag]标记的元素为目标 */
   data class Tag(val tag: String?) : LayerTarget
 
-  /** 以[offset]为目标 */
+  /** 以窗口坐标系（Window）中的[offset]为目标 */
   data class Offset(val offset: IntOffset?) : LayerTarget
 }
 
