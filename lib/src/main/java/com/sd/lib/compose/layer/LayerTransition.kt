@@ -88,38 +88,22 @@ data class LayerTransition(
 
     /** 左上角锚点缩放 */
     fun scaleTopLeft(): LayerTransition {
-      val transformOrigin = TransformOrigin(0.0f, 0.0f)
-      return LayerTransition(
-        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-      )
+      return scaleWithOrigin(0.0f, 0.0f)
     }
 
     /** 右上角锚点缩放 */
     fun scaleTopRight(): LayerTransition {
-      val transformOrigin = TransformOrigin(1.0f, 0.0f)
-      return LayerTransition(
-        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-      )
+      return scaleWithOrigin(1.0f, 0.0f)
     }
 
     /** 左下角锚点缩放 */
     fun scaleBottomLeft(): LayerTransition {
-      val transformOrigin = TransformOrigin(0.0f, 1.0f)
-      return LayerTransition(
-        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-      )
+      return scaleWithOrigin(0.0f, 1.0f)
     }
 
     /** 右下角锚点缩放 */
     fun scaleBottomRight(): LayerTransition {
-      val transformOrigin = TransformOrigin(1.0f, 1.0f)
-      return LayerTransition(
-        enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
-        exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
-      )
+      return scaleWithOrigin(1.0f, 1.0f)
     }
 
     /** 顶部开始角锚点缩放 */
@@ -176,4 +160,15 @@ internal inline fun layoutDirectionTransition(
     LayoutDirection.Ltr -> ltrBuilder()
     LayoutDirection.Rtl -> rtlBuilder()
   }
+}
+
+private fun scaleWithOrigin(
+  pivotFractionX: Float,
+  pivotFractionY: Float,
+): LayerTransition {
+  val transformOrigin = TransformOrigin(pivotFractionX, pivotFractionY)
+  return LayerTransition(
+    enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+    exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
+  )
 }

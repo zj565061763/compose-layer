@@ -29,6 +29,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `Layer.kt` | `LayerState`、`LayerLifecycleState`、`LayerDetach` 定义及基类 `LayerImpl` 的生命周期、可见性、返回键与外部触摸控制 |
 | `NormalLayer.kt` | `NormalLayerImpl` 实现，按 `Alignment` 对齐容器并根据方位匹配默认过渡动画 |
 | `TargetLayer.kt` | `TargetLayerImpl` 实现，通过 `SubcomposeLayout` 完成目标对齐、智能选位、溢出修正与背景裁切 |
+| `FixOverflow.kt` | `fixOverFlow` 溢出尺寸裁剪算法，在可内收边越界时循环缩减宽高并保护固定锚定边 |
 | `Aligner.kt` | 纯坐标计算引擎，根据目标、容器与内容尺寸及 `LayoutDirection` 计算相对坐标与四边溢出量 |
 | `TargetAlignment.kt` | 17 种目标对齐位置枚举，以及 `Tag` 目标与 `Offset` 目标的默认 `LayerTransition` 映射 |
 | `TargetAlignmentOffset.kt` | `PX`、`DP`、`Target`（目标尺寸倍数）偏移量及 `relativeAlignment` 相对对齐方向换算 |

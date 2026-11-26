@@ -115,36 +115,21 @@ fun layer(
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): LayerState {
-  val layer = remember { NormalLayerImpl() }.apply {
-    this.debug = debug
-    this.Init(content)
-    this.setDetachRequestCallback(onDetachRequest)
-    this.setDetachOnBackPress(detachOnBackPress)
-    this.setDetachOnTouchOutside(detachOnTouchOutside)
-    this.setBackgroundColor(backgroundColor)
-    this.setAlignment(alignment)
-    this.setTransition(transition)
-    this.setCaptureOnDetach(captureOnDetach)
-    this.setZIndex(zIndex)
-    if (!attach) {
-      this.detach()
-    }
+  val layer = rememberLayer(
+    factory = { NormalLayerImpl() },
+    attach = attach,
+    onDetachRequest = onDetachRequest,
+    debug = debug,
+    detachOnBackPress = detachOnBackPress,
+    detachOnTouchOutside = detachOnTouchOutside,
+    backgroundColor = backgroundColor,
+    transition = transition,
+    captureOnDetach = captureOnDetach,
+    zIndex = zIndex,
+    content = content,
+  ) {
+    setAlignment(alignment)
   }
-
-  DisposableEffect(layer) {
-    onDispose {
-      layer.release()
-    }
-  }
-
-  LaunchedEffect(layer, attach) {
-    if (attach) {
-      layer.attach()
-    } else {
-      layer.detach()
-    }
-  }
-
   return remember(layer) { layer.toLayerState() }
 }
 
@@ -230,19 +215,58 @@ fun targetLayer(
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayerState {
-  val layer = remember { TargetLayerImpl() }.apply {
+  val layer = rememberLayer(
+    factory = { TargetLayerImpl() },
+    attach = attach,
+    onDetachRequest = onDetachRequest,
+    debug = debug,
+    detachOnBackPress = detachOnBackPress,
+    detachOnTouchOutside = detachOnTouchOutside,
+    backgroundColor = backgroundColor,
+    transition = transition,
+    captureOnDetach = captureOnDetach,
+    zIndex = zIndex,
+    content = content,
+  ) {
+    setTarget(target)
+    setAlignment(alignment)
+    setAlignmentOffsetX(alignmentOffsetX)
+    setAlignmentOffsetY(alignmentOffsetY)
+    setSmartAlignments(smartAlignments)
+    setClipBackgroundDirection(clipBackgroundDirection)
+  }
+  return remember(layer) { layer.toTargetLayerState() }
+}
+
+/** 为当前元素设置容器作用域内唯一的[tag] */
+@Stable
+fun Modifier.layerTag(tag: String): Modifier {
+  return this then LayerTagElement(tag)
+}
+
+@Composable
+private inline fun <T : LayerImpl> rememberLayer(
+  crossinline factory: () -> T,
+  attach: Boolean,
+  noinline onDetachRequest: (LayerDetach) -> Unit,
+  debug: Boolean,
+  detachOnBackPress: Boolean?,
+  detachOnTouchOutside: Boolean?,
+  backgroundColor: Color,
+  transition: LayerTransition?,
+  captureOnDetach: Boolean,
+  zIndex: Float,
+  noinline content: @Composable LayerContentScope.() -> Unit,
+  update: T.() -> Unit,
+): T {
+  val layer = remember { factory() }.apply {
     this.debug = debug
     this.Init(content)
     this.setDetachRequestCallback(onDetachRequest)
     this.setDetachOnBackPress(detachOnBackPress)
     this.setDetachOnTouchOutside(detachOnTouchOutside)
     this.setBackgroundColor(backgroundColor)
-    this.setTarget(target)
-    this.setAlignment(alignment)
-    this.setAlignmentOffsetX(alignmentOffsetX)
-    this.setAlignmentOffsetY(alignmentOffsetY)
-    this.setSmartAlignments(smartAlignments)
-    this.setClipBackgroundDirection(clipBackgroundDirection)
+    update()
     this.setTransition(transition)
     this.setCaptureOnDetach(captureOnDetach)
     this.setZIndex(zIndex)
@@ -265,13 +289,7 @@ fun targetLayer(
     }
   }
 
-  return remember(layer) { layer.toTargetLayerState() }
-}
-
-/** 为当前元素设置容器作用域内唯一的[tag] */
-@Stable
-fun Modifier.layerTag(tag: String): Modifier {
-  return this then LayerTagElement(tag)
+  return layer
 }
 
 internal val LocalContainerForComposable = staticCompositionLocalOf<ContainerForComposable?> { null }
