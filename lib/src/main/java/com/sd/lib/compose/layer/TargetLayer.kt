@@ -409,7 +409,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       contentSize: IntSize,
       layoutDirection: LayoutDirection,
     ): PlaceInfo {
-      if (clipBackgroundDirection == null || contentSize.width <= 0 || contentSize.height <= 0) {
+      if ((clipBackgroundDirection == null) || (contentSize.width <= 0) || (contentSize.height <= 0)) {
         return PlaceInfo(
           offset = IntOffset.Zero,
           size = cs.maxIntSize(),
@@ -419,8 +419,10 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       val direction = clipBackgroundDirection.takeIf { layoutDirection == LayoutDirection.Ltr }
         ?: clipBackgroundDirection.rtl()
 
-      val contentX = contentOffset.x.coerceAtLeast(0)
-      val contentY = contentOffset.y.coerceAtLeast(0)
+      val left = contentOffset.x.coerceIn(0, cs.maxWidth)
+      val top = contentOffset.y.coerceIn(0, cs.maxHeight)
+      val right = (contentOffset.x + contentSize.width).coerceIn(left, cs.maxWidth)
+      val bottom = (contentOffset.y + contentSize.height).coerceIn(top, cs.maxHeight)
 
       var x = 0
       var y = 0
@@ -428,25 +430,25 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       var height = cs.maxHeight
 
       if (direction.hasTop()) {
-        height -= contentY.also {
+        height -= top.also {
           logMsg { "clip background top:$it" }
         }
-        y = contentY
+        y = top
       }
       if (direction.hasBottom()) {
-        height -= (cs.maxHeight - contentY - contentSize.height).also {
+        height -= (cs.maxHeight - bottom).also {
           logMsg { "clip background bottom:$it" }
         }
       }
 
       if (direction.hasStart()) {
-        width -= contentX.also {
+        width -= left.also {
           logMsg { "clip background start:$it" }
         }
-        x = contentX
+        x = left
       }
       if (direction.hasEnd()) {
-        width -= (cs.maxWidth - contentX - contentSize.width).also {
+        width -= (cs.maxWidth - right).also {
           logMsg { "clip background end:$it" }
         }
       }
@@ -599,9 +601,18 @@ private fun Aligner.Result.fixOverFlow(
   layer: Layer,
   layoutDirection: LayoutDirection,
 ): FixOverFlow {
-  val position = input.position
-  var result = this
+  val isLtr = layoutDirection.isLtr()
+  val resolvedPosition = input.position.takeIf { isLtr } ?: input.position.rtl()
 
+  val isCenterHorizontal = resolvedPosition.isCenterHorizontal()
+  val canShrinkStart = isCenterHorizontal || resolvedPosition.isEndAnchoredHorizontal()
+  val canShrinkEnd = isCenterHorizontal || !resolvedPosition.isEndAnchoredHorizontal()
+
+  val isCenterVertical = resolvedPosition.isCenterVertical()
+  val canShrinkTop = isCenterVertical || resolvedPosition.isBottomAnchoredVertical()
+  val canShrinkBottom = isCenterVertical || !resolvedPosition.isBottomAnchoredVertical()
+
+  var result = this
   var resultWidth = result.input.sourceWidth
   var resultHeight = result.input.sourceHeight
 
@@ -621,12 +632,12 @@ private fun Aligner.Result.fixOverFlow(
         var isStartOverflow = false
         var isEndOverflow = false
 
-        if (start > 0) {
+        if (canShrinkStart && (start > 0)) {
           overSize += start
           isStartOverflow = true
         }
 
-        if (end > 0) {
+        if (canShrinkEnd && (end > 0)) {
           overSize += end
           isEndOverflow = true
         }
@@ -634,23 +645,17 @@ private fun Aligner.Result.fixOverFlow(
         if (overSize > 0) {
           hasOverflow = true
 
-          /**
-           * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-           */
-          if (position.isCenterHorizontal()) {
-            if (isStartOverflow && isEndOverflow) {
-              // 正常流程
-            } else {
-              overSize *= 2
-            }
+          /** 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值 */
+          if (isCenterHorizontal && !(isStartOverflow && isEndOverflow)) {
+            overSize *= 2
           }
 
           val oldWidth = resultWidth
           resultWidth = oldWidth - overSize
 
           layer.logMsg {
-            val startLog = if (start > 0) " start:$start" else ""
-            val endLog = if (end > 0) " end:$end" else ""
+            val startLog = if (isStartOverflow) " start:$start" else ""
+            val endLog = if (isEndOverflow) " end:$end" else ""
             "width overflow:${overSize}${startLog}${endLog} ($oldWidth)->($resultWidth)"
           }
         }
@@ -662,12 +667,12 @@ private fun Aligner.Result.fixOverFlow(
         var isTopOverflow = false
         var isBottomOverflow = false
 
-        if (top > 0) {
+        if (canShrinkTop && (top > 0)) {
           overSize += top
           isTopOverflow = true
         }
 
-        if (bottom > 0) {
+        if (canShrinkBottom && (bottom > 0)) {
           overSize += bottom
           isBottomOverflow = true
         }
@@ -675,45 +680,35 @@ private fun Aligner.Result.fixOverFlow(
         if (overSize > 0) {
           hasOverflow = true
 
-          /**
-           * 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值
-           */
-          if (position.isCenterVertical()) {
-            if (isTopOverflow && isBottomOverflow) {
-              // 正常流程
-            } else {
-              overSize *= 2
-            }
+          /** 居中对齐的时候，如果只有一边溢出，则需要减去双倍溢出的值 */
+          if (isCenterVertical && !(isTopOverflow && isBottomOverflow)) {
+            overSize *= 2
           }
 
           val oldHeight = resultHeight
           resultHeight = oldHeight - overSize
 
           layer.logMsg {
-            val topLog = if (top > 0) " top:$top" else ""
-            val bottomLog = if (bottom > 0) " bottom:$bottom" else ""
+            val topLog = if (isTopOverflow) " top:$top" else ""
+            val bottomLog = if (isBottomOverflow) " bottom:$bottom" else ""
             "height overflow:${overSize}${topLog}${bottomLog} ($oldHeight)->($resultHeight)"
           }
         }
       }
     }
 
-    if (hasOverflow) {
-      if (resultWidth <= 0 || resultHeight <= 0) {
-        break
-      }
-      result = result.input.copy(
-        sourceWidth = resultWidth,
-        sourceHeight = resultHeight,
-      ).toResult(layoutDirection.isLtr())
-    } else {
+    if (!hasOverflow || (resultWidth <= 0) || (resultHeight <= 0)) {
       break
     }
+    result = result.input.copy(
+      sourceWidth = resultWidth,
+      sourceHeight = resultHeight,
+    ).toResult(isLtr)
   }
 
   return FixOverFlow(
     offset = IntOffset(result.x, result.y),
-    size = IntSize(resultWidth.coerceAtLeast(0), resultHeight.coerceAtLeast(0))
+    size = IntSize(resultWidth.coerceAtLeast(0), resultHeight.coerceAtLeast(0)),
   )
 }
 
@@ -727,11 +722,37 @@ private fun Aligner.Position.isCenterHorizontal(): Boolean {
   }
 }
 
+private fun Aligner.Position.isEndAnchoredHorizontal(): Boolean {
+  return when (this) {
+    Aligner.Position.TopEnd,
+    Aligner.Position.BottomEnd,
+    Aligner.Position.StartTop,
+    Aligner.Position.StartCenter,
+    Aligner.Position.StartBottom,
+    Aligner.Position.Start,
+      -> true
+    else -> false
+  }
+}
+
 private fun Aligner.Position.isCenterVertical(): Boolean {
   return when (this) {
     Aligner.Position.StartCenter,
     Aligner.Position.EndCenter,
     Aligner.Position.Center,
+      -> true
+    else -> false
+  }
+}
+
+private fun Aligner.Position.isBottomAnchoredVertical(): Boolean {
+  return when (this) {
+    Aligner.Position.TopStart,
+    Aligner.Position.TopCenter,
+    Aligner.Position.TopEnd,
+    Aligner.Position.Top,
+    Aligner.Position.StartBottom,
+    Aligner.Position.EndBottom,
       -> true
     else -> false
   }

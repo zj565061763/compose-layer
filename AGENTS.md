@@ -48,7 +48,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 - 容器与 `Tag` 目标均通过 `LayoutCoordinates.positionInWindow().round()` 采集窗口坐标，因此 `LayerTarget.Offset` 传入的坐标也必须基于 Window 坐标系（如 `localToWindow` 转换结果）。
 - `TargetLayer` 的 `OffsetBox` 使用 `SubcomposeLayout` 分三槽位测量：先测量 `RawContent` 获取原始尺寸并完成对齐、智能选位与溢出修正，再用修正后的最大宽高约束正式测量 `Content` 与 `Background`。
 - `OffsetBox` 在容器或目标未就绪（`!isReady`）时复用上一帧缓存的 `_lastContentInfo` 与 `_lastBackgroundInfo`，保证目标消失或卸载时退场动画仍在原位播放。
-- `fixOverFlow` 在内容越界时循环缩减宽高并重算对齐坐标，水平或垂直居中对齐且仅单侧溢出时按双倍溢出量缩减对应维度，维持居中对齐关系。
+- `fixOverFlow` 在可随尺寸内收的边越界时循环缩减宽高并重算对齐坐标，水平或垂直居中对齐且仅单侧溢出时按双倍溢出量缩减对应维度，维持居中对齐关系。
 - `clipBackgroundDirection` 表示裁切掉内容对应外侧方向的背景遮罩（如 `Directions.Top` 裁掉内容上方的遮罩，使背景从内容顶部向下延伸），支持通过 `+` 组合多个方向并在 RTL 下自动互换 `Start` 与 `End`。
 - 未显式指定 `transition` 时，`TargetLayer` 若命中 `SmartAliment` 则优先使用该项的动画，否则 `LayerTarget.Offset` 在四角对齐时使用锚点缩放动画（`offsetTransition`），其余场景使用滑动或淡入淡出动画（`defaultTransition`）。
 - `transition`、`smartAlignments`、`clipBackgroundDirection` 存储在普通属性而非 Compose `State` 中，属于非响应式配置，运行期变更不会主动触发重组或重测。

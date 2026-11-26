@@ -279,7 +279,7 @@ private fun Aligner.Input.getYAlignCenter(): Int {
   return getYAlignTop() + (this.targetHeight - this.sourceHeight) / 2
 }
 
-private fun Aligner.Position.rtl(): Aligner.Position {
+internal fun Aligner.Position.rtl(): Aligner.Position {
   return when (this) {
     Aligner.Position.TopStart -> Aligner.Position.TopEnd
     Aligner.Position.TopEnd -> Aligner.Position.TopStart
