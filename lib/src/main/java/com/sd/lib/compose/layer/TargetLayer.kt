@@ -59,14 +59,12 @@ internal interface TargetLayer : Layer, TargetLayerState {
   fun setAlignmentOffsetY(offset: TargetAlignmentOffset?)
 
   /**
-   * 智能对齐目标位置（非响应式），null-关闭智能对齐；非null-开启智能对齐，默认值null。
-   * 开启之后，如果默认的[setAlignment]导致内容溢出会使用[alignments]提供的位置按顺序查找溢出最小的位置
+   * 智能对齐目标位置，null-关闭智能对齐；非null-开启智能对齐，默认值null。
+   * 开启之后，如果默认的[setAlignment]导致内容溢出会使用[alignments]提供的位置按顺序查找溢出最小的位置。
    */
   fun setSmartAlignments(alignments: SmartAliments?)
 
-  /**
-   * 裁切背景的方向[Directions]（非响应式）
-   */
+  /** 裁切背景的方向[Directions] */
   fun setClipBackgroundDirection(direction: Directions?)
 }
 
@@ -82,6 +80,8 @@ private data class UIState(
   val alignment: TargetAlignment,
   val alignmentOffsetX: TargetAlignmentOffset?,
   val alignmentOffsetY: TargetAlignmentOffset?,
+  val smartAlignments: SmartAliments?,
+  val clipBackgroundDirection: Directions?,
 )
 
 @Immutable
@@ -105,6 +105,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       alignment = TargetAlignment.Center,
       alignmentOffsetX = null,
       alignmentOffsetY = null,
+      smartAlignments = null,
+      clipBackgroundDirection = null,
     ),
   )
 
@@ -112,12 +114,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   private var _target: LayerTarget? = null
   private var _isOffsetTarget by mutableStateOf(false)
 
-  /** 智能对齐 */
-  private var _smartAlignments: SmartAliments? = null
+  /** 当前命中的智能对齐 */
   private var _currentSmartAlignment: SmartAliment? = null
-
-  /** 裁切背景 */
-  private var _clipBackgroundDirection: Directions? = null
 
   override fun setTarget(target: LayerTarget?) {
     if (_target == target) return
@@ -182,14 +180,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   override fun setSmartAlignments(alignments: SmartAliments?) {
-    _smartAlignments = alignments
-    if (alignments == null) {
-      _currentSmartAlignment = null
+    if (_uiState.smartAlignments != alignments) {
+      _uiState = _uiState.copy(smartAlignments = alignments)
+      if (alignments == null) {
+        _currentSmartAlignment = null
+      }
     }
   }
 
   override fun setClipBackgroundDirection(direction: Directions?) {
-    _clipBackgroundDirection = direction
+    if (_uiState.clipBackgroundDirection != direction) {
+      _uiState = _uiState.copy(clipBackgroundDirection = direction)
+    }
   }
 
   override fun onAttach(container: ContainerForLayer) {
@@ -318,10 +320,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         layoutDirection = layoutDirection,
       )
 
-      _smartAlignments?.also {
+      val smartAlignments = uiState.smartAlignments
+      if (smartAlignments != null) {
         val (bestResult, smartAlignment) = result.findBestResult(
           layer = this@TargetLayerImpl,
-          smartAliments = it,
+          smartAliments = smartAlignments,
           uiState = uiState,
           contentSize = rawSize,
           density = density,
@@ -329,6 +332,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         )
         result = bestResult
         _currentSmartAlignment = smartAlignment
+      } else {
+        _currentSmartAlignment = null
       }
 
       val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl, layoutDirection)
@@ -336,7 +341,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
       val backgroundInfo = backgroundPlaceInfo(
         cs = cs,
-        clipBackgroundDirection = _clipBackgroundDirection,
+        clipBackgroundDirection = uiState.clipBackgroundDirection,
         contentOffset = fixOffset,
         contentSize = fixSize,
         layoutDirection = layoutDirection,
