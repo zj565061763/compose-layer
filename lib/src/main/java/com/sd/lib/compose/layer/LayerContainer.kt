@@ -11,8 +11,8 @@ internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
 internal interface ContainerForComposable {
   fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
-  fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates)
-  fun removeTarget(tag: String)
+  fun addTarget(tag: String, owner: Any, layoutCoordinates: LayoutCoordinates)
+  fun removeTarget(tag: String, owner: Any)
   fun destroy()
 
   @Composable
@@ -43,7 +43,7 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
   private var _containerLayout: LayoutCoordinates? = null
 
   /** 目标布局信息 */
-  private val _targetsLayout: MutableMap<String, LayoutCoordinates> = mutableMapOf()
+  private val _targetsLayout: MutableMap<String, TargetHolder> = mutableMapOf()
 
   final override fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
     if (destroyed) return
@@ -51,17 +51,23 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
     onUpdateContainerLayout(layoutCoordinates)
   }
 
-  final override fun addTarget(tag: String, layoutCoordinates: LayoutCoordinates) {
+  final override fun addTarget(tag: String, owner: Any, layoutCoordinates: LayoutCoordinates) {
     if (destroyed) return
-    _targetsLayout.put(tag, layoutCoordinates)?.also { old ->
-      check(layoutCoordinates === old) { "Tag:$tag already exist." }
+    _targetsLayout[tag]?.also { old ->
+      check(old.owner === owner) { "Tag:$tag already exist." }
     }
+    _targetsLayout[tag] = TargetHolder(
+      owner = owner,
+      layoutCoordinates = layoutCoordinates,
+    )
     onUpdateTargetLayout(tag, layoutCoordinates)
   }
 
-  final override fun removeTarget(tag: String) {
+  final override fun removeTarget(tag: String, owner: Any) {
     if (destroyed) return
-    if (_targetsLayout.remove(tag) != null) {
+    val current = _targetsLayout[tag] ?: return
+    if (current.owner === owner) {
+      _targetsLayout.remove(tag)
       onUpdateTargetLayout(tag, null)
     }
   }
@@ -72,11 +78,21 @@ private abstract class ComposableLayerContainer : ContainerForComposable {
     _targetsLayout.clear()
   }
 
-  fun getContainerLayout(): LayoutCoordinates? = _containerLayout
-  fun getTargetLayout(tag: String): LayoutCoordinates? = _targetsLayout[tag]
+  fun getContainerLayout(): LayoutCoordinates? {
+    return _containerLayout
+  }
+
+  fun getTargetLayout(tag: String): LayoutCoordinates? {
+    return _targetsLayout[tag]?.layoutCoordinates
+  }
 
   abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
   abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
+
+  private class TargetHolder(
+    val owner: Any,
+    val layoutCoordinates: LayoutCoordinates,
+  )
 }
 
 private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
