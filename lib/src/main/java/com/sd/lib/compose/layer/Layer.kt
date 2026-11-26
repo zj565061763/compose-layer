@@ -3,8 +3,6 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.CapturedAnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -321,17 +319,18 @@ internal abstract class LayerImpl : Layer {
 
   @Composable
   protected fun BackgroundBox() {
+    val transition = if (LocalInspectionMode.current) LayerTransition.None else LayerTransition.Fade
     Box(modifier = Modifier.fillMaxSize()) {
       AnimatedVisibility(
         modifier = Modifier.fillMaxSize(),
         visible = _isVisibleState,
-        enter = fadeIn(),
-        exit = fadeOut(),
+        enter = transition.enter,
+        exit = transition.exit,
       ) {
         Box(
           modifier = Modifier
             .fillMaxSize()
-            .background(_backgroundColorState)
+            .background(_backgroundColorState),
         )
       }
     }
@@ -350,7 +349,11 @@ internal abstract class LayerImpl : Layer {
         .clipToBounds()
         .pointerInput(Unit) { detectTapGestures() },
     ) {
-      val transition = getLayerTransition(_layerTransition)
+      val transition = if (LocalInspectionMode.current) {
+        LayerTransition.None
+      } else {
+        getLayerTransition(_layerTransition)
+      }
       if (_captureOnDetachState) {
         CapturedAnimatedVisibility(
           visible = _isVisibleState,

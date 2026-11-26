@@ -42,12 +42,15 @@ class SampleDropDown : ComponentActivity() {
 }
 
 @Composable
-private fun Content() {
+private fun Content(
+  modifier: Modifier = Modifier,
+  defaultAttach: Boolean = false,
+) {
   val tag = "hello"
-  var attach by remember { mutableStateOf(false) }
+  var attach by remember { mutableStateOf(defaultAttach) }
 
   Column(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
       .padding(horizontal = 10.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
@@ -55,7 +58,7 @@ private fun Content() {
     Spacer(modifier = Modifier.height(300.dp))
     Button(
       onClick = { attach = !attach },
-      modifier = Modifier.layerTag(tag)
+      modifier = Modifier.layerTag(tag),
     ) {
       Text(if (attach) "Close" else "Open")
     }
@@ -79,5 +82,7 @@ private fun Content() {
 @Preview
 @Composable
 private fun PreviewContent() {
-  Content()
+  LayerContainer {
+    Content(defaultAttach = true)
+  }
 }

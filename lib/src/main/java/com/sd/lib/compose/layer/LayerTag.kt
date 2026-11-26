@@ -53,11 +53,10 @@ internal class LayerTagNode(
 
   @Suppress("SuspiciousCompositionLocalModifierRead")
   override fun onAttach() {
-    if (currentValueOf(LocalInspectionMode)) return
+    val container = currentValueOf(LocalContainerForComposable)
+      ?: if (currentValueOf(LocalInspectionMode)) return else error("Not in LayerContainer scope.")
     require(_tag.isNotEmpty()) { "tag is empty." }
-    _container = checkNotNull(currentValueOf(LocalContainerForComposable)) {
-      "Not in LayerContainer scope."
-    }
+    _container = container
   }
 
   override fun onDetach() {

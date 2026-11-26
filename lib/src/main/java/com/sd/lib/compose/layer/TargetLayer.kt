@@ -248,16 +248,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
   @Composable
   override fun BoxScope.LayerContent() {
-    OffsetBox(
-      modifier = Modifier.fillMaxSize(),
-      uiState = _uiState,
-    )
+    OffsetBox(modifier = Modifier.fillMaxSize())
   }
 
   @Composable
   private fun OffsetBox(
     modifier: Modifier = Modifier,
-    uiState: UIState,
   ) {
     val state = remember { OffsetBoxState() }
     val density = LocalDensity.current
@@ -267,6 +263,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       @Suppress("NAME_SHADOWING")
       val cs = cs.copy(minWidth = 0, minHeight = 0)
       state.measureScope = this
+      val uiState = _uiState
 
       val isReady = with(uiState) {
         (lifecycleState == LayerLifecycleState.Attached) &&

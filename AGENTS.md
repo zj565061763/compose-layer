@@ -41,7 +41,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 
 - `LayerContainerImpl` 同时实现 `ContainerForComposable`（供 `LayerContainer` 与 `Modifier.layerTag` 上报布局坐标）和 `ContainerForLayer`（供 `LayerImpl` 挂载与订阅坐标），通过两个独立的 `staticCompositionLocalOf` 隔离暴露范围。
 - 同一 `LayerContainer` 内非空 `tag` 必须唯一，不同节点复用同一 `tag` 会触发校验失败。
-- `LocalInspectionMode` 预览模式下，`Modifier.layerTag` 直接跳过容器注册，未包裹 `LayerContainer` 的 `Layer` 跳过容器初始化以避免预览报错，包裹 `LayerContainer` 且 `attach = true` 时同步挂载以支持静态预览渲染。
+- `LocalInspectionMode` 预览模式下，未包裹 `LayerContainer` 时 `Modifier.layerTag` 与 `Layer` 均跳过容器绑定以避免预览报错；包裹 `LayerContainer` 且 `attach = true` 时同步挂载、上报目标坐标并跳过进出场动画以支持静态预览渲染。
 - `LayerImpl` 生命周期按 `Initial -> Ready -> Attached -> Detaching -> Ready` 流转，调用 `detach()` 时先进入 `Detaching` 并将 `_isVisibleState` 置为 `false` 执行退场动画，待 `ContentBox` 动画结束且尺寸变为 `IntSize.Zero` 时才由 `handleContentZeroSize()` 从容器移除并回到 `Ready`。
 - `Detaching` 退场中途再次调用 `attach()` 会标记 `_attachedFromDetaching = true` 并切回 `Attached`，`NormalLayer` 与 `TargetLayer` 均观察 `lifecycleState` 立即恢复可见状态，若退场动画恰好落到零尺寸则由 `handleContentZeroSize()` 兜底恢复 `_isVisibleState = true`。
 - `detachOnBackPress` 与 `detachOnTouchOutside` 仅在 `_isVisibleState == true` 时生效，`true` 回调 `onDetachRequest`，`false` 消费事件但不请求移除，`null` 不注册拦截以透传事件；多个 `Layer` 同时挂载时，容器按 `zIndex`（相同 `zIndex` 后挂载者优先）由最顶层需拦截返回键的 `Layer` 处理返回事件，且 `HandleBackPress()` 先于各浮层 `Content()` 组合以允许浮层内容内部的 `BackHandler` 优先响应。
