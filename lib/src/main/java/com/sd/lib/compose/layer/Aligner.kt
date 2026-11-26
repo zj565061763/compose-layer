@@ -86,27 +86,6 @@ internal interface Aligner {
         top = -y,
         bottom = (y + input.sourceHeight) - input.containerHeight,
       )
-
-    /**
-     * 输入的参数相对于源容器的溢出信息
-     */
-    fun overflow(
-      x: Int,
-      y: Int,
-      width: Int,
-      height: Int,
-    ): Overflow {
-      return Companion.overflow(
-        parentX = input.containerX,
-        parentY = input.containerY,
-        parentWidth = input.containerWidth,
-        parentHeight = input.containerHeight,
-        childX = x,
-        childY = y,
-        childWidth = width,
-        childHeight = height,
-      )
-    }
   }
 
   /**
@@ -128,33 +107,6 @@ internal interface Aligner {
       if (start > 0) size += start
       if (end > 0) size += end
       return size
-    }
-  }
-
-  companion object {
-    fun overflow(
-      parentX: Int,
-      parentY: Int,
-      parentWidth: Int,
-      parentHeight: Int,
-      childX: Int,
-      childY: Int,
-      childWidth: Int,
-      childHeight: Int,
-    ): Overflow {
-
-      val parentEnd = parentX + parentWidth
-      val parentBottom = parentY + parentHeight
-
-      val childEnd = childX + childWidth
-      val childBottom = childY + childHeight
-
-      return Overflow(
-        start = parentX - childX,
-        top = parentY - childY,
-        end = childEnd - parentEnd,
-        bottom = childBottom - parentBottom,
-      )
     }
   }
 }
