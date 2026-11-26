@@ -75,19 +75,19 @@ internal fun TargetAlignment.toAlignerPosition(): Aligner.Position {
 internal fun TargetAlignment.offsetTransition(direction: LayoutDirection): LayerTransition {
   return when (this) {
     TargetAlignment.TopStart,
-    TargetAlignment.StartTop,
+    TargetAlignment.EndBottom,
       -> LayerTransition.scaleBottomStart(direction)
 
     TargetAlignment.TopEnd,
-    TargetAlignment.EndTop,
+    TargetAlignment.StartBottom,
       -> LayerTransition.scaleBottomEnd(direction)
 
     TargetAlignment.BottomStart,
-    TargetAlignment.StartBottom,
+    TargetAlignment.EndTop,
       -> LayerTransition.scaleTopStart(direction)
 
     TargetAlignment.BottomEnd,
-    TargetAlignment.EndBottom,
+    TargetAlignment.StartTop,
       -> LayerTransition.scaleTopEnd(direction)
 
     else -> defaultTransition(direction)
