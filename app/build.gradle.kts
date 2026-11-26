@@ -1,14 +1,18 @@
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.kotlin.compose)
 }
 
 android {
   namespace = "com.sd.demo.compose_layer"
-  compileSdk = libs.versions.androidCompileSdk.get().toInt()
+  compileSdk {
+    version = release(libs.versions.androidCompileSdk.get().toInt()) {
+      minorApiLevel = libs.versions.androidCompileSdkMinor.get().toInt()
+    }
+  }
   defaultConfig {
     targetSdk = libs.versions.androidCompileSdk.get().toInt()
-    minSdk = 21
+    minSdk = 24
     applicationId = "com.sd.demo.compose_layer"
     versionCode = 1
     versionName = "1.0"
@@ -27,20 +31,12 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-  }
-
-  kotlinOptions {
-    jvmTarget = "1.8"
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   buildFeatures {
     compose = true
-  }
-
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
   }
 }
 

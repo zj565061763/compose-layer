@@ -1,18 +1,20 @@
 [versions]
 
-androidCompileSdk = "35"
+androidCompileSdk = "37"
+androidCompileSdkMinor = "2"
 
-androidGradlePlugin = "8.7.3"
-kotlin = "1.9.25"
+androidGradlePlugin = "9.5.3"
+kotlin = "2.4.21"
 
-composeBom = "2025.07.00"
-composeCompiler = "1.5.15"
+composeBom = "2026.11.01"
 
-lifecycle = "2.8.7"
+lifecycle = "2.11.1"
 
-maven-publish = "0.32.0"
+maven-publish = "0.37.0"
 
 [libraries]
+
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
@@ -20,7 +22,7 @@ androidx-compose-foundation = { module = "androidx.compose.foundation:foundation
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 
-androidx-activity-compose = "androidx.activity:activity-compose:1.9.3"
+androidx-activity-compose = "androidx.activity:activity-compose:1.13.0"
 androidx-lifecycle-viewmodelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 
@@ -32,5 +34,5 @@ androidx-test-espresso-core = "androidx.test.espresso:espresso-core:3.7.0"
 
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
