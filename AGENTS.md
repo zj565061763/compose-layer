@@ -67,3 +67,15 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `SampleFixOverflow` | 长列表超出容器边界时的溢出尺寸裁剪与自定义缩放动画 |
 | `SampleZIndex` | 多个 `Layer` 同时挂载时的 `zIndex` 层级覆盖顺序 |
 | `SampleListMenu` | 列表点击窗口坐标 `LayerTarget.Offset`、`SmartAliments.Default` 智能选位与 `relativeAlignment` 相对偏移 |
+
+## 单元测试对照
+
+测试目录：`lib/src/test/java/com/sd/lib/compose/layer/`
+
+| 测试类 | 覆盖范围 |
+|---|---|
+| `AlignerTest` | 17 种 `Aligner.Position` 在 LTR/RTL 下的相对坐标计算及 `sourceOverflow` 溢出统计 |
+| `TargetAlignmentOffsetTest` | `PX`、`DP`、`Target` 像素换算及 `relativeAlignment` 在 X/Y 轴的正负向与 `downgrade` 降级 |
+| `DirectionsTest` | 单方向位标志、`+` 组合值相等与幂等性及 `rtl()` 左右方向互换 |
+| `TargetLayerFixOverflowTest` | `fixOverFlow` 四边内收裁剪、居中单双侧溢出修正及固定锚定边越界保护 |
+| `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 在 LTR/RTL 下的四角缩放锚点映射 |

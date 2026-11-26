@@ -597,13 +597,13 @@ private fun Aligner.Result.findBestResult(
   }
 }
 
-private data class FixOverFlow(
+internal data class FixOverFlow(
   val offset: IntOffset,
   val size: IntSize,
 )
 
-private fun Aligner.Result.fixOverFlow(
-  layer: Layer,
+internal fun Aligner.Result.fixOverFlow(
+  layer: Layer? = null,
   layoutDirection: LayoutDirection,
 ): FixOverFlow {
   val isLtr = layoutDirection.isLtr()
@@ -623,7 +623,7 @@ private fun Aligner.Result.fixOverFlow(
 
   var count = 0
   while (true) {
-    layer.logMsg {
+    layer?.logMsg {
       "checkOverflow ${++count} ($resultWidth,$resultHeight)"
     }
 
@@ -658,7 +658,7 @@ private fun Aligner.Result.fixOverFlow(
           val oldWidth = resultWidth
           resultWidth = oldWidth - overSize
 
-          layer.logMsg {
+          layer?.logMsg {
             val startLog = if (isStartOverflow) " start:$start" else ""
             val endLog = if (isEndOverflow) " end:$end" else ""
             "width overflow:${overSize}${startLog}${endLog} ($oldWidth)->($resultWidth)"
@@ -693,7 +693,7 @@ private fun Aligner.Result.fixOverFlow(
           val oldHeight = resultHeight
           resultHeight = oldHeight - overSize
 
-          layer.logMsg {
+          layer?.logMsg {
             val topLog = if (isTopOverflow) " top:$top" else ""
             val bottomLog = if (isBottomOverflow) " bottom:$bottom" else ""
             "height overflow:${overSize}${topLog}${bottomLog} ($oldHeight)->($resultHeight)"

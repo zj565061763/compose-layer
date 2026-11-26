@@ -40,6 +40,7 @@ dependencies {
   implementation(composeBom)
   implementation(libs.androidx.compose.foundation)
   implementation(libs.androidx.activity.compose)
+  testImplementation(libs.junit)
 }
 
 mavenPublishing {
