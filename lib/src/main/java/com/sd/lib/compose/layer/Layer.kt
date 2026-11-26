@@ -114,6 +114,9 @@ internal abstract class LayerImpl : Layer {
   /** 是否在移除的过程中被重新添加 */
   private var _attachedFromDetaching = false
 
+  /** 内容区域当前尺寸 */
+  private var _contentSize: IntSize = IntSize.Zero
+
   internal val zIndex: Float get() = _zIndexState
 
   final override var debug: Boolean = false
@@ -170,6 +173,9 @@ internal abstract class LayerImpl : Layer {
       setLifecycleState(LayerLifecycleState.Detaching)
       setContentVisible(false)
       onDetach(container)
+      if (_contentSize == IntSize.Zero) {
+        handleContentZeroSize()
+      }
     }
   }
 
@@ -222,6 +228,9 @@ internal abstract class LayerImpl : Layer {
       }
     } else {
       setAttachedFromDetaching(false)
+      if (state != LayerLifecycleState.Detaching) {
+        _contentSize = IntSize.Zero
+      }
     }
   }
 
@@ -323,9 +332,14 @@ internal abstract class LayerImpl : Layer {
   protected fun ContentBox(modifier: Modifier = Modifier) {
     Box(
       modifier = modifier
-        .onGloballyPositioned { if (it.size == IntSize.Zero) handleContentZeroSize() }
+        .onGloballyPositioned {
+          _contentSize = it.size
+          if (it.size == IntSize.Zero) {
+            handleContentZeroSize()
+          }
+        }
         .clipToBounds()
-        .pointerInput(Unit) { detectTapGestures() }
+        .pointerInput(Unit) { detectTapGestures() },
     ) {
       val transition = getLayerTransition(_layerTransition)
       if (_captureOnDetachState) {
