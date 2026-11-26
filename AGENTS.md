@@ -24,6 +24,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | 文件 | 职责 |
 |---|---|
 | `Api.kt` | 公开入口：`LayerContainer`、`Layer` / `layer`、`TargetLayer` / `targetLayer`、`Modifier.layerTag` 及内部 `CompositionLocal` |
+| `LayerTag.kt` | `LayerTagElement` 与 `LayerTagNode` 实现，负责 `Modifier.layerTag` 节点的容器绑定、唯一性校验与布局坐标上报 |
 | `LayerContainer.kt` | 容器双接口拆分（`ContainerForComposable` / `ContainerForLayer`）、挂载列表管理及容器与 `tag` 目标的 `LayoutCoordinates` 分发 |
 | `Layer.kt` | `LayerState`、`LayerLifecycleState`、`LayerDetach` 定义及基类 `LayerImpl` 的生命周期、可见性、返回键与外部触摸控制 |
 | `NormalLayer.kt` | `NormalLayerImpl` 实现，按 `Alignment` 对齐容器并根据方位匹配默认过渡动画 |
