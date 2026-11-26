@@ -4,9 +4,10 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.MeasureResult
@@ -21,8 +22,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.round
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 
 interface TargetLayerState : LayerState
 
@@ -99,18 +98,19 @@ private val EmptyLayoutInfo = LayoutInfo(
 )
 
 internal class TargetLayerImpl : LayerImpl(), TargetLayer {
-  private val _uiState = MutableStateFlow(
+  private var _uiState by mutableStateOf(
     UIState(
       targetLayout = EmptyLayoutInfo,
       containerLayout = EmptyLayoutInfo,
       alignment = TargetAlignment.Center,
       alignmentOffsetX = null,
       alignmentOffsetY = null,
-    )
+    ),
   )
 
   /** 目标 */
   private var _target: LayerTarget? = null
+  private var _isOffsetTarget by mutableStateOf(false)
 
   /** 智能对齐 */
   private var _smartAlignments: SmartAliments? = null
@@ -127,13 +127,16 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     unregisterTarget(oldTarget)
 
     _target = target
+    if (target != null) {
+      _isOffsetTarget = target is LayerTarget.Offset
+    }
 
     registerTarget(target)
     updateTargetLayout()
   }
 
   private fun registerTarget(target: LayerTarget?) {
-    if (target is LayerTarget.Tag) {
+    if ((lifecycleState == LayerLifecycleState.Attached) && (target is LayerTarget.Tag)) {
       layerContainer?.registerTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
     }
   }
@@ -154,34 +157,35 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
   /** 监听容器布局信息 */
   private val _containerLayoutCallback: LayoutCoordinatesCallback = { layoutCoordinates ->
-    _uiState.update {
-      it.copy(containerLayout = layoutCoordinates.toLayoutInfo())
+    val layout = layoutCoordinates.toLayoutInfo()
+    if (_uiState.containerLayout != layout) {
+      _uiState = _uiState.copy(containerLayout = layout)
     }
   }
 
   override fun setAlignment(alignment: TargetAlignment) {
-    _uiState.update { state ->
-      if (state.alignment == alignment) state
-      else state.copy(alignment = alignment)
+    if (_uiState.alignment != alignment) {
+      _uiState = _uiState.copy(alignment = alignment)
     }
   }
 
   override fun setAlignmentOffsetX(offset: TargetAlignmentOffset?) {
-    _uiState.update { state ->
-      if (state.alignmentOffsetX == offset) state
-      else state.copy(alignmentOffsetX = offset)
+    if (_uiState.alignmentOffsetX != offset) {
+      _uiState = _uiState.copy(alignmentOffsetX = offset)
     }
   }
 
   override fun setAlignmentOffsetY(offset: TargetAlignmentOffset?) {
-    _uiState.update { state ->
-      if (state.alignmentOffsetY == offset) state
-      else state.copy(alignmentOffsetY = offset)
+    if (_uiState.alignmentOffsetY != offset) {
+      _uiState = _uiState.copy(alignmentOffsetY = offset)
     }
   }
 
   override fun setSmartAlignments(alignments: SmartAliments?) {
     _smartAlignments = alignments
+    if (alignments == null) {
+      _currentSmartAlignment = null
+    }
   }
 
   override fun setClipBackgroundDirection(direction: Directions?) {
@@ -202,9 +206,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     _currentSmartAlignment = null
   }
 
-  /**
-   * 更新目标布局信息
-   */
+  /** 更新目标布局信息 */
   private fun updateTargetLayout() {
     val layout = when (val target = _target) {
       is LayerTarget.Tag -> _tagTargetLayout.toLayoutInfo()
@@ -218,13 +220,18 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       else -> EmptyLayoutInfo
     }
 
-    _uiState.update {
-      it.copy(targetLayout = layout)
+    if (_uiState.targetLayout != layout) {
+      _uiState = _uiState.copy(targetLayout = layout)
     }
   }
 
   @Composable
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
+    if (transition != null) {
+      logMsg { "getLayerTransition from params" }
+      return transition
+    }
+
     val direction = LocalLayoutDirection.current
 
     _currentSmartAlignment?.also { sa ->
@@ -232,18 +239,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
       return sa.transition ?: sa.alignment.transition(direction)
     }
 
-    if (transition != null) {
-      logMsg { "getLayerTransition from params" }
-      return transition
-    }
-
     logMsg { "getLayerTransition from default" }
-    val uiState by _uiState.collectAsState()
-    return uiState.alignment.transition(direction)
+    return _uiState.alignment.transition(direction)
   }
 
   private fun TargetAlignment.transition(direction: LayoutDirection): LayerTransition {
-    return if (_target is LayerTarget.Offset) {
+    return if (_isOffsetTarget) {
       offsetTransition(direction)
     } else {
       defaultTransition(direction)
@@ -252,10 +253,9 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
   @Composable
   override fun BoxScope.LayerContent() {
-    val uiState by _uiState.collectAsState()
     OffsetBox(
       modifier = Modifier.fillMaxSize(),
-      uiState = uiState,
+      uiState = _uiState,
     )
   }
 
