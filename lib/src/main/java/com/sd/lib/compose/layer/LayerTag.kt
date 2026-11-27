@@ -1,11 +1,8 @@
 package com.sd.lib.compose.layer
 
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
-import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.node.UnplacedAwareModifierNode
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -29,25 +26,20 @@ internal data class LayerTagElement(
 
 internal class LayerTagNode(
   tag: String,
-) : Modifier.Node(),
-  GlobalPositionAwareModifierNode,
-  UnplacedAwareModifierNode,
+) : LayoutTrackNode(),
   CompositionLocalConsumerModifierNode {
 
   private var _tag: String = tag
   private var _container: ContainerForComposable? = null
-  private var _coordinates: LayoutCoordinates? = null
 
   fun updateTag(tag: String) {
     if (_tag == tag) return
     val container = _container
-    container?.removeTarget(tag = _tag, owner = this)
+    container?.detachTargetNode(tag = _tag, node = this)
     _tag = tag
     if (container != null) {
       require(tag.isNotEmpty()) { "tag is empty." }
-      _coordinates?.takeIf { it.isAttached }?.also {
-        container.addTarget(tag = tag, owner = this, layoutCoordinates = it)
-      }
+      container.attachTargetNode(tag = tag, node = this)
     }
   }
 
@@ -57,21 +49,28 @@ internal class LayerTagNode(
       ?: if (currentValueOf(LocalInspectionMode)) return else error("Not in LayerContainer scope.")
     require(_tag.isNotEmpty()) { "tag is empty." }
     _container = container
+    container.attachTargetNode(tag = _tag, node = this)
+  }
+
+  override fun onPlaced(coordinates: LayoutCoordinates) {
+    val wasPlaced = isPlaced
+    super.onPlaced(coordinates)
+    if (!wasPlaced) {
+      _container?.onTargetNodePlaced(tag = _tag, node = this)
+    }
+  }
+
+  override fun onNodeUnplaced() {
+    _container?.onTargetRectChanged(tag = _tag, node = this, rect = null)
   }
 
   override fun onDetach() {
-    _container?.removeTarget(tag = _tag, owner = this)
+    _container?.detachTargetNode(tag = _tag, node = this)
     _container = null
-    _coordinates = null
+    super.onDetach()
   }
 
-  override fun onUnplaced() {
-    _coordinates = null
-    _container?.removeTarget(tag = _tag, owner = this)
-  }
-
-  override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-    _coordinates = coordinates
-    _container?.addTarget(tag = _tag, owner = this, layoutCoordinates = coordinates)
+  override fun onRectChanged(rect: LayoutRect?) {
+    _container?.onTargetRectChanged(tag = _tag, node = this, rect = rect)
   }
 }

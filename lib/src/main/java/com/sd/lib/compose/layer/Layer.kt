@@ -3,24 +3,27 @@ package com.sd.lib.compose.layer
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.CapturedAnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.zIndex
 
 /** Layer状态 */
@@ -94,6 +97,7 @@ internal interface Layer : LayerState {
 internal fun Layer.toLayerState(): LayerState {
   return InternalLayerState(this)
 }
+
 private class InternalLayerState(layer: Layer) : LayerState by layer
 
 //---------- Impl ----------
@@ -102,11 +106,16 @@ internal abstract class LayerImpl : Layer {
   internal var layerContainer: ContainerForLayer? = null
     private set
 
+  protected var isInspectionMode: Boolean = false
+    private set
+
   private var _lifecycleState by mutableStateOf(LayerLifecycleState.Initial)
-  private var _isVisibleState by mutableStateOf(false)
+  private var _contentVisibleState by mutableStateOf(MutableTransitionState(false))
+  private var _backgroundVisibleState by mutableStateOf(MutableTransitionState(false))
 
   private val _layerScope = LayerScopeImpl()
   private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
+  private val _movableContent = movableContentOf { _contentState.value.invoke(_layerScope) }
 
   private var _detachOnBackPressState by mutableStateOf<Boolean?>(true)
   private var _detachOnTouchOutsideState by mutableStateOf<Boolean?>(false)
@@ -117,17 +126,27 @@ internal abstract class LayerImpl : Layer {
   private var _layerTransition: LayerTransition? = null
   private var _detachRequestCallback: ((LayerDetach) -> Unit)? = null
 
-  /** 是否在移除的过程中被重新添加 */
-  private var _attachedFromDetaching = false
+  internal val zIndex: Float
+    get() {
+      return _zIndexState
+    }
 
-  /** 内容区域当前尺寸 */
-  private var _contentSize: IntSize = IntSize.Zero
-
-  internal val zIndex: Float get() = _zIndexState
+  protected val hasExplicitTransition: Boolean
+    get() {
+      return _layerTransition != null
+    }
 
   final override var debug: Boolean = false
-  final override val isVisibleState: Boolean get() = _isVisibleState
-  final override val lifecycleState: LayerLifecycleState get() = _lifecycleState
+
+  final override val isVisibleState: Boolean
+    get() {
+      return _contentVisibleState.targetState
+    }
+
+  final override val lifecycleState: LayerLifecycleState
+    get() {
+      return _lifecycleState
+    }
 
   final override fun setDetachOnBackPress(value: Boolean?) {
     _detachOnBackPressState = value
@@ -179,9 +198,7 @@ internal abstract class LayerImpl : Layer {
       setLifecycleState(LayerLifecycleState.Detaching)
       setContentVisible(false)
       onDetach(container)
-      if (_contentSize == IntSize.Zero) {
-        handleContentZeroSize()
-      }
+      checkDetachCompleted()
     }
   }
 
@@ -195,8 +212,9 @@ internal abstract class LayerImpl : Layer {
   internal fun Init(
     content: @Composable LayerContentScope.() -> Unit,
   ) {
+    isInspectionMode = LocalInspectionMode.current
     val container = LocalContainerForLayer.current
-      ?: if (LocalInspectionMode.current) return else error("Not in LayerContainer scope.")
+      ?: (if (isInspectionMode) return else error("Not in LayerContainer scope."))
     container.initLayer(this)
     _contentState.value = content
   }
@@ -218,89 +236,75 @@ internal abstract class LayerImpl : Layer {
     logMsg { "onRelease $container" }
     check(layerContainer === container)
     detach()
+    if (_lifecycleState == LayerLifecycleState.Detaching) {
+      onDetached(container)
+    }
+    _contentVisibleState = MutableTransitionState(false)
+    _backgroundVisibleState = MutableTransitionState(false)
     layerContainer = null
     setLifecycleState(LayerLifecycleState.Initial)
   }
 
   private fun setLifecycleState(state: LayerLifecycleState) {
-    val oldState = _lifecycleState
-    if (oldState == state) return
-
+    if (_lifecycleState == state) return
     _lifecycleState = state
     logMsg { "state:$_lifecycleState" }
-
-    if (state == LayerLifecycleState.Attached) {
-      if (oldState == LayerLifecycleState.Detaching) {
-        setAttachedFromDetaching(true)
-      }
-    } else {
-      setAttachedFromDetaching(false)
-      if (state != LayerLifecycleState.Detaching) {
-        _contentSize = IntSize.Zero
-      }
-    }
   }
 
   /** 设置内容可见状态 */
   protected fun setContentVisible(visible: Boolean) {
-    val oldVisible = _isVisibleState
+    val oldVisible = _contentVisibleState.targetState
     if (oldVisible == visible) return
 
-    if (visible) {
-      if (_lifecycleState == LayerLifecycleState.Attached) {
-        _isVisibleState = true
-      }
-    } else {
-      _isVisibleState = false
-    }
-
-    if (oldVisible != _isVisibleState) {
-      logMsg { "setContentVisible:$_isVisibleState" }
-    }
-
-    if (_isVisibleState) {
-      setAttachedFromDetaching(false)
+    val newVisible = visible && (_lifecycleState == LayerLifecycleState.Attached)
+    if (oldVisible != newVisible) {
+      _contentVisibleState.targetState = newVisible
+      _backgroundVisibleState.targetState = newVisible
+      logMsg { "setContentVisible:$newVisible" }
     }
   }
 
-  private fun setAttachedFromDetaching(value: Boolean) {
-    if (_attachedFromDetaching != value) {
-      _attachedFromDetaching = value
-      logMsg { "setAttachedFromDetaching:$value" }
-    }
+  /** 内容是否已完全处于未显示且无动画的静止状态 */
+  protected fun isContentExitIdle(): Boolean {
+    return !_contentVisibleState.targetState &&
+      !_contentVisibleState.currentState &&
+      _contentVisibleState.isIdle
   }
 
-  private fun handleContentZeroSize() {
-    logMsg { "handleContentZeroSize isVisible:$_isVisibleState state:$_lifecycleState" }
-    if (_isVisibleState) {
-      // 如果是可见状态，不处理
-      return
-    }
+  private fun isExitIdle(): Boolean {
+    return isContentExitIdle() &&
+      !_backgroundVisibleState.targetState &&
+      !_backgroundVisibleState.currentState &&
+      _backgroundVisibleState.isIdle
+  }
 
-    when (_lifecycleState) {
-      LayerLifecycleState.Attached -> {
-        if (_attachedFromDetaching) {
-          logMsg { "attached from detaching set content visible" }
-          setContentVisible(true)
-        }
-      }
+  /** 检查退场动画是否已结束并执行容器移除 */
+  private fun checkDetachCompleted() {
+    if (_lifecycleState != LayerLifecycleState.Detaching) return
+    if (!isExitIdle()) return
 
-      LayerLifecycleState.Detaching -> {
-        val container = checkNotNull(layerContainer)
-        if (container.detachLayer(this@LayerImpl)) {
-          logMsg { "detachLayer" }
-          setLifecycleState(LayerLifecycleState.Ready)
-          onDetached(container)
-        }
-      }
-
-      else -> {}
+    val container = checkNotNull(layerContainer)
+    if (container.detachLayer(this)) {
+      logMsg { "detachLayer" }
+      setLifecycleState(LayerLifecycleState.Ready)
+      onDetached(container)
     }
   }
 
   /** 渲染Layer内容 */
   @Composable
   fun Content() {
+    if (_lifecycleState == LayerLifecycleState.Detaching) {
+      LaunchedEffect(this) {
+        snapshotFlow { isExitIdle() }
+          .collect { idle ->
+            if (idle) {
+              checkDetachCompleted()
+            }
+          }
+      }
+    }
+
     Box(
       modifier = Modifier
         .fillMaxSize()
@@ -318,14 +322,23 @@ internal abstract class LayerImpl : Layer {
   protected abstract fun BoxScope.LayerContent()
 
   @Composable
-  protected fun BackgroundBox() {
-    val transition = if (LocalInspectionMode.current) LayerTransition.None else LayerTransition.Fade
-    Box(modifier = Modifier.fillMaxSize()) {
+  protected fun BackgroundBox(modifier: Modifier = Modifier) {
+    if (LocalInspectionMode.current) {
+      Box(
+        modifier = modifier
+          .fillMaxSize()
+          .drawBehind {
+            if (isVisibleState) {
+              drawRect(_backgroundColorState)
+            }
+          },
+      )
+    } else {
       AnimatedVisibility(
-        modifier = Modifier.fillMaxSize(),
-        visible = _isVisibleState,
-        enter = transition.enter,
-        exit = transition.exit,
+        modifier = modifier.fillMaxSize(),
+        visibleState = _backgroundVisibleState,
+        enter = LayerTransition.Fade.enter,
+        exit = LayerTransition.Fade.exit,
       ) {
         Box(
           modifier = Modifier
@@ -340,35 +353,31 @@ internal abstract class LayerImpl : Layer {
   protected fun ContentBox(modifier: Modifier = Modifier) {
     Box(
       modifier = modifier
-        .onGloballyPositioned {
-          _contentSize = it.size
-          if (it.size == IntSize.Zero) {
-            handleContentZeroSize()
-          }
-        }
         .clipToBounds()
         .pointerInput(Unit) { detectTapGestures() },
     ) {
-      val transition = if (LocalInspectionMode.current) {
-        LayerTransition.None
-      } else {
-        getLayerTransition(_layerTransition)
-      }
-      if (_captureOnDetachState) {
-        CapturedAnimatedVisibility(
-          visible = _isVisibleState,
-          enter = transition.enter,
-          exit = transition.exit,
-        ) {
+      if (LocalInspectionMode.current) {
+        if (_lifecycleState == LayerLifecycleState.Attached) {
           RawContent()
         }
       } else {
-        AnimatedVisibility(
-          visible = _isVisibleState,
-          enter = transition.enter,
-          exit = transition.exit,
-        ) {
-          RawContent()
+        val transition = getLayerTransition(_layerTransition)
+        if (_captureOnDetachState) {
+          CapturedAnimatedVisibility(
+            visibleState = _contentVisibleState,
+            enter = transition.enter,
+            exit = transition.exit,
+          ) {
+            RawContent()
+          }
+        } else {
+          AnimatedVisibility(
+            visibleState = _contentVisibleState,
+            enter = transition.enter,
+            exit = transition.exit,
+          ) {
+            RawContent()
+          }
         }
       }
     }
@@ -376,13 +385,13 @@ internal abstract class LayerImpl : Layer {
 
   @Composable
   protected fun RawContent() {
-    _contentState.value.invoke(_layerScope)
+    _movableContent()
   }
 
   /** 触摸非内容区域逻辑 */
   @Composable
   private fun BoxScope.HandleOnTouchOutside() {
-    if (!_isVisibleState) return
+    if (!isVisibleState) return
     val detachOnTouchOutside = _detachOnTouchOutsideState ?: return
     Box(
       modifier = Modifier
@@ -393,20 +402,20 @@ internal abstract class LayerImpl : Layer {
               if (detachOnTouchOutside) {
                 requestDetach(LayerDetach.OnTouchOutside)
               }
-            }
+            },
           )
-        }
+        },
     )
   }
 
   /** 是否需要拦截返回键 */
   internal fun shouldHandleBackPress(): Boolean {
-    return _isVisibleState && (_detachOnBackPressState != null)
+    return isVisibleState && (_detachOnBackPressState != null)
   }
 
   /** 处理返回键事件 */
   internal fun handleBackPress() {
-    if (!_isVisibleState) return
+    if (!isVisibleState) return
     if (_detachOnBackPressState == true) {
       requestDetach(LayerDetach.OnBackPress)
     }

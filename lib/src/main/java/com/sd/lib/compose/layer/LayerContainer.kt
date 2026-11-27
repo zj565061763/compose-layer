@@ -2,20 +2,50 @@ package com.sd.lib.compose.layer
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.registerOnLayoutRectChanged
+import androidx.compose.ui.node.DelegatableNode.RegistrationHandle
+import androidx.compose.ui.node.LayoutAwareModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.UnplacedAwareModifierNode
+import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.spatial.RelativeLayoutBounds
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.round
 
 internal fun newLayerContainer(): LayerContainer {
   return LayerContainerImpl()
 }
 
+/** 窗口坐标系下的布局矩形信息 */
+@Immutable
+internal data class LayoutRect(
+  val offset: IntOffset,
+  val size: IntSize,
+)
+
+internal typealias LayoutRectCallback = (LayoutRect?) -> Unit
+
 internal interface LayerContainer : ContainerForComposable, ContainerForLayer
 
 internal interface ContainerForComposable {
-  fun updateContainerLayout(layoutCoordinates: LayoutCoordinates)
-  fun addTarget(tag: String, owner: Any, layoutCoordinates: LayoutCoordinates)
-  fun removeTarget(tag: String, owner: Any)
+  val hasAttachedLayers: Boolean
+
+  fun attachContainerNode(node: LayerContainerNode)
+  fun detachContainerNode(node: LayerContainerNode)
+  fun onContainerRectChanged(rect: LayoutRect?)
+
+  fun attachTargetNode(tag: String, node: LayerTagNode)
+  fun onTargetNodePlaced(tag: String, node: LayerTagNode)
+  fun detachTargetNode(tag: String, node: LayerTagNode)
+  fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?)
+
   fun destroy()
 
   @Composable
@@ -29,97 +59,234 @@ internal interface ContainerForLayer {
   fun attachLayer(layer: LayerImpl)
   fun detachLayer(layer: LayerImpl): Boolean
 
-  fun registerContainerLayoutCallback(callback: LayoutCoordinatesCallback)
-  fun unregisterContainerLayoutCallback(callback: LayoutCoordinatesCallback)
+  fun registerContainerLayoutCallback(callback: LayoutRectCallback)
+  fun unregisterContainerLayoutCallback(callback: LayoutRectCallback)
 
-  fun registerTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback)
-  fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback)
+  fun registerTargetLayoutCallback(tag: String?, callback: LayoutRectCallback)
+  fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutRectCallback)
 }
 
-internal typealias LayoutCoordinatesCallback = (LayoutCoordinates?) -> Unit
+internal fun Modifier.layerContainer(container: ContainerForComposable): Modifier {
+  return this then LayerContainerElement(container)
+}
 
-private abstract class ComposableLayerContainer : ContainerForComposable {
-  var destroyed = false
-    private set
-
-  /** 容器布局信息 */
-  private var _containerLayout: LayoutCoordinates? = null
-
-  /** 目标布局信息 */
-  private val _targetsLayout: MutableMap<String, TargetHolder> = mutableMapOf()
-
-  final override fun updateContainerLayout(layoutCoordinates: LayoutCoordinates) {
-    if (destroyed) return
-    _containerLayout = layoutCoordinates
-    onUpdateContainerLayout(layoutCoordinates)
+private data class LayerContainerElement(
+  val container: ContainerForComposable,
+) : ModifierNodeElement<LayerContainerNode>() {
+  override fun create(): LayerContainerNode {
+    return LayerContainerNode(container)
   }
 
-  final override fun addTarget(tag: String, owner: Any, layoutCoordinates: LayoutCoordinates) {
-    if (destroyed) return
-    val old = _targetsLayout[tag]
-    if (old != null) {
-      check(old.owner === owner) { "Tag:$tag already exist." }
-      if (old.layoutCoordinates !== layoutCoordinates) {
-        _targetsLayout[tag] = TargetHolder(owner = owner, layoutCoordinates = layoutCoordinates)
+  override fun update(node: LayerContainerNode) {
+    node.updateContainer(container)
+  }
+
+  override fun InspectorInfo.inspectableProperties() {
+    name = "layerContainer"
+  }
+}
+
+/** 按需订阅窗口矩形变化的节点基类 */
+internal abstract class LayoutTrackNode :
+  Modifier.Node(),
+  LayoutAwareModifierNode,
+  UnplacedAwareModifierNode {
+
+  private var _coordinates: LayoutCoordinates? = null
+  private var _rectHandle: RegistrationHandle? = null
+  private var _observing: Boolean = false
+
+  val isPlaced: Boolean
+    get() {
+      return _coordinates?.isAttached == true
+    }
+
+  /** 获取当前已放置节点的窗口矩形 */
+  fun currentLayoutRect(): LayoutRect? {
+    return _coordinates?.takeIf { it.isAttached }?.toLayoutRect()
+  }
+
+  /** 切换是否监听窗口矩形变化 */
+  fun setObserving(observing: Boolean) {
+    if (_observing == observing) return
+    _observing = observing
+    syncRectRegistration()
+  }
+
+  protected abstract fun onRectChanged(rect: LayoutRect?)
+
+  protected fun syncRectRegistration() {
+    _rectHandle?.unregister()
+    _rectHandle = null
+    if (isAttached && _observing) {
+      _rectHandle = registerOnLayoutRectChanged(
+        throttleMillis = 0,
+        debounceMillis = 0,
+      ) { bounds ->
+        onRectChanged(bounds.toLayoutRect())
       }
-    } else {
-      _targetsLayout[tag] = TargetHolder(owner = owner, layoutCoordinates = layoutCoordinates)
-    }
-    onUpdateTargetLayout(tag, layoutCoordinates)
-  }
-
-  final override fun removeTarget(tag: String, owner: Any) {
-    if (destroyed) return
-    val current = _targetsLayout[tag] ?: return
-    if (current.owner === owner) {
-      _targetsLayout.remove(tag)
-      onUpdateTargetLayout(tag, null)
     }
   }
 
-  override fun destroy() {
-    destroyed = true
-    _containerLayout = null
-    _targetsLayout.clear()
+  override fun onPlaced(coordinates: LayoutCoordinates) {
+    _coordinates = coordinates
+    if (_observing && coordinates.isAttached) {
+      onRectChanged(coordinates.toLayoutRect())
+    }
   }
 
-  fun getContainerLayout(): LayoutCoordinates? {
-    return _containerLayout
+  override fun onUnplaced() {
+    _coordinates = null
+    onNodeUnplaced()
   }
 
-  fun getTargetLayout(tag: String): LayoutCoordinates? {
-    return _targetsLayout[tag]?.layoutCoordinates
+  protected open fun onNodeUnplaced() {
+    if (_observing) {
+      onRectChanged(null)
+    }
   }
 
-  abstract fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates)
-  abstract fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?)
-
-  private class TargetHolder(
-    val owner: Any,
-    val layoutCoordinates: LayoutCoordinates,
-  )
+  override fun onDetach() {
+    _rectHandle?.unregister()
+    _rectHandle = null
+    _coordinates = null
+    _observing = false
+  }
 }
 
-private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
-  private val _attachedLayers = mutableStateListOf<LayerImpl>()
+internal class LayerContainerNode(
+  container: ContainerForComposable,
+) : LayoutTrackNode() {
 
-  private val _containerLayoutCallbacks: MutableSet<LayoutCoordinatesCallback> = mutableSetOf()
-  private val _targetLayoutCallbacks: MutableMap<String, MutableSet<LayoutCoordinatesCallback>> = mutableMapOf()
+  private var _container: ContainerForComposable = container
 
-  override fun onUpdateContainerLayout(layoutCoordinates: LayoutCoordinates) {
-    _containerLayoutCallbacks.forEach {
-      it.invoke(layoutCoordinates)
+  fun updateContainer(container: ContainerForComposable) {
+    if (_container === container) return
+    _container.detachContainerNode(this)
+    setObserving(observing = false)
+    _container = container
+    if (isAttached) {
+      _container.attachContainerNode(this)
     }
   }
 
-  override fun onUpdateTargetLayout(tag: String, layoutCoordinates: LayoutCoordinates?) {
-    _targetLayoutCallbacks[tag]?.forEach {
-      it.invoke(layoutCoordinates)
+  override fun onAttach() {
+    _container.attachContainerNode(this)
+  }
+
+  override fun onDetach() {
+    _container.detachContainerNode(this)
+    super.onDetach()
+  }
+
+  override fun onRectChanged(rect: LayoutRect?) {
+    _container.onContainerRectChanged(rect)
+  }
+}
+
+private class LayerContainerImpl : LayerContainer {
+  private var _destroyed = false
+
+  private var _containerNode: LayerContainerNode? = null
+  private val _targetNodes: MutableMap<String, LayerTagNode> = mutableMapOf()
+
+  private val _attachedLayers = mutableStateListOf<LayerImpl>()
+  private val _containerLayoutCallbacks: MutableSet<LayoutRectCallback> = mutableSetOf()
+  private val _targetLayoutCallbacks: MutableMap<String, MutableSet<LayoutRectCallback>> = mutableMapOf()
+
+  override val hasAttachedLayers: Boolean
+    get() {
+      return _attachedLayers.isNotEmpty()
+    }
+
+  override fun attachContainerNode(node: LayerContainerNode) {
+    if (_destroyed) return
+    _containerNode = node
+    val hasObservers = _containerLayoutCallbacks.isNotEmpty()
+    node.setObserving(observing = hasObservers)
+    if (hasObservers && node.isPlaced) {
+      onContainerRectChanged(node.currentLayoutRect())
+    }
+  }
+
+  override fun detachContainerNode(node: LayerContainerNode) {
+    if (_containerNode === node) {
+      node.setObserving(observing = false)
+      _containerNode = null
+      onContainerRectChanged(null)
+    }
+  }
+
+  override fun onContainerRectChanged(rect: LayoutRect?) {
+    if (_destroyed) return
+    _containerLayoutCallbacks.forEach { callback ->
+      callback.invoke(rect)
+    }
+  }
+
+  override fun attachTargetNode(tag: String, node: LayerTagNode) {
+    if (_destroyed) return
+    val old = _targetNodes[tag]
+    if ((old != null) && (old !== node)) {
+      check(!old.isPlaced) { "Tag:$tag already exist." }
+      old.setObserving(observing = false)
+    }
+    _targetNodes[tag] = node
+    val hasObservers = !_targetLayoutCallbacks[tag].isNullOrEmpty()
+    node.setObserving(observing = hasObservers)
+    if (hasObservers && node.isPlaced) {
+      notifyTargetCallbacks(tag, node.currentLayoutRect())
+    }
+  }
+
+  override fun onTargetNodePlaced(tag: String, node: LayerTagNode) {
+    if (_destroyed) return
+    val current = _targetNodes[tag]
+    if (current === node) return
+    if (current != null) {
+      check(!current.isPlaced) { "Tag:$tag already exist." }
+      current.setObserving(observing = false)
+    }
+    _targetNodes[tag] = node
+    val hasObservers = !_targetLayoutCallbacks[tag].isNullOrEmpty()
+    node.setObserving(observing = hasObservers)
+    if (hasObservers && node.isPlaced) {
+      notifyTargetCallbacks(tag, node.currentLayoutRect())
+    }
+  }
+
+  override fun detachTargetNode(tag: String, node: LayerTagNode) {
+    val current = _targetNodes[tag] ?: return
+    if (current === node) {
+      node.setObserving(observing = false)
+      _targetNodes.remove(tag)
+      if (!_destroyed) {
+        notifyTargetCallbacks(tag, null)
+      }
+    }
+  }
+
+  override fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?) {
+    if (_destroyed) return
+    val current = _targetNodes[tag]
+    if ((current != null) && (current !== node)) {
+      check(!current.isPlaced || (rect == null)) { "Tag:$tag already exist." }
+      if (rect == null) return
+      current.setObserving(observing = false)
+      _targetNodes[tag] = node
+      node.setObserving(observing = !_targetLayoutCallbacks[tag].isNullOrEmpty())
+    }
+    notifyTargetCallbacks(tag, rect)
+  }
+
+  private fun notifyTargetCallbacks(tag: String, rect: LayoutRect?) {
+    _targetLayoutCallbacks[tag]?.forEach { callback ->
+      callback.invoke(rect)
     }
   }
 
   override fun initLayer(layer: LayerImpl) {
-    if (destroyed) return
+    if (_destroyed) return
     if (layer.layerContainer === this) return
     layer.release()
     layer.onInit(this)
@@ -135,7 +302,7 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
   }
 
   override fun attachLayer(layer: LayerImpl) {
-    if (destroyed) return
+    if (_destroyed) return
     if (layer.layerContainer === this) {
       if (!_attachedLayers.contains(layer)) {
         _attachedLayers.add(layer)
@@ -147,45 +314,53 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     return _attachedLayers.remove(layer)
   }
 
-  //---------- container ----------
-
-  override fun registerContainerLayoutCallback(callback: LayoutCoordinatesCallback) {
-    if (destroyed) return
+  override fun registerContainerLayoutCallback(callback: LayoutRectCallback) {
+    if (_destroyed) return
     if (_containerLayoutCallbacks.add(callback)) {
-      callback(getContainerLayout())
+      val node = _containerNode
+      node?.setObserving(observing = true)
+      callback(node?.currentLayoutRect())
     }
   }
 
-  override fun unregisterContainerLayoutCallback(callback: LayoutCoordinatesCallback) {
+  override fun unregisterContainerLayoutCallback(callback: LayoutRectCallback) {
     if (_containerLayoutCallbacks.remove(callback)) {
+      if (_containerLayoutCallbacks.isEmpty()) {
+        _containerNode?.setObserving(observing = false)
+      }
       callback(null)
     }
   }
 
-  //---------- target ----------
-
-  override fun registerTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback) {
-    if (destroyed) return
+  override fun registerTargetLayoutCallback(tag: String?, callback: LayoutRectCallback) {
+    if (_destroyed) return
     if (tag.isNullOrEmpty()) return
     val holder = _targetLayoutCallbacks.getOrPut(tag) { mutableSetOf() }
     if (holder.add(callback)) {
-      callback(getTargetLayout(tag))
+      val node = _targetNodes[tag]
+      node?.setObserving(observing = true)
+      callback(node?.currentLayoutRect())
     }
   }
 
-  override fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutCoordinatesCallback) {
+  override fun unregisterTargetLayoutCallback(tag: String?, callback: LayoutRectCallback) {
     if (tag.isNullOrEmpty()) return
     val holder = _targetLayoutCallbacks[tag] ?: return
     if (holder.remove(callback)) {
-      callback(null)
       if (holder.isEmpty()) {
         _targetLayoutCallbacks.remove(tag)
+        _targetNodes[tag]?.setObserving(observing = false)
       }
+      callback(null)
     }
   }
 
   override fun destroy() {
-    super.destroy()
+    _destroyed = true
+    _containerNode?.setObserving(observing = false)
+    _containerNode = null
+    _targetNodes.values.forEach { it.setObserving(observing = false) }
+    _targetNodes.clear()
     _attachedLayers.toTypedArray().forEach { releaseLayer(it) }
     _attachedLayers.clear()
     _containerLayoutCallbacks.clear()
@@ -222,4 +397,19 @@ private class LayerContainerImpl : ComposableLayerContainer(), LayerContainer {
     }
     return target
   }
+}
+
+private fun LayoutCoordinates.toLayoutRect(): LayoutRect {
+  return LayoutRect(
+    offset = positionInWindow().round(),
+    size = size,
+  )
+}
+
+private fun RelativeLayoutBounds.toLayoutRect(): LayoutRect {
+  val bounds = boundsInWindow
+  return LayoutRect(
+    offset = bounds.topLeft,
+    size = bounds.size,
+  )
 }

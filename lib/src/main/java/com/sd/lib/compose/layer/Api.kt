@@ -13,7 +13,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.zIndex
 
@@ -37,17 +36,19 @@ fun LayerContainer(
     Box(
       modifier = modifier
         .fillMaxSize()
-        .onGloballyPositioned { container.updateContainerLayout(it) },
+        .layerContainer(container),
       contentAlignment = Alignment.Center,
     ) {
       content()
-      Box(
-        modifier = Modifier
-          .matchParentSize()
-          .zIndex(layersZIndex),
-        contentAlignment = Alignment.Center,
-      ) {
-        container.Layers()
+      if (container.hasAttachedLayers) {
+        Box(
+          modifier = Modifier
+            .matchParentSize()
+            .zIndex(layersZIndex),
+          contentAlignment = Alignment.Center,
+        ) {
+          container.Layers()
+        }
       }
     }
   }
@@ -265,10 +266,10 @@ private inline fun <T : LayerImpl> rememberLayer(
     this.setDetachOnBackPress(detachOnBackPress)
     this.setDetachOnTouchOutside(detachOnTouchOutside)
     this.setBackgroundColor(backgroundColor)
-    update()
     this.setTransition(transition)
     this.setCaptureOnDetach(captureOnDetach)
     this.setZIndex(zIndex)
+    update()
     if (!attach) {
       this.detach()
     } else if (isInspectionMode && (this.layerContainer != null)) {

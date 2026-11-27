@@ -2,13 +2,11 @@ package com.sd.lib.compose.layer
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 internal interface NormalLayer : Layer {
@@ -21,6 +19,10 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
   override fun setAlignment(alignment: Alignment) {
     _alignment = alignment
+  }
+
+  override fun onAttach(container: ContainerForLayer) {
+    setContentVisible(true)
   }
 
   @Composable
@@ -37,15 +39,6 @@ internal class NormalLayerImpl : LayerImpl(), NormalLayer {
 
   @Composable
   override fun BoxScope.LayerContent() {
-    val isReady = lifecycleState == LayerLifecycleState.Attached
-    if (LocalInspectionMode.current) {
-      setContentVisible(isReady)
-    } else {
-      SideEffect {
-        setContentVisible(isReady)
-      }
-    }
-
     BackgroundBox()
     ContentBox(Modifier.align(_alignment))
   }

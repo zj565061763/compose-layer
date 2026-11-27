@@ -35,12 +35,12 @@ AppTheme {
  * @param attach 是否添加Layer，true-添加；false-移除
  * @param onDetachRequest [LayerDetach]触发的移除回调
  * @param debug 是否调试模式，tag:FLayer
- * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-请求不移除；null-不处理返回键逻辑，默认true
+ * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑，默认true
  * @param detachOnTouchOutside 触摸非内容区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理，默认true
  * @param backgroundColor 背景颜色
  * @param alignment 对齐容器位置
  * @param transition 动画（非响应式）
- * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-使用[CapturedAnimatedVisibility]；false-使用[AnimatedVisibility]，默认true
+ * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-退场开始时立即移除内容组合；false-退场动画期间保留内容组合，默认true
  * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
@@ -70,17 +70,16 @@ fun Layer(
  * @param attach 是否添加Layer，true-添加；false-移除
  * @param onDetachRequest [LayerDetach]触发的移除回调
  * @param debug 是否调试模式，tag:FLayer
- * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑，默认值true
+ * @param detachOnBackPress 按返回键是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理返回键逻辑，默认true
  * @param detachOnTouchOutside 触摸非内容区域是否请求移除Layer，true-请求移除；false-不请求移除；null-不处理，默认true
  * @param backgroundColor 背景颜色
  * @param alignment 对齐目标位置
  * @param alignmentOffsetX 对齐目标X方向偏移量
  * @param alignmentOffsetY 对齐目标Y方向偏移量
- * @param smartAlignments 智能对齐目标位置，null-关闭智能对齐；非null-开启智能对齐。
- * 开启之后，如果默认的[alignment]导致内容溢出会使用[smartAlignments]提供的位置按顺序查找溢出最小的位置
+ * @param smartAlignments 智能对齐目标位置，null-关闭智能对齐；非null-开启智能对齐，默认[alignment]导致内容溢出时按顺序查找溢出最小的位置
  * @param clipBackgroundDirection 裁切背景的方向[Directions]
  * @param transition 动画（非响应式）
- * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-使用[CapturedAnimatedVisibility]；false-使用[AnimatedVisibility]，默认true
+ * @param captureOnDetach 移除时是否捕获最后一帧执行退出动画，true-退场开始时立即移除内容组合；false-退场动画期间保留内容组合，默认true
  * @param zIndex [Modifier.zIndex]
  * @param content 内容
  */
@@ -110,10 +109,10 @@ fun TargetLayer(
 ```kotlin
 @Immutable
 sealed interface LayerTarget {
-  /** 以[tag]为目标 */
+  /** 以[tag]标记的元素为目标 */
   data class Tag(val tag: String?) : LayerTarget
 
-  /** 以[offset]为目标 */
+  /** 以窗口坐标系（Window）中的[offset]为目标 */
   data class Offset(val offset: IntOffset?) : LayerTarget
 }
 ```
