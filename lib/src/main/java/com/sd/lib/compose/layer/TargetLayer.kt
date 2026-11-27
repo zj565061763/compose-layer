@@ -480,6 +480,7 @@ private class SmartTargetLayoutNode(
 ) : Modifier.Node(), ApproachLayoutModifierNode {
 
   private var _smartAlignment: SmartAliment? = null
+  private var _rawSize: IntSize = IntSize.Zero
   private var _fixOffset: IntOffset = IntOffset.Zero
   private var _maxAllowedSize: IntSize = IntSize.Zero
   private var _needsShrink: Boolean = false
@@ -536,6 +537,7 @@ private class SmartTargetLayoutNode(
     layer.updateSmartAlignment(plan.smartAlignment)
 
     _smartAlignment = plan.smartAlignment
+    _rawSize = rawSize
     _fixOffset = plan.offset
     _maxAllowedSize = plan.maxAllowedSize
     _needsShrink = plan.needsShrink
@@ -581,29 +583,24 @@ private class SmartTargetLayoutNode(
       return layout(cs.maxWidth, cs.maxHeight) {}
     }
 
-    if (!_needsShrink) {
-      val placeable = measurable.measure(cs)
-      val size = placeable.intSize()
-      val offset = _fixOffset
-      return layout(cs.maxWidth, cs.maxHeight) {
-        layer.updatePlacedContentRect(offset, size)
-        placeable.place(offset)
-      }
-    }
-
-    val placeable = measurable.measure(cs.newMax(_maxAllowedSize))
+    val placeable = measurable.measure(
+      if (_needsShrink) cs.newMax(_maxAllowedSize) else cs,
+    )
     val size = placeable.intSize()
-    val offset = resolveAlignedTargetLayout(
+    val offset = resolveSmartApproachOffset(
       layer = layer,
+      needsShrink = _needsShrink,
+      rawSize = _rawSize,
+      fixOffset = _fixOffset,
       targetRect = target,
       containerRect = container,
       alignment = _smartAlignment?.alignment ?: defaultAlignment,
       alignmentOffsetX = offsetX,
       alignmentOffsetY = offsetY,
-      contentSize = size,
+      approachSize = size,
       density = density,
       layoutDirection = layoutDirection,
-    ).offset
+    )
     return layout(cs.maxWidth, cs.maxHeight) {
       layer.updatePlacedContentRect(offset, size)
       placeable.place(offset)
@@ -679,6 +676,37 @@ internal fun planSmartTargetLayout(
     needsShrink = needsShrink,
     maxAllowedSize = maxAllowedSize,
   )
+}
+
+/** 计算Approach阶段的放置坐标，无需裁剪且尺寸与自然尺寸一致时直接复用预计算坐标 */
+internal fun resolveSmartApproachOffset(
+  layer: LayerImpl? = null,
+  needsShrink: Boolean,
+  rawSize: IntSize,
+  fixOffset: IntOffset,
+  targetRect: LayoutRect,
+  containerRect: LayoutRect,
+  alignment: TargetAlignment,
+  alignmentOffsetX: TargetAlignmentOffset?,
+  alignmentOffsetY: TargetAlignmentOffset?,
+  approachSize: IntSize,
+  density: Float,
+  layoutDirection: LayoutDirection,
+): IntOffset {
+  if (!needsShrink && (approachSize == rawSize)) {
+    return fixOffset
+  }
+  return resolveAlignedTargetLayout(
+    layer = layer,
+    targetRect = targetRect,
+    containerRect = containerRect,
+    alignment = alignment,
+    alignmentOffsetX = alignmentOffsetX,
+    alignmentOffsetY = alignmentOffsetY,
+    contentSize = approachSize,
+    density = density,
+    layoutDirection = layoutDirection,
+  ).offset
 }
 
 /** 按指定对齐方位与实际测量尺寸计算溢出修正后的坐标与尺寸 */

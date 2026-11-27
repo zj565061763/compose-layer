@@ -200,4 +200,64 @@ class TargetLayerLayoutTest {
     assertEquals(IntOffset(2, 160), wrappedFixed.offset)
     assertEquals(IntSize(68, 90), wrappedFixed.size)
   }
+
+  @Test
+  fun resolveSmartApproachOffset_noShrinkDuringSizeTransition_realignsToTargetUntilSettled() {
+    val containerRect = LayoutRect(
+      offset = IntOffset(0, 0),
+      size = IntSize(300, 400),
+    )
+    val targetRect = LayoutRect(
+      offset = IntOffset(120, 260),
+      size = IntSize(60, 40),
+    )
+    val rawSize = IntSize(160, 180)
+    val plan = planSmartTargetLayout(
+      smartAlignments = SmartAliments.Default,
+      targetRect = targetRect,
+      containerRect = containerRect,
+      defaultAlignment = TargetAlignment.TopCenter,
+      alignmentOffsetX = null,
+      alignmentOffsetY = null,
+      rawSize = rawSize,
+      maxContainerSize = containerRect.size,
+      density = 1f,
+      layoutDirection = LayoutDirection.Ltr,
+    )
+
+    assertEquals(false, plan.needsShrink)
+    assertEquals(IntOffset(70, 80), plan.offset)
+
+    // 未触发溢出裁剪但处于尺寸过渡动画期间（如高度从 80 展开到 180），按当前尺寸贴边重算对齐坐标
+    val animatingOffset = resolveSmartApproachOffset(
+      needsShrink = plan.needsShrink,
+      rawSize = rawSize,
+      fixOffset = plan.offset,
+      targetRect = targetRect,
+      containerRect = containerRect,
+      alignment = plan.effectiveAlignment,
+      alignmentOffsetX = null,
+      alignmentOffsetY = null,
+      approachSize = IntSize(160, 80),
+      density = 1f,
+      layoutDirection = LayoutDirection.Ltr,
+    )
+    assertEquals(IntOffset(70, 180), animatingOffset)
+
+    // 尺寸过渡结束回到自然尺寸时，直接复用预计算的对齐坐标
+    val settledOffset = resolveSmartApproachOffset(
+      needsShrink = plan.needsShrink,
+      rawSize = rawSize,
+      fixOffset = plan.offset,
+      targetRect = targetRect,
+      containerRect = containerRect,
+      alignment = plan.effectiveAlignment,
+      alignmentOffsetX = null,
+      alignmentOffsetY = null,
+      approachSize = rawSize,
+      density = 1f,
+      layoutDirection = LayoutDirection.Ltr,
+    )
+    assertEquals(plan.offset, settledOffset)
+  }
 }
