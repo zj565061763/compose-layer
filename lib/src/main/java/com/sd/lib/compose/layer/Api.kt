@@ -265,7 +265,7 @@ private inline fun <T : LayerImpl> rememberLayer(
   val container = LocalContainerForLayer.current
     ?: if (isInspectionMode) null else error("Not in LayerContainer scope.")
 
-  val layer = remember { factory() }.apply {
+  val layer = remember(container) { factory() }.apply {
     this.syncInspectionMode(isInspectionMode)
     this.syncAttach(attach)
     this.syncContent(content)
@@ -282,7 +282,7 @@ private inline fun <T : LayerImpl> rememberLayer(
     }
   }
 
-  DisposableEffect(layer, container) {
+  DisposableEffect(layer) {
     onDispose {
       layer.release()
     }

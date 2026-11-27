@@ -53,8 +53,8 @@ internal abstract class LayerImpl : LayerState {
 
   private var _attachRequested by mutableStateOf(false)
   private var _attachState by mutableStateOf(AttachState.Idle)
-  private var _contentVisibleState by mutableStateOf(MutableTransitionState(false))
-  private var _backgroundVisibleState by mutableStateOf(MutableTransitionState(false))
+  private val _contentVisibleState = MutableTransitionState(false)
+  private val _backgroundVisibleState = MutableTransitionState(false)
 
   private val _layerScope = LayerScopeImpl()
   private val _contentState = mutableStateOf<(@Composable LayerContentScope.() -> Unit)>({})
@@ -189,8 +189,6 @@ internal abstract class LayerImpl : LayerState {
       onDetached(container)
     }
     _attachRequested = false
-    _contentVisibleState = MutableTransitionState(false)
-    _backgroundVisibleState = MutableTransitionState(false)
     layerContainer = null
   }
 

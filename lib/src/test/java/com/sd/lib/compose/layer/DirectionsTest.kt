@@ -1,5 +1,6 @@
 package com.sd.lib.compose.layer
 
+import androidx.compose.ui.unit.LayoutDirection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
@@ -30,12 +31,14 @@ class DirectionsTest {
   }
 
   @Test
-  fun rtl_swapsStartAndEndAndIsIdempotent() {
+  fun hasLeftAndHasRight_swapsStartAndEndInRtl() {
     val combined = Directions.Top + Directions.Start
-    val rtl = combined.rtl()
 
-    assertFlags(rtl, top = true, bottom = false, start = false, end = true)
-    assertSame(rtl, rtl.rtl())
+    assertTrue(combined.hasLeft(LayoutDirection.Ltr))
+    assertFalse(combined.hasRight(LayoutDirection.Ltr))
+
+    assertFalse(combined.hasLeft(LayoutDirection.Rtl))
+    assertTrue(combined.hasRight(LayoutDirection.Rtl))
   }
 }
 

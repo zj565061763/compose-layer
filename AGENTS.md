@@ -34,7 +34,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `TargetAlignment.kt` | 17 种目标对齐位置枚举，以及 `Tag` 目标与 `Offset` 目标的默认 `LayerTransition` 映射 |
 | `TargetAlignmentOffset.kt` | `PX`、`DP`、`Target`（目标尺寸倍数）偏移量及 `relativeAlignment` 相对对齐方向换算 |
 | `SmartAliments.kt` | 智能对齐候选列表 `SmartAliments` 与单项配置 `SmartAliment` |
-| `Directions.kt` | 位掩码方向定义（`Top`、`Bottom`、`Start`、`End`），支持 `+` 组合与 RTL 方向转换 |
+| `Directions.kt` | 位掩码方向定义（`Top`、`Bottom`、`Start`、`End`），支持 `+` 组合与 LTR/RTL 左右方向映射 |
 | `LayerTransition.kt` | 进出场动画封装，内置无动画、淡入淡出、四向滑动与四角锚点缩放 |
 
 ## 内部机制与开发约束
@@ -83,7 +83,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 |---|---|
 | `AlignerTest` | 17 种 `Aligner.Position` 在 LTR/RTL 下的相对坐标计算及 `sourceOverflow` 溢出统计 |
 | `TargetAlignmentOffsetTest` | `PX`、`DP`、`Target` 像素换算及 `relativeAlignment` 在 X/Y 轴的正负向与 `downgrade` 降级 |
-| `DirectionsTest` | 单方向位标志、`+` 组合值相等与幂等性及 `rtl()` 左右方向互换 |
+| `DirectionsTest` | 单方向位标志、`+` 组合值相等与幂等性及 LTR/RTL 左右方向映射 |
 | `TargetLayerFixOverflowTest` | `fixOverFlow` 四边内收裁剪、居中单双侧溢出修正及固定锚定边越界保护 |
 | `TargetLayerLayoutTest` | `calculateMaxAllowedSize`、`planSmartTargetLayout` 智能选位裁剪重对齐、`resolveSmartApproachOffset` 尺寸过渡对齐及 `calculateClipBackgroundBounds` 绘制期背景裁切边界 |
 | `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 四角缩放锚点映射及 `resolveTargetLayerTransition` 四级动画优先级 |

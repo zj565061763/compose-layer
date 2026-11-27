@@ -230,7 +230,6 @@ class TargetLayerLayoutTest {
 
     // 未触发溢出裁剪但处于尺寸过渡动画期间（如高度从 80 展开到 180），按当前尺寸贴边重算对齐坐标
     val animatingOffset = resolveSmartApproachOffset(
-      needsShrink = plan.needsShrink,
       rawSize = rawSize,
       fixOffset = plan.offset,
       targetRect = targetRect,
@@ -246,7 +245,6 @@ class TargetLayerLayoutTest {
 
     // 尺寸过渡结束回到自然尺寸时，直接复用预计算的对齐坐标
     val settledOffset = resolveSmartApproachOffset(
-      needsShrink = plan.needsShrink,
       rawSize = rawSize,
       fixOffset = plan.offset,
       targetRect = targetRect,

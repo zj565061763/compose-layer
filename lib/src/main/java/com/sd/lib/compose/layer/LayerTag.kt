@@ -33,15 +33,13 @@ internal class LayerTagNode(
   private var _container: ContainerForComposable? = null
 
   fun updateTag(tag: String) {
+    require(tag.isNotEmpty()) { "tag is empty." }
     if (_tag == tag) return
     val container = _container
     container?.detachTargetNode(tag = _tag, node = this)
     _tag = tag
-    if (container != null) {
-      require(tag.isNotEmpty()) { "tag is empty." }
-      if (isPlaced) {
-        container.attachTargetNode(tag = tag, node = this)
-      }
+    if (isPlaced) {
+      container?.attachTargetNode(tag = tag, node = this)
     }
   }
 
@@ -53,7 +51,6 @@ internal class LayerTagNode(
   }
 
   fun bindContainer(container: ContainerForComposable) {
-    require(_tag.isNotEmpty()) { "tag is empty." }
     _container = container
   }
 
@@ -75,5 +72,9 @@ internal class LayerTagNode(
 
   override fun onRectChanged(rect: LayoutRect?) {
     _container?.onTargetRectChanged(tag = _tag, node = this, rect = rect)
+  }
+
+  init {
+    require(tag.isNotEmpty()) { "tag is empty." }
   }
 }

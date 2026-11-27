@@ -1,6 +1,7 @@
 package com.sd.lib.compose.layer
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.unit.LayoutDirection
 
 /** 方向定义，可通过[plus]组合多个方向 */
 @Immutable
@@ -35,12 +36,20 @@ sealed class Directions(
     return BOTTOM and flag != 0
   }
 
-  internal open fun hasStart(): Boolean {
+  internal fun hasStart(): Boolean {
     return START and flag != 0
   }
 
-  internal open fun hasEnd(): Boolean {
+  internal fun hasEnd(): Boolean {
     return END and flag != 0
+  }
+
+  internal fun hasLeft(layoutDirection: LayoutDirection): Boolean {
+    return if (layoutDirection == LayoutDirection.Ltr) hasStart() else hasEnd()
+  }
+
+  internal fun hasRight(layoutDirection: LayoutDirection): Boolean {
+    return if (layoutDirection == LayoutDirection.Ltr) hasEnd() else hasStart()
   }
 
   private data class Combine(val direction: Int) : Directions(direction)
@@ -50,19 +59,5 @@ sealed class Directions(
     private const val BOTTOM = TOP shl 1
     private const val START = TOP shl 2
     private const val END = TOP shl 3
-  }
-}
-
-internal fun Directions.rtl(): Directions {
-  return (this as? RTLDirections) ?: RTLDirections(flag)
-}
-
-private class RTLDirections(flag: Int) : Directions(flag) {
-  override fun hasStart(): Boolean {
-    return super.hasEnd()
-  }
-
-  override fun hasEnd(): Boolean {
-    return super.hasStart()
   }
 }

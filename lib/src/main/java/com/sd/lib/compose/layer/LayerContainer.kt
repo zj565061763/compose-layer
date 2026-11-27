@@ -76,9 +76,7 @@ private data class LayerContainerElement(
     return LayerContainerNode(container)
   }
 
-  override fun update(node: LayerContainerNode) {
-    node.updateContainer(container)
-  }
+  override fun update(node: LayerContainerNode) {}
 
   override fun InspectorInfo.inspectableProperties() {
     name = "layerContainer"
@@ -150,32 +148,20 @@ internal abstract class LayoutTrackNode :
 }
 
 internal class LayerContainerNode(
-  container: ContainerForComposable,
+  private val container: ContainerForComposable,
 ) : LayoutTrackNode() {
 
-  private var _container: ContainerForComposable = container
-
-  fun updateContainer(container: ContainerForComposable) {
-    if (_container === container) return
-    _container.detachContainerNode(this)
-    setObserving(observing = false)
-    _container = container
-    if (isAttached) {
-      _container.attachContainerNode(this)
-    }
-  }
-
   override fun onAttach() {
-    _container.attachContainerNode(this)
+    container.attachContainerNode(this)
   }
 
   override fun onDetach() {
-    _container.detachContainerNode(this)
+    container.detachContainerNode(this)
     super.onDetach()
   }
 
   override fun onRectChanged(rect: LayoutRect?) {
-    _container.onContainerRectChanged(rect)
+    container.onContainerRectChanged(rect)
   }
 }
 
@@ -249,7 +235,7 @@ private class LayerContainerImpl : LayerContainer {
 
   override fun initLayer(layer: LayerImpl) {
     if (layer.layerContainer === this) return
-    layer.release()
+    check(layer.layerContainer == null) { "Layer already initialized with another container." }
     layer.onInit(this)
   }
 
