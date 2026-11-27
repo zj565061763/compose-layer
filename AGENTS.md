@@ -55,6 +55,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 - `transition` 存储在普通属性而非 Compose `State` 中，属于非响应式配置，运行期变更不会主动触发重组。
 - `SmartAliments` 与 `SmartAliment` 为既有公开 API 命名（历史拼写），修改时必须保留原类名以确保兼容性。
 - 无返回值的 `Layer` / `TargetLayer` 与返回 `LayerState` 的 `layer` / `targetLayer` 参数签名必须保持同步。
+- `:lib` 模块在 `lib/build.gradle.kts` 中保持以 `implementation` 声明 `androidx.compose.foundation`，消费方自行配置 Compose 依赖，代码审查时忽略 `api` 与 `implementation` 依赖范围问题。
 - 库内调试日志在 `debug = true` 时统一使用 `FLayer` 作为 Logcat tag，`:app` 示例日志使用 `FLayer-demo`。
 
 ## 示例与验证场景对照

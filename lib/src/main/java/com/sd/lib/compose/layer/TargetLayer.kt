@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.invalidateMeasurement
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
@@ -460,8 +461,10 @@ private data class SmartTargetLayoutElement(
   }
 
   override fun update(node: SmartTargetLayoutNode) {
-    node.layer = layer
-    node.smartAlignments = smartAlignments
+    node.update(
+      layer = layer,
+      smartAlignments = smartAlignments,
+    )
   }
 
   override fun InspectorInfo.inspectableProperties() {
@@ -471,16 +474,25 @@ private data class SmartTargetLayoutElement(
 
 /** 基于Lookahead自然尺寸执行智能选位，并在仍溢出时通过Approach裁剪尺寸 */
 private class SmartTargetLayoutNode(
-  var layer: TargetLayerImpl,
-  var smartAlignments: SmartAliments,
+  private var layer: TargetLayerImpl,
+  private var smartAlignments: SmartAliments,
 ) : Modifier.Node(), ApproachLayoutModifierNode {
 
-  private var _containerRect: LayoutRect? = null
-  private var _targetRect: LayoutRect? = null
-  private var _effectiveAlignment: TargetAlignment = TargetAlignment.Center
+  private var _smartAlignment: SmartAliment? = null
   private var _fixOffset: IntOffset = IntOffset.Zero
   private var _maxAllowedSize: IntSize = IntSize.Zero
   private var _needsShrink: Boolean = false
+
+  fun update(
+    layer: TargetLayerImpl,
+    smartAlignments: SmartAliments,
+  ) {
+    if ((this.layer !== layer) || (this.smartAlignments != smartAlignments)) {
+      this.layer = layer
+      this.smartAlignments = smartAlignments
+      invalidateMeasurement()
+    }
+  }
 
   override fun MeasureScope.measure(
     measurable: Measurable,
@@ -489,9 +501,10 @@ private class SmartTargetLayoutNode(
     val cs = constraints.copy(minWidth = 0, minHeight = 0)
     val container = layer.containerRect
     val target = layer.targetRect
+    val defaultAlignment = layer.alignment
+    val offsetX = layer.alignmentOffsetX
+    val offsetY = layer.alignmentOffsetY
     if (!layer.isReady || (container == null) || (target == null)) {
-      _containerRect = null
-      _targetRect = null
       _needsShrink = false
       val lastRect = layer.placedContentRect
       if (lastRect != null) {
@@ -503,9 +516,6 @@ private class SmartTargetLayoutNode(
       return layout(cs.maxWidth, cs.maxHeight) {}
     }
 
-    _containerRect = container
-    _targetRect = target
-
     val rawPlaceable = measurable.measure(cs)
     val rawSize = rawPlaceable.intSize()
 
@@ -514,9 +524,9 @@ private class SmartTargetLayoutNode(
       smartAlignments = smartAlignments,
       targetRect = target,
       containerRect = container,
-      defaultAlignment = layer.alignment,
-      alignmentOffsetX = layer.alignmentOffsetX,
-      alignmentOffsetY = layer.alignmentOffsetY,
+      defaultAlignment = defaultAlignment,
+      alignmentOffsetX = offsetX,
+      alignmentOffsetY = offsetY,
       rawSize = rawSize,
       maxContainerSize = cs.maxIntSize(),
       density = density,
@@ -524,7 +534,7 @@ private class SmartTargetLayoutNode(
     )
     layer.updateSmartAlignment(plan.smartAlignment)
 
-    _effectiveAlignment = plan.effectiveAlignment
+    _smartAlignment = plan.smartAlignment
     _fixOffset = plan.offset
     _maxAllowedSize = plan.maxAllowedSize
     _needsShrink = plan.needsShrink
@@ -554,9 +564,12 @@ private class SmartTargetLayoutNode(
     constraints: Constraints,
   ): MeasureResult {
     val cs = constraints.copy(minWidth = 0, minHeight = 0)
-    val container = _containerRect
-    val target = _targetRect
-    if ((container == null) || (target == null)) {
+    val container = layer.containerRect
+    val target = layer.targetRect
+    val defaultAlignment = layer.alignment
+    val offsetX = layer.alignmentOffsetX
+    val offsetY = layer.alignmentOffsetY
+    if (!layer.isReady || (container == null) || (target == null)) {
       val lastRect = layer.placedContentRect
       if (lastRect != null) {
         val placeable = measurable.measure(cs.newMax(lastRect.size))
@@ -583,9 +596,9 @@ private class SmartTargetLayoutNode(
       layer = layer,
       targetRect = target,
       containerRect = container,
-      alignment = _effectiveAlignment,
-      alignmentOffsetX = layer.alignmentOffsetX,
-      alignmentOffsetY = layer.alignmentOffsetY,
+      alignment = _smartAlignment?.alignment ?: defaultAlignment,
+      alignmentOffsetX = offsetX,
+      alignmentOffsetY = offsetY,
       contentSize = size,
       density = density,
       layoutDirection = layoutDirection,
