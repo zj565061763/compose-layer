@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -26,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.zIndex
 
 /** Layer状态 */
+@Stable
 interface LayerState {
   /** Layer可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
   val isVisibleState: Boolean
@@ -41,6 +43,7 @@ enum class LayerDetach {
 }
 
 /** Layer内容作用域 */
+@Stable
 interface LayerContentScope
 
 internal abstract class LayerImpl : LayerState {
