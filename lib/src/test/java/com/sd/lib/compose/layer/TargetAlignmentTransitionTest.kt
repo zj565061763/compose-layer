@@ -113,4 +113,31 @@ class TargetAlignmentTransitionTest {
       ),
     )
   }
+
+  @Test
+  fun isNoneLayerTransition_respectsSmartAndExplicitTransitionPriority() {
+    val normalLayer = NormalLayerImpl()
+    assertEquals(false, normalLayer.isNoneLayerTransition())
+    normalLayer.setTransition(LayerTransition.None)
+    assertEquals(true, normalLayer.isNoneLayerTransition())
+
+    val targetLayer = TargetLayerImpl()
+    assertEquals(false, targetLayer.isNoneLayerTransition())
+
+    targetLayer.setTransition(LayerTransition.None)
+    assertEquals(true, targetLayer.isNoneLayerTransition())
+
+    // SmartAliment.transition 为 null 时，回退遵循 TargetLayer.transition (None)
+    targetLayer.updateSmartAlignment(SmartAliment(TargetAlignment.BottomStart, transition = null))
+    assertEquals(true, targetLayer.isNoneLayerTransition())
+
+    // SmartAliment.transition 指定非 None 动画时，覆盖 TargetLayer.transition (None)
+    targetLayer.updateSmartAlignment(SmartAliment(TargetAlignment.BottomStart, transition = LayerTransition.Fade))
+    assertEquals(false, targetLayer.isNoneLayerTransition())
+
+    // SmartAliment.transition 指定 None 时，覆盖 TargetLayer.transition (Fade)
+    targetLayer.setTransition(LayerTransition.Fade)
+    targetLayer.updateSmartAlignment(SmartAliment(TargetAlignment.BottomStart, transition = LayerTransition.None))
+    assertEquals(true, targetLayer.isNoneLayerTransition())
+  }
 }

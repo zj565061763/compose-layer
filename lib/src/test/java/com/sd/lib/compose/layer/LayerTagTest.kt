@@ -62,6 +62,25 @@ class LayerTagTest {
       secondNode.onPlaced(FakeLayoutCoordinates(IntOffset(100, 100), IntSize(50, 50)))
     }
   }
+
+  @Test
+  fun updateTag_detachesOldTagAndAttachesNewTag() {
+    val container = newLayerContainer()
+    var oldTagRect: LayoutRect? = null
+    var newTagRect: LayoutRect? = null
+    container.registerTargetLayoutCallback("old") { oldTagRect = it }
+    container.registerTargetLayoutCallback("new") { newTagRect = it }
+
+    val node = LayerTagNode("old")
+    node.bindContainer(container)
+    node.onPlaced(FakeLayoutCoordinates(IntOffset(30, 50), IntSize(100, 40)))
+    assertEquals(LayoutRect(IntOffset(30, 50), IntSize(100, 40)), oldTagRect)
+    assertNull(newTagRect)
+
+    node.updateTag("new")
+    assertNull(oldTagRect)
+    assertEquals(LayoutRect(IntOffset(30, 50), IntSize(100, 40)), newTagRect)
+  }
 }
 
 internal class FakeLayoutCoordinates(

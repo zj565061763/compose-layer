@@ -86,6 +86,6 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `DirectionsTest` | 单方向位标志、`+` 组合值相等与幂等性及 LTR/RTL 左右方向映射 |
 | `TargetLayerFixOverflowTest` | `fixOverFlow` 四边内收裁剪、居中单双侧溢出修正及固定锚定边越界保护 |
 | `TargetLayerLayoutTest` | `calculateMaxAllowedSize`、`planSmartTargetLayout` 智能选位裁剪重对齐、`resolveSmartApproachOffset` 尺寸过渡对齐及 `calculateClipBackgroundBounds` 绘制期背景裁切边界 |
-| `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 四角缩放锚点映射及 `resolveTargetLayerTransition` 四级动画优先级 |
-| `LayerTagTest` | `LayerTagNode` 动态切换同 `tag` 节点接管与双已放置节点唯一性校验 |
+| `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 四角缩放锚点映射、`resolveTargetLayerTransition` 与 `isNoneLayerTransition` 动画优先级 |
+| `LayerTagTest` | `LayerTagNode` 动态切换同 `tag` 节点接管、`updateTag` 重绑定与双已放置节点唯一性校验 |
 | `LayerLifecycleTest` | `syncAttach` 同帧关闭可见态与目标就绪态、退场期间切换目标不误订阅及挂载回调成对性 |

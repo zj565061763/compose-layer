@@ -32,14 +32,21 @@ internal class LayerTagNode(
   private var _tag: String = tag
   private var _container: ContainerForComposable? = null
 
+  /** 更新节点tag，在本轮树变更应用完毕后重新绑定以避免同帧顺序冲突 */
   fun updateTag(tag: String) {
     require(tag.isNotEmpty()) { "tag is empty." }
     if (_tag == tag) return
     val container = _container
     container?.detachTargetNode(tag = _tag, node = this)
     _tag = tag
-    if (isPlaced) {
-      container?.attachTargetNode(tag = tag, node = this)
+    if (isAttached) {
+      sideEffect {
+        if (isAttached && isPlaced) {
+          _container?.attachTargetNode(tag = _tag, node = this)
+        }
+      }
+    } else if (isPlaced) {
+      container?.attachTargetNode(tag = _tag, node = this)
     }
   }
 

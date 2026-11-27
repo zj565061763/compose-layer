@@ -76,12 +76,14 @@ internal interface Aligner {
   ) {
     /** 源相对于源容器的溢出信息 */
     val sourceOverflow: Overflow
-      get() = Overflow(
-        start = -x,
-        end = (x + input.sourceWidth) - input.containerWidth,
-        top = -y,
-        bottom = (y + input.sourceHeight) - input.containerHeight,
-      )
+      get() {
+        return Overflow(
+          start = -x,
+          end = (x + input.sourceWidth) - input.containerWidth,
+          top = -y,
+          bottom = (y + input.sourceHeight) - input.containerHeight,
+        )
+      }
   }
 
   /** 4条边距离源容器4条边的值，大于0表示溢出，小于0表示未溢出 */

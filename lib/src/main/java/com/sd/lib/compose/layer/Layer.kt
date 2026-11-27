@@ -258,6 +258,10 @@ internal abstract class LayerImpl : LayerState {
     }
   }
 
+  internal open fun isNoneLayerTransition(): Boolean {
+    return _layerTransition == LayerTransition.None
+  }
+
   @Composable
   protected abstract fun getLayerTransition(transition: LayerTransition?): LayerTransition
 
@@ -277,17 +281,24 @@ internal abstract class LayerImpl : LayerState {
           },
       )
     } else {
+      val backgroundTransition = if ((_backgroundColorState.alpha == 0f) || isNoneLayerTransition()) {
+        LayerTransition.None
+      } else {
+        LayerTransition.Fade
+      }
       AnimatedVisibility(
         modifier = modifier.fillMaxSize(),
         visibleState = _backgroundVisibleState,
-        enter = LayerTransition.Fade.enter,
-        exit = LayerTransition.Fade.exit,
+        enter = backgroundTransition.enter,
+        exit = backgroundTransition.exit,
       ) {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(_backgroundColorState),
-        )
+        if (_backgroundColorState.alpha > 0f) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(_backgroundColorState),
+          )
+        }
       }
     }
   }

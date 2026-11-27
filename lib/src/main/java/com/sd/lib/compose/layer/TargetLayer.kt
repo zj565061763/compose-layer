@@ -254,6 +254,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
     }
   }
 
+  override fun isNoneLayerTransition(): Boolean {
+    val smartTransition = _currentSmartAlignment?.transition
+    if (smartTransition != null) {
+      return smartTransition == LayerTransition.None
+    }
+    return super.isNoneLayerTransition()
+  }
+
   @Composable
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
     val direction = LocalLayoutDirection.current
