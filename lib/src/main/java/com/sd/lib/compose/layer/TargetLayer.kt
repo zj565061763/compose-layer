@@ -397,20 +397,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   @Composable
   private fun SmartTargetBox(smartAlignments: SmartAliments) {
     LookaheadScope {
-      Layout(
+      ContentBox(
         modifier = Modifier
           .fillMaxSize()
           .smartTargetLayout(
             layer = this@TargetLayerImpl,
             smartAlignments = smartAlignments,
           ),
-        content = { ContentBox() },
-      ) { measurables, constraints ->
-        val placeable = measurables.first().measure(constraints)
-        layout(placeable.width, placeable.height) {
-          placeable.place(0, 0)
-        }
-      }
+      )
     }
   }
 }
@@ -700,15 +694,11 @@ internal fun calculateMaxAllowedSize(
 /** 计算裁切指定外侧方向后保留的背景矩形区域 */
 internal fun calculateClipBackgroundBounds(
   containerSize: IntSize,
-  clipBackgroundDirection: Directions?,
+  clipBackgroundDirection: Directions,
   contentOffset: IntOffset,
   contentSize: IntSize,
   layoutDirection: LayoutDirection,
 ): IntRect {
-  if ((clipBackgroundDirection == null) || (contentSize.width <= 0) || (contentSize.height <= 0)) {
-    return IntRect(IntOffset.Zero, containerSize)
-  }
-
   val left = contentOffset.x.coerceIn(0, containerSize.width)
   val top = contentOffset.y.coerceIn(0, containerSize.height)
   val right = (contentOffset.x + contentSize.width).coerceIn(left, containerSize.width)

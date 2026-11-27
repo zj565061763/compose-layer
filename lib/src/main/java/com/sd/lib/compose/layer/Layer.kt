@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.zIndex
 
 /** Layer状态 */
@@ -270,7 +269,7 @@ internal abstract class LayerImpl : LayerState {
 
   @Composable
   protected fun BackgroundBox(modifier: Modifier = Modifier) {
-    if (LocalInspectionMode.current) {
+    if (isInspectionMode) {
       Box(
         modifier = modifier
           .fillMaxSize()
@@ -292,13 +291,11 @@ internal abstract class LayerImpl : LayerState {
         enter = backgroundTransition.enter,
         exit = backgroundTransition.exit,
       ) {
-        if (_backgroundColorState.alpha > 0f) {
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .background(_backgroundColorState),
-          )
-        }
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(_backgroundColorState),
+        )
       }
     }
   }
@@ -310,7 +307,7 @@ internal abstract class LayerImpl : LayerState {
         .clipToBounds()
         .pointerInput(Unit) { detectTapGestures() },
     ) {
-      if (LocalInspectionMode.current) {
+      if (isInspectionMode) {
         if (_attachRequested && isAttached) {
           RawContent()
         }

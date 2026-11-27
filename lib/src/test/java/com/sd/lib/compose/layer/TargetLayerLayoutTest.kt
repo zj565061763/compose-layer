@@ -78,31 +78,6 @@ class TargetLayerLayoutTest {
   }
 
   @Test
-  fun calculateClipBackgroundBounds_nullOrEmptyContent_returnsFullContainer() {
-    val containerSize = IntSize(300, 400)
-    assertEquals(
-      IntRect(0, 0, 300, 400),
-      calculateClipBackgroundBounds(
-        containerSize = containerSize,
-        clipBackgroundDirection = null,
-        contentOffset = IntOffset(50, 80),
-        contentSize = IntSize(100, 120),
-        layoutDirection = LayoutDirection.Ltr,
-      ),
-    )
-    assertEquals(
-      IntRect(0, 0, 300, 400),
-      calculateClipBackgroundBounds(
-        containerSize = containerSize,
-        clipBackgroundDirection = Directions.Top,
-        contentOffset = IntOffset(50, 80),
-        contentSize = IntSize.Zero,
-        layoutDirection = LayoutDirection.Ltr,
-      ),
-    )
-  }
-
-  @Test
   fun calculateClipBackgroundBounds_singleAndCombinedDirections_respectsLtrAndRtl() {
     val containerSize = IntSize(300, 400)
     val contentOffset = IntOffset(40, 80)

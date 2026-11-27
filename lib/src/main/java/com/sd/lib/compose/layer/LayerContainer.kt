@@ -127,7 +127,7 @@ internal abstract class LayoutTrackNode :
 
   override fun onPlaced(coordinates: LayoutCoordinates) {
     _coordinates = coordinates
-    if (_observing && coordinates.isAttached) {
+    if (_observing) {
       onRectChanged(coordinates.toLayoutRect())
     }
   }
@@ -180,11 +180,7 @@ private class LayerContainerImpl : LayerContainer {
 
   override fun attachContainerNode(node: LayerContainerNode) {
     _containerNode = node
-    val hasObservers = _containerLayoutCallbacks.isNotEmpty()
-    node.setObserving(observing = hasObservers)
-    if (hasObservers && node.isPlaced) {
-      onContainerRectChanged(node.currentLayoutRect())
-    }
+    node.setObserving(observing = _containerLayoutCallbacks.isNotEmpty())
   }
 
   override fun detachContainerNode(node: LayerContainerNode) {
@@ -247,10 +243,9 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun attachLayer(layer: LayerImpl) {
-    if (layer.layerContainer === this) {
-      if (!_attachedLayers.contains(layer)) {
-        _attachedLayers.add(layer)
-      }
+    check(layer.layerContainer === this)
+    if (!_attachedLayers.contains(layer)) {
+      _attachedLayers.add(layer)
     }
   }
 
