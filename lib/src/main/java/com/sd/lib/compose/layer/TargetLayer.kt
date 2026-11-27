@@ -79,11 +79,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   /** 绘制期按内容放置矩形裁切背景遮罩 */
   private val _clipBackgroundModifier = Modifier.drawWithContent {
     val clipDirection = _clipBackgroundDirection
-    val contentRect = _placedContentRect
-    if ((clipDirection == null) || (contentRect == null)) {
+    if (clipDirection == null) {
       drawContent()
       return@drawWithContent
     }
+    val contentRect = _placedContentRect ?: return@drawWithContent
     val bounds = calculateClipBackgroundBounds(
       containerSize = IntSize(size.width.fastRoundToInt(), size.height.fastRoundToInt()),
       clipBackgroundDirection = clipDirection,
