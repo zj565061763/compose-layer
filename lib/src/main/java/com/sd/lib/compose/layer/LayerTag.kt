@@ -47,17 +47,18 @@ internal class LayerTagNode(
   override fun onAttach() {
     val container = currentValueOf(LocalContainerForComposable)
       ?: if (currentValueOf(LocalInspectionMode)) return else error("Not in LayerContainer scope.")
+    bindContainer(container)
+  }
+
+  internal fun bindContainer(container: ContainerForComposable) {
     require(_tag.isNotEmpty()) { "tag is empty." }
     _container = container
     container.attachTargetNode(tag = _tag, node = this)
   }
 
   override fun onPlaced(coordinates: LayoutCoordinates) {
-    val wasPlaced = isPlaced
     super.onPlaced(coordinates)
-    if (!wasPlaced) {
-      _container?.onTargetNodePlaced(tag = _tag, node = this)
-    }
+    _container?.onTargetNodePlaced(tag = _tag, node = this)
   }
 
   override fun onNodeUnplaced() {

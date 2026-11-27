@@ -156,4 +156,48 @@ class TargetLayerLayoutTest {
       ),
     )
   }
+
+  @Test
+  fun planSmartTargetLayout_horizontalShrink_preservesFullVerticalAllowanceAndRealignsWrappedContent() {
+    val containerRect = LayoutRect(
+      offset = IntOffset(0, 0),
+      size = IntSize(300, 400),
+    )
+    val targetRect = LayoutRect(
+      offset = IntOffset(10, 250),
+      size = IntSize(60, 40),
+    )
+    // 单行自然尺寸 200x40 在默认与候选方位均水平越界 130，保留默认 TopEnd
+    val plan = planSmartTargetLayout(
+      smartAlignments = SmartAliments(SmartAliment(TargetAlignment.BottomEnd)),
+      targetRect = targetRect,
+      containerRect = containerRect,
+      defaultAlignment = TargetAlignment.TopEnd,
+      alignmentOffsetX = null,
+      alignmentOffsetY = null,
+      rawSize = IntSize(200, 40),
+      maxContainerSize = containerRect.size,
+      density = 1f,
+      layoutDirection = LayoutDirection.Ltr,
+    )
+
+    assertEquals(TargetAlignment.TopEnd, plan.effectiveAlignment)
+    assertEquals(true, plan.needsShrink)
+    // 水平缩窄至目标右边缘 70，垂直保留目标上方完整可用高度 250（不锁死在单行高度 40）
+    assertEquals(IntSize(70, 250), plan.maxAllowedSize)
+
+    // 宽度受限后文本折行测得实际尺寸 68x90，按实际尺寸重算对齐坐标后右边缘对齐 70、底边对齐 250
+    val wrappedFixed = resolveAlignedTargetLayout(
+      targetRect = targetRect,
+      containerRect = containerRect,
+      alignment = plan.effectiveAlignment,
+      alignmentOffsetX = null,
+      alignmentOffsetY = null,
+      contentSize = IntSize(68, 90),
+      density = 1f,
+      layoutDirection = LayoutDirection.Ltr,
+    )
+    assertEquals(IntOffset(2, 160), wrappedFixed.offset)
+    assertEquals(IntSize(68, 90), wrappedFixed.size)
+  }
 }

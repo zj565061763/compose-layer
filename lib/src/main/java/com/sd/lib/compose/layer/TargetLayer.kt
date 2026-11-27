@@ -408,7 +408,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
         val contentPlaceable = measurables.first().measure(cs.newMax(maxAllowedSize))
         val measuredSize = contentPlaceable.intSize()
 
-        val result = alignTarget(
+        val (fixOffset, fixSize) = resolveAlignedTargetLayout(
+          layer = this@TargetLayerImpl,
           targetRect = target,
           containerRect = container,
           alignment = currentAlignment,
@@ -418,7 +419,6 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
           density = density,
           layoutDirection = layoutDirection,
         )
-        val (fixOffset, fixSize) = result.fixOverFlow(this@TargetLayerImpl, layoutDirection)
 
         logMsg {
           """
@@ -426,7 +426,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
                alignment:$currentAlignment
                target:$target
                container:$container
-               offset:(${result.x}, ${result.y}) -> $fixOffset
+               offset:$fixOffset
                size:$measuredSize -> $fixSize
           """.trimIndent()
         }
@@ -508,8 +508,9 @@ private class SmartTargetLayoutNode(
   var smartAlignments: SmartAliments,
 ) : Modifier.Node(), ApproachLayoutModifierNode {
 
+  private var _effectiveAlignment: TargetAlignment = TargetAlignment.Center
   private var _fixOffset: IntOffset = IntOffset.Zero
-  private var _fixSize: IntSize = IntSize.Zero
+  private var _maxAllowedSize: IntSize = IntSize.Zero
   private var _needsShrink: Boolean = false
   private var _readyInPass: Boolean = false
 
@@ -525,7 +526,7 @@ private class SmartTargetLayoutNode(
 
     if (!ready) {
       val lastRect = layer.placedContentRect
-      _fixSize = lastRect?.size ?: IntSize.Zero
+      _maxAllowedSize = lastRect?.size ?: IntSize.Zero
       _fixOffset = lastRect?.offset ?: IntOffset.Zero
       _needsShrink = false
       if (lastRect != null) {
@@ -540,49 +541,39 @@ private class SmartTargetLayoutNode(
     val rawPlaceable = measurable.measure(cs)
     val rawSize = rawPlaceable.intSize()
 
-    val offsetX = layer.alignmentOffsetX
-    val offsetY = layer.alignmentOffsetY
-
-    val defaultResult = alignTarget(
-      targetRect = target,
-      containerRect = container,
-      alignment = layer.alignment,
-      alignmentOffsetX = offsetX,
-      alignmentOffsetY = offsetY,
-      contentSize = rawSize,
-      density = density,
-      layoutDirection = layoutDirection,
-    )
-    val (bestResult, smartAlignment) = defaultResult.findBestResult(
+    val plan = planSmartTargetLayout(
       layer = layer,
-      smartAliments = smartAlignments,
+      smartAlignments = smartAlignments,
       targetRect = target,
       containerRect = container,
-      alignmentOffsetX = offsetX,
-      alignmentOffsetY = offsetY,
-      contentSize = rawSize,
+      defaultAlignment = layer.alignment,
+      alignmentOffsetX = layer.alignmentOffsetX,
+      alignmentOffsetY = layer.alignmentOffsetY,
+      rawSize = rawSize,
+      maxContainerSize = cs.maxIntSize(),
       density = density,
       layoutDirection = layoutDirection,
     )
-    layer.updateSmartAlignment(smartAlignment)
+    layer.updateSmartAlignment(plan.smartAlignment)
 
-    val (fixOffset, fixSize) = bestResult.fixOverFlow(layer, layoutDirection)
-    _fixOffset = fixOffset
-    _fixSize = fixSize
-    _needsShrink = fixSize != rawSize
+    _effectiveAlignment = plan.effectiveAlignment
+    _fixOffset = plan.offset
+    _maxAllowedSize = plan.maxAllowedSize
+    _needsShrink = plan.needsShrink
 
     layer.logMsg {
       """
         layoutSmart
+           alignment:${plan.effectiveAlignment}
            target:$target
            container:$container
-           offset:(${bestResult.x}, ${bestResult.y}) -> $fixOffset
-           size:$rawSize -> $fixSize
+           offset:${plan.offset}
+           size:$rawSize (maxAllowed:${plan.maxAllowedSize}, shrink:${plan.needsShrink})
       """.trimIndent()
     }
 
     return layout(cs.maxWidth, cs.maxHeight) {
-      rawPlaceable.place(fixOffset)
+      rawPlaceable.place(plan.offset)
     }
   }
 
@@ -605,19 +596,136 @@ private class SmartTargetLayoutNode(
       }
       return layout(cs.maxWidth, cs.maxHeight) {}
     }
-    val targetConstraints = if (_needsShrink) {
-      cs.newMax(_fixSize)
-    } else {
-      cs
+
+    if (!_needsShrink) {
+      val placeable = measurable.measure(cs)
+      val size = placeable.intSize()
+      val offset = _fixOffset
+      return layout(cs.maxWidth, cs.maxHeight) {
+        layer.updatePlacedContentRect(offset, size)
+        placeable.place(offset)
+      }
     }
-    val placeable = measurable.measure(targetConstraints)
+
+    val placeable = measurable.measure(cs.newMax(_maxAllowedSize))
     val size = placeable.intSize()
-    val offset = _fixOffset
+    val container = layer.containerRect
+    val target = layer.targetRect
+    val offset = if ((container != null) && (target != null)) {
+      resolveAlignedTargetLayout(
+        layer = layer,
+        targetRect = target,
+        containerRect = container,
+        alignment = _effectiveAlignment,
+        alignmentOffsetX = layer.alignmentOffsetX,
+        alignmentOffsetY = layer.alignmentOffsetY,
+        contentSize = size,
+        density = density,
+        layoutDirection = layoutDirection,
+      ).offset
+    } else {
+      _fixOffset
+    }
     return layout(cs.maxWidth, cs.maxHeight) {
       layer.updatePlacedContentRect(offset, size)
       placeable.place(offset)
     }
   }
+}
+
+internal data class SmartTargetPlan(
+  val effectiveAlignment: TargetAlignment,
+  val smartAlignment: SmartAliment?,
+  val offset: IntOffset,
+  val needsShrink: Boolean,
+  val maxAllowedSize: IntSize,
+)
+
+/** 基于自然尺寸执行智能选位，并在仍溢出时计算保留未溢出轴可用空间的最大允许尺寸 */
+internal fun planSmartTargetLayout(
+  layer: Layer? = null,
+  smartAlignments: SmartAliments,
+  targetRect: LayoutRect,
+  containerRect: LayoutRect,
+  defaultAlignment: TargetAlignment,
+  alignmentOffsetX: TargetAlignmentOffset?,
+  alignmentOffsetY: TargetAlignmentOffset?,
+  rawSize: IntSize,
+  maxContainerSize: IntSize,
+  density: Float,
+  layoutDirection: LayoutDirection,
+): SmartTargetPlan {
+  val defaultResult = alignTarget(
+    targetRect = targetRect,
+    containerRect = containerRect,
+    alignment = defaultAlignment,
+    alignmentOffsetX = alignmentOffsetX,
+    alignmentOffsetY = alignmentOffsetY,
+    contentSize = rawSize,
+    density = density,
+    layoutDirection = layoutDirection,
+  )
+  val (bestResult, smartAlignment) = defaultResult.findBestResult(
+    layer = layer,
+    smartAliments = smartAlignments,
+    targetRect = targetRect,
+    containerRect = containerRect,
+    alignmentOffsetX = alignmentOffsetX,
+    alignmentOffsetY = alignmentOffsetY,
+    contentSize = rawSize,
+    density = density,
+    layoutDirection = layoutDirection,
+  )
+  val effectiveAlignment = smartAlignment?.alignment ?: defaultAlignment
+  val (fixOffset, fixSize) = bestResult.fixOverFlow(layer, layoutDirection)
+  val needsShrink = fixSize != rawSize
+  val maxAllowedSize = if (needsShrink) {
+    calculateMaxAllowedSize(
+      layer = layer,
+      targetRect = targetRect,
+      containerRect = containerRect,
+      alignment = effectiveAlignment,
+      alignmentOffsetX = alignmentOffsetX,
+      alignmentOffsetY = alignmentOffsetY,
+      maxContainerSize = maxContainerSize,
+      density = density,
+      layoutDirection = layoutDirection,
+    )
+  } else {
+    IntSize.Zero
+  }
+  return SmartTargetPlan(
+    effectiveAlignment = effectiveAlignment,
+    smartAlignment = smartAlignment,
+    offset = fixOffset,
+    needsShrink = needsShrink,
+    maxAllowedSize = maxAllowedSize,
+  )
+}
+
+/** 按指定对齐方位与实际测量尺寸计算溢出修正后的坐标与尺寸 */
+internal fun resolveAlignedTargetLayout(
+  layer: Layer? = null,
+  targetRect: LayoutRect,
+  containerRect: LayoutRect,
+  alignment: TargetAlignment,
+  alignmentOffsetX: TargetAlignmentOffset?,
+  alignmentOffsetY: TargetAlignmentOffset?,
+  contentSize: IntSize,
+  density: Float,
+  layoutDirection: LayoutDirection,
+): FixOverFlow {
+  val result = alignTarget(
+    targetRect = targetRect,
+    containerRect = containerRect,
+    alignment = alignment,
+    alignmentOffsetX = alignmentOffsetX,
+    alignmentOffsetY = alignmentOffsetY,
+    contentSize = contentSize,
+    density = density,
+    layoutDirection = layoutDirection,
+  )
+  return result.fixOverFlow(layer, layoutDirection)
 }
 
 /** 计算固定对齐方位下不发生可内收溢出的最大允许宽高 */
@@ -632,7 +740,8 @@ internal fun calculateMaxAllowedSize(
   density: Float,
   layoutDirection: LayoutDirection,
 ): IntSize {
-  val maxResult = alignTarget(
+  return resolveAlignedTargetLayout(
+    layer = layer,
     targetRect = targetRect,
     containerRect = containerRect,
     alignment = alignment,
@@ -641,8 +750,7 @@ internal fun calculateMaxAllowedSize(
     contentSize = maxContainerSize,
     density = density,
     layoutDirection = layoutDirection,
-  )
-  return maxResult.fixOverFlow(layer, layoutDirection).size
+  ).size
 }
 
 /** 计算裁切指定外侧方向后保留的背景矩形区域 */
@@ -735,7 +843,7 @@ private fun alignTarget(
 }
 
 private fun Aligner.Result.findBestResult(
-  layer: Layer,
+  layer: Layer? = null,
   smartAliments: SmartAliments,
   targetRect: LayoutRect,
   containerRect: LayoutRect,
@@ -781,7 +889,7 @@ private fun Aligner.Result.findBestResult(
   }
 
   return (bestResult to smartAliment).also {
-    layer.logMsg {
+    layer?.logMsg {
       "findBestResult ${this.input.position} -> ${bestResult.input.position}"
     }
   }

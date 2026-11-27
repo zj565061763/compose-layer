@@ -228,7 +228,7 @@ private class LayerContainerImpl : LayerContainer {
     if (_destroyed) return
     val old = _targetNodes[tag]
     if ((old != null) && (old !== node)) {
-      check(!old.isPlaced) { "Tag:$tag already exist." }
+      if (old.isPlaced) return
       old.setObserving(observing = false)
     }
     _targetNodes[tag] = node
@@ -269,10 +269,12 @@ private class LayerContainerImpl : LayerContainer {
   override fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?) {
     if (_destroyed) return
     val current = _targetNodes[tag]
-    if ((current != null) && (current !== node)) {
-      check(!current.isPlaced || (rect == null)) { "Tag:$tag already exist." }
+    if (current !== node) {
       if (rect == null) return
-      current.setObserving(observing = false)
+      if (current != null) {
+        check(!current.isPlaced) { "Tag:$tag already exist." }
+        current.setObserving(observing = false)
+      }
       _targetNodes[tag] = node
       node.setObserving(observing = !_targetLayoutCallbacks[tag].isNullOrEmpty())
     }
