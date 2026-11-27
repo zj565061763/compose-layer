@@ -87,16 +87,16 @@ private fun Content(
       exit = scaleOut(),
     ) {
       Text(
-        text = "Sync visible state (${layerState.lifecycleState})",
+        text = "Sync visible state",
         color = Color.Red,
       )
     }
   }
 
   LaunchedEffect(layerState) {
-    snapshotFlow { layerState.lifecycleState }
+    snapshotFlow { layerState.isVisibleState }
       .collect {
-        logMsg { "lifecycleState:$it" }
+        logMsg { "isVisibleState:$it" }
       }
   }
 }

@@ -26,7 +26,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `Api.kt` | 公开入口：`LayerContainer`、`Layer` / `layer`、`TargetLayer` / `targetLayer`、`Modifier.layerTag` 及内部 `CompositionLocal` |
 | `LayerTag.kt` | `LayerTagElement` 与 `LayerTagNode` 实现，负责 `Modifier.layerTag` 节点的容器绑定、唯一性校验与按需窗口矩形上报 |
 | `LayerContainer.kt` | 容器双接口拆分（`ContainerForComposable` / `ContainerForLayer`）、`LayoutTrackNode` 按需矩形追踪与挂载列表管理 |
-| `Layer.kt` | `LayerState`、`LayerLifecycleState`、`LayerDetach` 定义及基类 `LayerImpl` 的生命周期、过渡状态、返回键与外部触摸控制 |
+| `Layer.kt` | `LayerState`、`LayerDetach` 定义及基类 `LayerImpl` 的挂载状态、过渡状态、返回键与外部触摸控制 |
 | `NormalLayer.kt` | `NormalLayerImpl` 实现，按 `Alignment` 对齐容器并根据方位匹配默认过渡动画 |
 | `TargetLayer.kt` | `TargetLayerImpl` 实现，通过单树 `Layout` / `LookaheadScope` 完成目标对齐、智能选位、溢出修正与绘制期背景裁切 |
 | `FixOverflow.kt` | `fixOverFlow` 溢出尺寸裁剪算法，在可内收边越界时循环缩减宽高并保护固定锚定边 |
@@ -43,7 +43,8 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 - `LayerContainerImpl` 的 `register*LayoutCallback` 注册时立即回调当前矩形，`unregister*LayoutCallback` 注销时立即回调 `null` 以统一清理订阅方状态；`TargetLayerImpl.setTarget` 切换目标时保留该对称回调契约，不引入额外标志位抑制同帧同步状态往返，代码审查时忽略此项。
 - 同一 `LayerContainer` 内已放置节点的非空 `tag` 必须唯一，不同已放置节点复用同一 `tag` 会触发校验失败。
 - `LocalInspectionMode` 预览模式下，未包裹 `LayerContainer` 时 `Modifier.layerTag` 与 `Layer` 均跳过容器绑定以避免预览报错；包裹 `LayerContainer` 且 `attach = true` 时同步挂载、上报目标坐标并直接静态渲染以支持预览。
-- `LayerImpl` 生命周期按 `Initial -> Ready -> Attached -> Detaching -> Ready` 流转，内容与背景各自持有独立的 `MutableTransitionState`，调用 `detach()` 时进入 `Detaching` 并将两者的 `targetState` 置为 `false`，待两者退场动画均进入 `isIdle` 后从容器移除并回到 `Ready`；`Detaching` 退场中途再次调用 `attach()` 会切回 `Attached` 并将 `targetState` 恢复为 `true` 平滑反转动画。
+- `rememberLayer` 在组合阶段仅同步纯 Snapshot 下行状态（如 `syncAttach` 在 `attach = false` 同帧将过渡目标置为 `false` 以冻结捕获帧），容器初始化、目标监听与 `attach()` / `detach()` 统一收敛到 `SideEffect` 在组合提交后同步执行。
+- `LayerImpl` 内部挂载状态按 `Idle -> Attached -> Detaching -> Idle` 流转，内容与背景各自持有独立的 `MutableTransitionState`，调用 `detach()` 时进入 `Detaching` 并将两者的 `targetState` 置为 `false`，待两者退场动画均进入 `isIdle` 后从容器移除并回到 `Idle`；`Detaching` 退场中途再次调用 `attach()` 会切回 `Attached` 并将 `targetState` 恢复为 `true` 平滑反转动画。
 - `detachOnBackPress` 与 `detachOnTouchOutside` 仅在 `isVisibleState == true` 时生效，`true` 回调 `onDetachRequest`，`false` 消费事件但不请求移除，`null` 不注册拦截以透传事件；多个 `Layer` 同时挂载时，容器按 `zIndex`（相同 `zIndex` 后挂载者优先）由最顶层需拦截返回键的 `Layer` 处理返回事件，且 `HandleBackPress()` 先于各浮层 `Content()` 组合以允许浮层内容内部的 `BackHandler` 优先响应。
 - `ContentBox` 内置空 `pointerInput` 消费内容区点击事件，防止点击穿透到下方的外部触摸拦截层。
 - `ContentBox` 默认使用 `CapturedAnimatedVisibility` 执行内容动画（`captureOnDetach = true`），退场开始时立即移除子内容组合并基于捕获帧播放退场动画；设为 `false` 时使用 `AnimatedVisibility`。
@@ -63,7 +64,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 
 | Activity | 验证场景 |
 |---|---|
-| `SampleAlignContainer` | 普通 `layer` 容器对齐及 `LayerState.isVisibleState` / `lifecycleState` 状态监听 |
+| `SampleAlignContainer` | 普通 `layer` 容器对齐及 `LayerState.isVisibleState` 可见状态同步 |
 | `SampleAlignTarget` | `targetLayer` 17 种 `TargetAlignment` 对齐滚动目标及目标动态显隐 |
 | `SampleDropDown` | 下拉菜单对齐 `Tag` 目标与 `Directions.Top` 裁切上方背景遮罩 |
 | `SampleTargetOffset` | `PX` / `Target` 偏移量、组合方向背景裁切与 LTR/RTL 布局方向切换 |
@@ -87,3 +88,4 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `TargetLayerLayoutTest` | `calculateMaxAllowedSize`、`planSmartTargetLayout` 智能选位裁剪重对齐及 `calculateClipBackgroundBounds` 绘制期背景裁切边界 |
 | `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 四角缩放锚点映射及 `resolveTargetLayerTransition` 四级动画优先级 |
 | `LayerTagTest` | `LayerTagNode` 动态切换同 `tag` 节点接管与双已放置节点唯一性校验 |
+| `LayerLifecycleTest` | `syncAttach` 同帧关闭可见态与目标就绪态、退场期间切换目标不误订阅及挂载回调成对性 |

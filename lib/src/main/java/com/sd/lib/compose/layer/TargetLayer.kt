@@ -103,7 +103,8 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
 
   val isReady: Boolean
     get() {
-      return (lifecycleState == LayerLifecycleState.Attached) &&
+      return isAttachRequested &&
+        isAttached &&
         (_containerRect != null) &&
         (_targetRect != null)
     }
@@ -155,7 +156,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   }
 
   private fun registerTarget(target: LayerTarget?) {
-    if ((lifecycleState == LayerLifecycleState.Attached) && (target is LayerTarget.Tag)) {
+    if (isAttached && (target is LayerTarget.Tag)) {
       layerContainer?.registerTargetLayoutCallback(target.tag, _tagTargetLayoutCallback)
     }
   }

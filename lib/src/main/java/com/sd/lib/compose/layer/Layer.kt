@@ -30,24 +30,6 @@ import androidx.compose.ui.zIndex
 interface LayerState {
   /** Layer可见状态，当Layer开始进入时值为true，当Layer开始退出时值为false */
   val isVisibleState: Boolean
-
-  /** Layer生命周期状态 */
-  val lifecycleState: LayerLifecycleState
-}
-
-/** Layer生命周期状态 */
-enum class LayerLifecycleState {
-  /** 初始状态 */
-  Initial,
-
-  /** 准备完毕，可以被添加到容器 */
-  Ready,
-
-  /** 即将被移除 */
-  Detaching,
-
-  /** 已经添加到容器 */
-  Attached,
 }
 
 /** Layer触发移除的原因 */
@@ -66,10 +48,11 @@ internal abstract class LayerImpl : LayerState {
   var layerContainer: ContainerForLayer? = null
     private set
 
-  protected var isInspectionMode: Boolean = false
+  protected var isInspectionMode by mutableStateOf(false)
     private set
 
-  private var _lifecycleState by mutableStateOf(LayerLifecycleState.Initial)
+  private var _attachRequested by mutableStateOf(false)
+  private var _attachState by mutableStateOf(AttachState.Idle)
   private var _contentVisibleState by mutableStateOf(MutableTransitionState(false))
   private var _backgroundVisibleState by mutableStateOf(MutableTransitionState(false))
 
@@ -93,6 +76,16 @@ internal abstract class LayerImpl : LayerState {
       return _zIndexState
     }
 
+  protected val isAttachRequested: Boolean
+    get() {
+      return _attachRequested
+    }
+
+  protected val isAttached: Boolean
+    get() {
+      return _attachState == AttachState.Attached
+    }
+
   protected val hasExplicitTransition: Boolean
     get() {
       return _layerTransition != null
@@ -103,10 +96,22 @@ internal abstract class LayerImpl : LayerState {
       return _contentVisibleState.targetState
     }
 
-  final override val lifecycleState: LayerLifecycleState
-    get() {
-      return _lifecycleState
+  fun syncInspectionMode(value: Boolean) {
+    isInspectionMode = value
+  }
+
+  /** 组合期同步声明式挂载意图，在请求移除同帧立即关闭目标可见态以冻结退场捕获帧 */
+  fun syncAttach(attach: Boolean) {
+    _attachRequested = attach
+    if (!attach) {
+      _contentVisibleState.targetState = false
+      _backgroundVisibleState.targetState = false
     }
+  }
+
+  fun syncContent(content: @Composable LayerContentScope.() -> Unit) {
+    _contentState.value = content
+  }
 
   fun setDetachOnBackPress(value: Boolean?) {
     _detachOnBackPressState = value
@@ -137,25 +142,20 @@ internal abstract class LayerImpl : LayerState {
   }
 
   fun attach() {
-    when (val state = _lifecycleState) {
-      LayerLifecycleState.Ready,
-      LayerLifecycleState.Detaching,
-        -> {
-        logMsg { "attach $state" }
-        val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
-        container.attachLayer(this)
-        setLifecycleState(LayerLifecycleState.Attached)
-        onAttach(container)
-      }
-      else -> {}
+    val container = checkNotNull(layerContainer) { "LayerContainer is null when attach" }
+    if (_attachState != AttachState.Attached) {
+      logMsg { "attach $_attachState" }
+      container.attachLayer(this)
+      setAttachState(AttachState.Attached)
+      onAttach(container)
     }
   }
 
   fun detach() {
-    if (_lifecycleState == LayerLifecycleState.Attached) {
+    if (_attachState == AttachState.Attached) {
       logMsg { "detach" }
       val container = checkNotNull(layerContainer) { "LayerContainer is null when detach" }
-      setLifecycleState(LayerLifecycleState.Detaching)
+      setAttachState(AttachState.Detaching)
       setContentVisible(false)
       onDetach(container)
       checkDetachCompleted()
@@ -168,17 +168,6 @@ internal abstract class LayerImpl : LayerState {
 
   protected open fun onDetached(container: ContainerForLayer) {}
 
-  @Composable
-  fun Init(
-    content: @Composable LayerContentScope.() -> Unit,
-  ) {
-    isInspectionMode = LocalInspectionMode.current
-    val container = LocalContainerForLayer.current
-      ?: (if (isInspectionMode) return else error("Not in LayerContainer scope."))
-    container.initLayer(this)
-    _contentState.value = content
-  }
-
   fun release() {
     layerContainer?.releaseLayer(this)
   }
@@ -188,7 +177,6 @@ internal abstract class LayerImpl : LayerState {
     logMsg { "onInit $container" }
     check(layerContainer == null)
     layerContainer = container
-    setLifecycleState(LayerLifecycleState.Ready)
   }
 
   /** 释放回调 */
@@ -196,24 +184,25 @@ internal abstract class LayerImpl : LayerState {
     logMsg { "onRelease $container" }
     check(layerContainer === container)
     detach()
-    if (_lifecycleState == LayerLifecycleState.Detaching) {
+    if (_attachState == AttachState.Detaching) {
+      setAttachState(AttachState.Idle)
       onDetached(container)
     }
+    _attachRequested = false
     _contentVisibleState = MutableTransitionState(false)
     _backgroundVisibleState = MutableTransitionState(false)
     layerContainer = null
-    setLifecycleState(LayerLifecycleState.Initial)
   }
 
-  private fun setLifecycleState(state: LayerLifecycleState) {
-    if (_lifecycleState == state) return
-    _lifecycleState = state
-    logMsg { "state:$_lifecycleState" }
+  private fun setAttachState(state: AttachState) {
+    if (_attachState == state) return
+    _attachState = state
+    logMsg { "state:$_attachState" }
   }
 
   /** 设置内容可见状态 */
   protected fun setContentVisible(visible: Boolean) {
-    val newVisible = visible && (_lifecycleState == LayerLifecycleState.Attached)
+    val newVisible = visible && _attachRequested && isAttached
     if (_contentVisibleState.targetState == newVisible) return
     _contentVisibleState.targetState = newVisible
     _backgroundVisibleState.targetState = newVisible
@@ -236,13 +225,13 @@ internal abstract class LayerImpl : LayerState {
 
   /** 检查退场动画是否已结束并执行容器移除 */
   private fun checkDetachCompleted() {
-    if (_lifecycleState != LayerLifecycleState.Detaching) return
+    if (_attachState != AttachState.Detaching) return
     if (!isExitIdle()) return
 
     val container = checkNotNull(layerContainer)
     if (container.detachLayer(this)) {
       logMsg { "detachLayer" }
-      setLifecycleState(LayerLifecycleState.Ready)
+      setAttachState(AttachState.Idle)
       onDetached(container)
     }
   }
@@ -250,7 +239,7 @@ internal abstract class LayerImpl : LayerState {
   /** 渲染Layer内容 */
   @Composable
   fun Content() {
-    if (_lifecycleState == LayerLifecycleState.Detaching) {
+    if (_attachState == AttachState.Detaching) {
       LaunchedEffect(this) {
         snapshotFlow { isExitIdle() }
           .collect { idle ->
@@ -313,7 +302,7 @@ internal abstract class LayerImpl : LayerState {
         .pointerInput(Unit) { detectTapGestures() },
     ) {
       if (LocalInspectionMode.current) {
-        if (_lifecycleState == LayerLifecycleState.Attached) {
+        if (_attachRequested && isAttached) {
           RawContent()
         }
       } else {
@@ -380,6 +369,12 @@ internal abstract class LayerImpl : LayerState {
   private fun requestDetach(layerDetach: LayerDetach) {
     logMsg { "requestDetach:$layerDetach" }
     _detachRequestCallback?.invoke(layerDetach)
+  }
+
+  private enum class AttachState {
+    Idle,
+    Attached,
+    Detaching,
   }
 
   private class LayerScopeImpl : LayerContentScope

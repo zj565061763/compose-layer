@@ -64,7 +64,7 @@ class LayerTagTest {
   }
 }
 
-private class FakeLayoutCoordinates(
+internal class FakeLayoutCoordinates(
   private val windowOffset: IntOffset,
   override val size: IntSize,
   override val isAttached: Boolean = true,

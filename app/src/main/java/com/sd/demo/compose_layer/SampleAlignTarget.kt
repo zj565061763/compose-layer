@@ -77,13 +77,6 @@ private fun Content(
   }
 
   LaunchedEffect(layerState) {
-    snapshotFlow { layerState.lifecycleState }
-      .collect {
-        logMsg { "lifecycleState:$it" }
-      }
-  }
-
-  LaunchedEffect(layerState) {
     snapshotFlow { layerState.isVisibleState }
       .collect {
         logMsg { "isVisibleState:$it" }

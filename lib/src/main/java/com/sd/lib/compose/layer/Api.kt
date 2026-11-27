@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -127,9 +127,10 @@ fun layer(
     captureOnDetach = captureOnDetach,
     zIndex = zIndex,
     content = content,
-  ) {
-    setAlignment(alignment)
-  }
+    updateState = {
+      setAlignment(alignment)
+    },
+  )
 }
 
 //-------------------- TargetLayer --------------------
@@ -225,14 +226,17 @@ fun targetLayer(
     captureOnDetach = captureOnDetach,
     zIndex = zIndex,
     content = content,
-  ) {
-    setTarget(target)
-    setAlignment(alignment)
-    setAlignmentOffsetX(alignmentOffsetX)
-    setAlignmentOffsetY(alignmentOffsetY)
-    setSmartAlignments(smartAlignments)
-    setClipBackgroundDirection(clipBackgroundDirection)
-  }
+    updateState = {
+      setAlignment(alignment)
+      setAlignmentOffsetX(alignmentOffsetX)
+      setAlignmentOffsetY(alignmentOffsetY)
+      setClipBackgroundDirection(clipBackgroundDirection)
+    },
+    updateSideEffect = {
+      setTarget(target)
+      setSmartAlignments(smartAlignments)
+    },
+  )
 }
 
 /** 为当前元素设置容器作用域内唯一的[tag] */
@@ -254,38 +258,49 @@ private inline fun <T : LayerImpl> rememberLayer(
   captureOnDetach: Boolean,
   zIndex: Float,
   noinline content: @Composable LayerContentScope.() -> Unit,
-  update: T.() -> Unit,
+  updateState: T.() -> Unit,
+  crossinline updateSideEffect: T.() -> Unit = {},
 ): T {
   val isInspectionMode = LocalInspectionMode.current
+  val container = LocalContainerForLayer.current
+    ?: if (isInspectionMode) null else error("Not in LayerContainer scope.")
+
   val layer = remember { factory() }.apply {
-    this.debug = debug
-    this.Init(content)
-    this.setDetachRequestCallback(onDetachRequest)
+    this.syncInspectionMode(isInspectionMode)
+    this.syncAttach(attach)
+    this.syncContent(content)
     this.setDetachOnBackPress(detachOnBackPress)
     this.setDetachOnTouchOutside(detachOnTouchOutside)
     this.setBackgroundColor(backgroundColor)
-    this.setTransition(transition)
     this.setCaptureOnDetach(captureOnDetach)
     this.setZIndex(zIndex)
-    update()
-    if (!attach) {
-      this.detach()
-    } else if (isInspectionMode && (this.layerContainer != null)) {
+    updateState()
+    if (isInspectionMode && (container != null) && attach) {
+      container.initLayer(this)
+      this.updateSideEffect()
       this.attach()
     }
   }
 
-  DisposableEffect(layer) {
+  DisposableEffect(layer, container) {
     onDispose {
       layer.release()
     }
   }
 
-  LaunchedEffect(layer, attach) {
-    if (attach) {
-      layer.attach()
-    } else {
-      layer.detach()
+  SideEffect {
+    layer.debug = debug
+    layer.setDetachRequestCallback(onDetachRequest)
+    layer.setTransition(transition)
+    if (container != null) {
+      container.initLayer(layer)
+      if (attach) {
+        layer.updateSideEffect()
+        layer.attach()
+      } else {
+        layer.detach()
+        layer.updateSideEffect()
+      }
     }
   }
 
