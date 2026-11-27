@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -52,10 +54,14 @@ class SampleAlignTarget : ComponentActivity() {
 }
 
 @Composable
-private fun Content() {
+private fun Content(
+  modifier: Modifier = Modifier,
+  defaultAttach: Boolean = false,
+  defaultAlignment: TargetAlignment? = null,
+) {
   val tag = "hello"
-  var attach by remember { mutableStateOf(false) }
-  var alignment: TargetAlignment? by remember { mutableStateOf(null) }
+  var attach by remember { mutableStateOf(defaultAttach) }
+  var alignment: TargetAlignment? by remember { mutableStateOf(defaultAlignment) }
 
   val layerState = targetLayer(
     target = LayerTarget.Tag(tag),
@@ -71,24 +77,25 @@ private fun Content() {
   }
 
   LaunchedEffect(layerState) {
-    // 监听Layer生命周期状态
     snapshotFlow { layerState.lifecycleState }
       .collect {
-        logMsg { "lifecycleState:${it}" }
+        logMsg { "lifecycleState:$it" }
       }
   }
 
   LaunchedEffect(layerState) {
-    // 监听Layer可见状态
     snapshotFlow { layerState.isVisibleState }
       .collect {
-        logMsg { "isVisibleState:${it}" }
+        logMsg { "isVisibleState:$it" }
       }
   }
 
-  Box(modifier = Modifier.fillMaxSize()) {
+  Box(modifier = modifier.fillMaxSize()) {
     TargetView(tag = tag)
     ButtonsView(
+      modifier = Modifier
+        .safeDrawingPadding()
+        .padding(horizontal = 8.dp),
       currentAlignment = alignment,
       onClickDetach = { attach = false },
       onClick = {
@@ -111,14 +118,13 @@ private fun TargetView(
       .fillMaxSize()
       .verticalScroll(rememberScrollState()),
     horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center,
   ) {
-    Box(modifier = Modifier.height(400.dp))
+    Box(modifier = Modifier.height(340.dp))
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-      Button(onClick = {
-        showTarget = !showTarget
-      }) {
+      Button(
+        onClick = { showTarget = !showTarget },
+      ) {
         Text(if (showTarget) "Hide Target" else "Show Target")
       }
 
@@ -127,14 +133,14 @@ private fun TargetView(
           modifier = Modifier
             .size(150.dp)
             .background(Color.LightGray)
-            .layerTag(tag)
+            .layerTag(tag),
         ) {
           Text(text = "Target", modifier = Modifier.align(Alignment.Center))
         }
       }
     }
 
-    Box(modifier = Modifier.height(2000.dp))
+    Box(modifier = Modifier.height(1200.dp))
   }
 }
 
@@ -149,7 +155,6 @@ private fun ButtonsView(
     modifier = modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    // Top
     ButtonRow(
       list = listOf(
         TargetAlignment.TopStart,
@@ -160,7 +165,6 @@ private fun ButtonsView(
       onClick = onClick,
     )
 
-    // Bottom
     ButtonRow(
       list = listOf(
         TargetAlignment.BottomStart,
@@ -171,7 +175,6 @@ private fun ButtonsView(
       onClick = onClick,
     )
 
-    // Center
     ButtonRow(
       list = listOf(
         TargetAlignment.Top,
@@ -184,7 +187,6 @@ private fun ButtonsView(
       onClick = onClick,
     )
 
-    // Start
     ButtonRow(
       list = listOf(
         TargetAlignment.StartTop,
@@ -195,7 +197,6 @@ private fun ButtonsView(
       onClick = onClick,
     )
 
-    // End
     ButtonRow(
       list = listOf(
         TargetAlignment.EndTop,
@@ -207,10 +208,10 @@ private fun ButtonsView(
     )
 
     Button(
-      onClick = { onClickDetach() },
+      onClick = onClickDetach,
       colors = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.error
-      )
+        containerColor = MaterialTheme.colorScheme.error,
+      ),
     ) {
       Text(text = "Detach")
     }
@@ -227,25 +228,32 @@ private fun ButtonRow(
   Row(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
+    horizontalArrangement = Arrangement.spacedBy(4.dp),
   ) {
     list.forEach { item ->
       Button(
         onClick = { onClick(item) },
         modifier = Modifier.weight(1f),
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = PaddingValues(0.dp),
       ) {
         Text(
           text = item.name,
-          color = if (item == currentAlignment) Color.Red else Color.White
+          color = if (item == currentAlignment) Color.Red else Color.White,
         )
       }
     }
   }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun PreviewContent() {
-  Content()
+private fun PreviewBottomEnd() {
+  AppTheme {
+    LayerContainer {
+      Content(
+        defaultAttach = true,
+        defaultAlignment = TargetAlignment.BottomEnd,
+      )
+    }
+  }
 }

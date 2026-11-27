@@ -29,6 +29,9 @@
         <activity android:name=".SampleFixOverflow" />
         <activity android:name=".SampleZIndex" />
         <activity android:name=".SampleListMenu" />
+        <activity android:name=".SampleSmartAlign" />
+        <activity android:name=".SampleDetachControl" />
+        <activity android:name=".SampleCaptureOnDetach" />
 
     </application>
 

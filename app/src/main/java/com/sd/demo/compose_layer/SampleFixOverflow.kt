@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,16 +47,23 @@ class SampleFixOverflow : ComponentActivity() {
 }
 
 @Composable
-private fun Content() {
-  var attach by remember { mutableStateOf(false) }
-  var tag by remember { mutableStateOf("") }
+private fun Content(
+  modifier: Modifier = Modifier,
+  defaultTag: String = "",
+) {
+  var tag by remember { mutableStateOf(defaultTag) }
+  var attach by remember { mutableStateOf(defaultTag.isNotEmpty()) }
 
-  Box(modifier = Modifier.fillMaxSize()) {
+  Box(
+    modifier = modifier
+      .fillMaxSize()
+      .safeDrawingPadding(),
+  ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .align(Alignment.BottomCenter)
-        .offset(y = (-300).dp),
+        .padding(bottom = 260.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
@@ -64,9 +72,9 @@ private fun Content() {
           tag = "button1"
           attach = true
         },
-        modifier = Modifier.layerTag("button1")
+        modifier = Modifier.layerTag("button1"),
       ) {
-        Text("button1")
+        Text(text = "button1")
       }
 
       Button(
@@ -74,9 +82,9 @@ private fun Content() {
           tag = "button2"
           attach = true
         },
-        modifier = Modifier.layerTag("button2")
+        modifier = Modifier.layerTag("button2"),
       ) {
-        Text("button2")
+        Text(text = "button2")
       }
     }
   }
@@ -99,8 +107,22 @@ private fun Content() {
   }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun PreviewContent() {
-  Content()
+private fun PreviewButton1Overflow() {
+  AppTheme {
+    LayerContainer {
+      Content(defaultTag = "button1")
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewButton2Overflow() {
+  AppTheme {
+    LayerContainer {
+      Content(defaultTag = "button2")
+    }
+  }
 }

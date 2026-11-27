@@ -66,8 +66,11 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `SampleDropDown` | 下拉菜单对齐 `Tag` 目标与 `Directions.Top` 裁切上方背景遮罩 |
 | `SampleTargetOffset` | `PX` / `Target` 偏移量、组合方向背景裁切与 LTR/RTL 布局方向切换 |
 | `SampleFixOverflow` | 长列表超出容器边界时的溢出尺寸裁剪与自定义缩放动画 |
-| `SampleZIndex` | 多个 `Layer` 同时挂载时的 `zIndex` 层级覆盖顺序 |
+| `SampleZIndex` | 多个 `Layer` 同时挂载时的 `zIndex` 覆盖顺序及 `LayerContainer(layersZIndex)` 层级控制 |
 | `SampleListMenu` | 列表点击窗口坐标 `LayerTarget.Offset`、`SmartAliments.Default` 智能选位与 `relativeAlignment` 相对偏移 |
+| `SampleSmartAlign` | 可拖动 `Tag` 目标配合自定义 `SmartAliments` 越界翻转及候选方位专属过渡动画 |
+| `SampleDetachControl` | `detachOnBackPress` 与 `detachOnTouchOutside` 三态（`true` / `false` / `null`）、`LayerDetach` 回调原因及内部 `BackHandler` 优先级 |
+| `SampleCaptureOnDetach` | `captureOnDetach` 为 `true` 与 `false` 时退场动画期间子组合销毁时机与状态冻结对比 |
 
 ## 单元测试对照
 

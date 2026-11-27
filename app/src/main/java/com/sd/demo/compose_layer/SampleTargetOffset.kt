@@ -3,13 +3,16 @@ package com.sd.demo.compose_layer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -38,15 +41,13 @@ class SampleTargetOffset : ComponentActivity() {
     setContent {
       AppTheme {
         var isRtl by remember { mutableStateOf(false) }
-        val direction = LayoutDirection.Rtl.takeIf { isRtl } ?: LayoutDirection.Ltr
+        val direction = if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
         CompositionLocalProvider(
-          LocalLayoutDirection provides direction
+          LocalLayoutDirection provides direction,
         ) {
           LayerContainer {
             Content(
-              onClickChangeLayoutDirection = {
-                isRtl = !isRtl
-              }
+              onClickDirection = { isRtl = !isRtl },
             )
           }
         }
@@ -57,29 +58,35 @@ class SampleTargetOffset : ComponentActivity() {
 
 @Composable
 private fun Content(
-  onClickChangeLayoutDirection: () -> Unit,
+  modifier: Modifier = Modifier,
+  defaultAttach: Boolean = false,
+  onClickDirection: () -> Unit = {},
 ) {
   val tag = "hello"
-  var attach by remember { mutableStateOf(false) }
+  var attach by remember { mutableStateOf(defaultAttach) }
+  val layoutDirection = LocalLayoutDirection.current
 
   Column(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = 10.dp),
+      .safeDrawingPadding()
+      .padding(horizontal = 16.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
-    Spacer(modifier = Modifier.height(500.dp))
-    Button(
-      onClick = { attach = true },
-      modifier = Modifier.layerTag(tag)
-    ) {
-      Text("Click")
-    }
+    Spacer(modifier = Modifier.height(320.dp))
 
     Button(
-      onClick = onClickChangeLayoutDirection,
+      onClick = { attach = !attach },
+      modifier = Modifier.layerTag(tag),
     ) {
-      Text("Change layout direction")
+      Text(text = if (attach) "Close Offset Layer" else "Open Offset Layer")
+    }
+
+    OutlinedButton(
+      onClick = onClickDirection,
+    ) {
+      Text(text = "LayoutDirection: $layoutDirection (点击切换)")
     }
   }
 
@@ -100,10 +107,26 @@ private fun Content(
   }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun PreviewContent() {
-  Content(
-    onClickChangeLayoutDirection = {},
-  )
+private fun PreviewLtr() {
+  AppTheme {
+    LayerContainer {
+      Content(defaultAttach = true)
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewRtl() {
+  AppTheme {
+    CompositionLocalProvider(
+      LocalLayoutDirection provides LayoutDirection.Rtl,
+    ) {
+      LayerContainer {
+        Content(defaultAttach = true)
+      }
+    }
+  }
 }

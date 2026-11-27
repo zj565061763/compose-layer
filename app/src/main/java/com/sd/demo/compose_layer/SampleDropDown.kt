@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -52,10 +53,11 @@ private fun Content(
   Column(
     modifier = modifier
       .fillMaxSize()
+      .safeDrawingPadding()
       .padding(horizontal = 10.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    Spacer(modifier = Modifier.height(300.dp))
+    Spacer(modifier = Modifier.height(260.dp))
     Button(
       onClick = { attach = !attach },
       modifier = Modifier.layerTag(tag),
@@ -79,10 +81,12 @@ private fun Content(
   }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun PreviewContent() {
-  LayerContainer {
-    Content(defaultAttach = true)
+  AppTheme {
+    LayerContainer {
+      Content(defaultAttach = true)
+    }
   }
 }
