@@ -292,7 +292,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   @Composable
   override fun BoxScope.LayerContent() {
     val smartAlignments = _smartAlignments
-    val needsProbe = isReady && (smartAlignments != null) && shouldProbeSmartAlignment()
+    val needsProbe = (smartAlignments != null) && shouldProbeSmartAlignment() && isReady
 
     BackgroundBox(modifier = _clipBackgroundModifier)
 
