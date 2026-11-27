@@ -40,6 +40,7 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 ## 内部机制与开发约束
 
 - `LayerContainerImpl` 同时实现 `ContainerForComposable`（供 `LayerContainer` 与 `Modifier.layerTag` 注册 `LayoutTrackNode`）和 `ContainerForLayer`（供 `LayerImpl` 挂载与按需订阅窗口矩形），通过两个独立的 `staticCompositionLocalOf` 隔离暴露范围；无 `TargetLayer` 订阅时容器与 `tag` 节点不注册 `registerOnLayoutRectChanged` 监听。
+- `LayerContainerImpl` 的 `register*LayoutCallback` 注册时立即回调当前矩形，`unregister*LayoutCallback` 注销时立即回调 `null` 以统一清理订阅方状态；`TargetLayerImpl.setTarget` 切换目标时保留该对称回调契约，不引入额外标志位抑制同帧同步状态往返，代码审查时忽略此项。
 - 同一 `LayerContainer` 内已放置节点的非空 `tag` 必须唯一，不同已放置节点复用同一 `tag` 会触发校验失败。
 - `LocalInspectionMode` 预览模式下，未包裹 `LayerContainer` 时 `Modifier.layerTag` 与 `Layer` 均跳过容器绑定以避免预览报错；包裹 `LayerContainer` 且 `attach = true` 时同步挂载、上报目标坐标并直接静态渲染以支持预览。
 - `LayerImpl` 生命周期按 `Initial -> Ready -> Attached -> Detaching -> Ready` 流转，内容与背景各自持有独立的 `MutableTransitionState`，调用 `detach()` 时进入 `Detaching` 并将两者的 `targetState` 置为 `false`，待两者退场动画均进入 `isIdle` 后从容器移除并回到 `Ready`；`Detaching` 退场中途再次调用 `attach()` 会切回 `Attached` 并将 `targetState` 恢复为 `true` 平滑反转动画。
