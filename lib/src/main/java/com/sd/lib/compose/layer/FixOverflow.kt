@@ -11,7 +11,7 @@ internal data class FixOverFlow(
 
 /** 在可随尺寸内收的边越界时循环缩减宽高并重算对齐坐标 */
 internal fun Aligner.Result.fixOverFlow(
-  layer: Layer? = null,
+  layer: LayerImpl? = null,
   layoutDirection: LayoutDirection,
 ): FixOverFlow {
   val isLtr = layoutDirection == LayoutDirection.Ltr

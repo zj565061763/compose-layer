@@ -42,7 +42,6 @@ internal interface ContainerForComposable {
   fun onContainerRectChanged(rect: LayoutRect?)
 
   fun attachTargetNode(tag: String, node: LayerTagNode)
-  fun onTargetNodePlaced(tag: String, node: LayerTagNode)
   fun detachTargetNode(tag: String, node: LayerTagNode)
   fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?)
 
@@ -137,10 +136,6 @@ internal abstract class LayoutTrackNode :
 
   override fun onUnplaced() {
     _coordinates = null
-    onNodeUnplaced()
-  }
-
-  protected open fun onNodeUnplaced() {
     if (_observing) {
       onRectChanged(null)
     }
@@ -227,37 +222,18 @@ private class LayerContainerImpl : LayerContainer {
   override fun attachTargetNode(tag: String, node: LayerTagNode) {
     if (_destroyed) return
     val old = _targetNodes[tag]
-    if ((old != null) && (old !== node)) {
-      if (old.isPlaced) return
-      old.setObserving(observing = false)
-    }
+    if (old === node) return
+    check(old == null) { "Tag:$tag already exist." }
     _targetNodes[tag] = node
     val hasObservers = !_targetLayoutCallbacks[tag].isNullOrEmpty()
     node.setObserving(observing = hasObservers)
-    if (hasObservers && node.isPlaced) {
-      notifyTargetCallbacks(tag, node.currentLayoutRect())
-    }
-  }
-
-  override fun onTargetNodePlaced(tag: String, node: LayerTagNode) {
-    if (_destroyed) return
-    val current = _targetNodes[tag]
-    if (current === node) return
-    if (current != null) {
-      check(!current.isPlaced) { "Tag:$tag already exist." }
-      current.setObserving(observing = false)
-    }
-    _targetNodes[tag] = node
-    val hasObservers = !_targetLayoutCallbacks[tag].isNullOrEmpty()
-    node.setObserving(observing = hasObservers)
-    if (hasObservers && node.isPlaced) {
+    if (hasObservers) {
       notifyTargetCallbacks(tag, node.currentLayoutRect())
     }
   }
 
   override fun detachTargetNode(tag: String, node: LayerTagNode) {
-    val current = _targetNodes[tag] ?: return
-    if (current === node) {
+    if (_targetNodes[tag] === node) {
       node.setObserving(observing = false)
       _targetNodes.remove(tag)
       if (!_destroyed) {
@@ -268,17 +244,9 @@ private class LayerContainerImpl : LayerContainer {
 
   override fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?) {
     if (_destroyed) return
-    val current = _targetNodes[tag]
-    if (current !== node) {
-      if (rect == null) return
-      if (current != null) {
-        check(!current.isPlaced) { "Tag:$tag already exist." }
-        current.setObserving(observing = false)
-      }
-      _targetNodes[tag] = node
-      node.setObserving(observing = !_targetLayoutCallbacks[tag].isNullOrEmpty())
+    if (_targetNodes[tag] === node) {
+      notifyTargetCallbacks(tag, rect)
     }
-    notifyTargetCallbacks(tag, rect)
   }
 
   private fun notifyTargetCallbacks(tag: String, rect: LayoutRect?) {
@@ -292,14 +260,12 @@ private class LayerContainerImpl : LayerContainer {
     if (layer.layerContainer === this) return
     layer.release()
     layer.onInit(this)
-    check(layer.layerContainer === this)
   }
 
   override fun releaseLayer(layer: LayerImpl) {
     if (layer.layerContainer === this) {
       _attachedLayers.remove(layer)
       layer.onRelease(this)
-      check(layer.layerContainer == null)
     }
   }
 

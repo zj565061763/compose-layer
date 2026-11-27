@@ -39,6 +39,12 @@ class LayerTagTest {
     // 布局阶段上方新节点完成放置并接管目标矩形上报
     upperNode.onPlaced(FakeLayoutCoordinates(IntOffset(20, 40), IntSize(80, 40)))
     assertEquals(LayoutRect(IntOffset(20, 40), IntSize(80, 40)), latestRect)
+
+    // 取消放置时自动解绑目标并清空坐标，重新放置后恢复
+    upperNode.onUnplaced()
+    assertNull(latestRect)
+    upperNode.onPlaced(FakeLayoutCoordinates(IntOffset(20, 60), IntSize(80, 40)))
+    assertEquals(LayoutRect(IntOffset(20, 60), IntSize(80, 40)), latestRect)
   }
 
   @Test

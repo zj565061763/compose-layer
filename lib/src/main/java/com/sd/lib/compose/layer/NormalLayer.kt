@@ -9,15 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 
-internal interface NormalLayer : Layer {
-  /** 对齐容器位置，默认[Alignment.Center] */
-  fun setAlignment(alignment: Alignment)
-}
-
-internal class NormalLayerImpl : LayerImpl(), NormalLayer {
+internal class NormalLayerImpl : LayerImpl() {
   private var _alignment by mutableStateOf(Alignment.Center)
 
-  override fun setAlignment(alignment: Alignment) {
+  fun setAlignment(alignment: Alignment) {
     _alignment = alignment
   }
 

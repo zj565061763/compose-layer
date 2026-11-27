@@ -115,7 +115,7 @@ fun layer(
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): LayerState {
-  val layer = rememberLayer(
+  return rememberLayer(
     factory = { NormalLayerImpl() },
     attach = attach,
     onDetachRequest = onDetachRequest,
@@ -130,7 +130,6 @@ fun layer(
   ) {
     setAlignment(alignment)
   }
-  return remember(layer) { layer.toLayerState() }
 }
 
 //-------------------- TargetLayer --------------------
@@ -214,7 +213,7 @@ fun targetLayer(
   zIndex: Float = 0f,
   content: @Composable LayerContentScope.() -> Unit,
 ): TargetLayerState {
-  val layer = rememberLayer(
+  return rememberLayer(
     factory = { TargetLayerImpl() },
     attach = attach,
     onDetachRequest = onDetachRequest,
@@ -234,7 +233,6 @@ fun targetLayer(
     setSmartAlignments(smartAlignments)
     setClipBackgroundDirection(clipBackgroundDirection)
   }
-  return remember(layer) { layer.toTargetLayerState() }
 }
 
 /** 为当前元素设置容器作用域内唯一的[tag] */

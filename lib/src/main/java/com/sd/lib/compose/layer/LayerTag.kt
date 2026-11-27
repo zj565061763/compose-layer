@@ -39,7 +39,9 @@ internal class LayerTagNode(
     _tag = tag
     if (container != null) {
       require(tag.isNotEmpty()) { "tag is empty." }
-      container.attachTargetNode(tag = tag, node = this)
+      if (isPlaced) {
+        container.attachTargetNode(tag = tag, node = this)
+      }
     }
   }
 
@@ -50,19 +52,19 @@ internal class LayerTagNode(
     bindContainer(container)
   }
 
-  internal fun bindContainer(container: ContainerForComposable) {
+  fun bindContainer(container: ContainerForComposable) {
     require(_tag.isNotEmpty()) { "tag is empty." }
     _container = container
-    container.attachTargetNode(tag = _tag, node = this)
   }
 
   override fun onPlaced(coordinates: LayoutCoordinates) {
     super.onPlaced(coordinates)
-    _container?.onTargetNodePlaced(tag = _tag, node = this)
+    _container?.attachTargetNode(tag = _tag, node = this)
   }
 
-  override fun onNodeUnplaced() {
-    _container?.onTargetRectChanged(tag = _tag, node = this, rect = null)
+  override fun onUnplaced() {
+    _container?.detachTargetNode(tag = _tag, node = this)
+    super.onUnplaced()
   }
 
   override fun onDetach() {
