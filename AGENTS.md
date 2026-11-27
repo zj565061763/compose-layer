@@ -47,11 +47,11 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 - `ContentBox` 内置空 `pointerInput` 消费内容区点击事件，防止点击穿透到下方的外部触摸拦截层。
 - `ContentBox` 默认使用 `CapturedAnimatedVisibility` 执行内容动画（`captureOnDetach = true`），退场开始时立即移除子内容组合并基于捕获帧播放退场动画；设为 `false` 时使用 `AnimatedVisibility`。
 - 容器与 `Tag` 目标均通过窗口矩形（`LayoutCoordinates.positionInWindow().round()` 与 `RelativeLayoutBounds.boundsInWindow`）采集坐标，因此 `LayerTarget.Offset` 传入的坐标也必须基于 Window 坐标系（如 `localToWindow` 转换结果）。
-- `TargetLayer` 无需 `SubcomposeLayout`：未启用 `smartAlignments` 时通过 `FixedTargetBox` 预计算最大允许尺寸并单遍测量放置 `ContentBox`；启用 `smartAlignments` 时通过 `LookaheadScope` + `SmartTargetLayoutNode`（`ApproachLayoutModifierNode`）基于 Lookahead 自然尺寸智能选位并在仍溢出时裁剪尺寸，且未显式指定 `transition` 时首次进入前通过 `SmartProbeBox` 配合 `movableContentOf` 探测自然尺寸以确定默认智能动画。
+- `TargetLayer` 无需 `SubcomposeLayout`：未启用 `smartAlignments` 时通过 `FixedTargetBox` 预计算最大允许尺寸并单遍测量放置 `ContentBox`；启用 `smartAlignments` 时通过 `LookaheadScope` + `SmartTargetLayoutNode`（`ApproachLayoutModifierNode`）基于 Lookahead 自然尺寸智能选位并在仍溢出时裁剪尺寸，且存在智能动画分支（未显式指定 `transition` 或候选列表含非空 `SmartAliment.transition`）时首次进入前通过 `SmartProbeBox` 配合 `movableContentOf` 探测自然尺寸以确定入场动画。
 - `TargetLayer` 在容器或目标未就绪（`!isReady`）时复用上一帧缓存的 `_placedContentRect`，保证目标消失或卸载时退场动画仍在原位播放。
 - `fixOverFlow` 在可随尺寸内收的边越界时循环缩减宽高并重算对齐坐标，水平或垂直居中对齐且仅单侧溢出时按双倍溢出量缩减对应维度，维持居中对齐关系。
 - `clipBackgroundDirection` 表示裁切掉内容对应外侧方向的背景遮罩（如 `Directions.Top` 裁掉内容上方的遮罩，使背景从内容顶部向下延伸），在 `BackgroundBox` 绘制阶段通过 `drawWithContent` + `clipRect` 完成裁切，支持通过 `+` 组合多个方向并在 RTL 下自动互换 `Start` 与 `End`。
-- 未显式指定 `transition` 时，`TargetLayer` 若命中 `SmartAliment` 则优先使用该项的动画，否则 `LayerTarget.Offset` 在四角对齐时使用锚点缩放动画（`offsetTransition`），其余场景使用滑动或淡入淡出动画（`defaultTransition`）。
+- `TargetLayer` 过渡动画按 `SmartAliment.transition -> TargetLayer.transition -> 命中 SmartAliment.alignment 默认动画 -> TargetLayer.alignment 默认动画` 的优先级选取；默认动画在 `LayerTarget.Offset` 四角对齐时使用锚点缩放动画（`offsetTransition`），其余场景使用滑动或淡入淡出动画（`defaultTransition`）。
 - `transition` 存储在普通属性而非 Compose `State` 中，属于非响应式配置，运行期变更不会主动触发重组。
 - `SmartAliments` 与 `SmartAliment` 为既有公开 API 命名（历史拼写），修改时必须保留原类名以确保兼容性。
 - 无返回值的 `Layer` / `TargetLayer` 与返回 `LayerState` 的 `layer` / `targetLayer` 参数签名必须保持同步。
@@ -83,4 +83,4 @@ Jetpack Compose 浮层容器库，支持对齐容器的普通浮层（`Layer` / 
 | `DirectionsTest` | 单方向位标志、`+` 组合值相等与幂等性及 `rtl()` 左右方向互换 |
 | `TargetLayerFixOverflowTest` | `fixOverFlow` 四边内收裁剪、居中单双侧溢出修正及固定锚定边越界保护 |
 | `TargetLayerLayoutTest` | `calculateMaxAllowedSize` 预计算最大允许尺寸与 `calculateClipBackgroundBounds` 绘制期背景裁切边界（含 LTR/RTL 与越界收敛） |
-| `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 在 LTR/RTL 下的四角缩放锚点映射 |
+| `TargetAlignmentTransitionTest` | `TargetAlignment.offsetTransition` 四角缩放锚点映射及 `resolveTargetLayerTransition` 四级动画优先级 |

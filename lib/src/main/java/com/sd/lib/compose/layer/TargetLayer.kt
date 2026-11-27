@@ -264,11 +264,11 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
   }
 
   private fun shouldProbeSmartAlignment(): Boolean {
-    val smartAlignments = _smartAlignments ?: return false
-    return smartAlignments.aliments.isNotEmpty() &&
-      !hasExplicitTransition &&
+    val aliments = _smartAlignments?.aliments ?: return false
+    return aliments.isNotEmpty() &&
       !isInspectionMode &&
-      isContentExitIdle()
+      isContentExitIdle() &&
+      (!hasExplicitTransition || aliments.any { it.transition != null })
   }
 
   /** 根据容器与目标就绪状态及智能选位预判进度更新可见状态 */
@@ -299,28 +299,23 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
 
   @Composable
   override fun getLayerTransition(transition: LayerTransition?): LayerTransition {
-    if (transition != null) {
-      logMsg { "getLayerTransition from params" }
-      return transition
-    }
-
     val direction = LocalLayoutDirection.current
-
-    _currentSmartAlignment?.also { sa ->
-      logMsg { "getLayerTransition from smartAlignment $sa" }
-      return sa.transition ?: sa.alignment.transition(direction)
+    val smartAlignment = _currentSmartAlignment
+    logMsg {
+      when {
+        smartAlignment?.transition != null -> "getLayerTransition from smartAlignment $smartAlignment"
+        transition != null -> "getLayerTransition from params"
+        smartAlignment != null -> "getLayerTransition from smartAlignment default $smartAlignment"
+        else -> "getLayerTransition from default"
+      }
     }
-
-    logMsg { "getLayerTransition from default" }
-    return _alignment.transition(direction)
-  }
-
-  private fun TargetAlignment.transition(direction: LayoutDirection): LayerTransition {
-    return if (_isOffsetTarget) {
-      offsetTransition(direction)
-    } else {
-      defaultTransition(direction)
-    }
+    return resolveTargetLayerTransition(
+      explicitTransition = transition,
+      smartAlignment = smartAlignment,
+      defaultAlignment = _alignment,
+      isOffsetTarget = _isOffsetTarget,
+      direction = direction,
+    )
   }
 
   @Composable
@@ -339,7 +334,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayer {
     }
   }
 
-  /** 首次进入前探测自然尺寸以确定默认智能过渡动画 */
+  /** 首次进入前探测自然尺寸以确定智能选位过渡动画 */
   @Composable
   private fun SmartProbeBox(smartAlignments: SmartAliments) {
     Layout(
@@ -681,6 +676,24 @@ internal fun calculateClipBackgroundBounds(
     right = clipRight.coerceAtLeast(clipLeft),
     bottom = clipBottom.coerceAtLeast(clipTop),
   )
+}
+
+/** 按 SmartAliment.transition > explicitTransition > 生效方位默认动画 的优先级解析过渡动画 */
+internal fun resolveTargetLayerTransition(
+  explicitTransition: LayerTransition?,
+  smartAlignment: SmartAliment?,
+  defaultAlignment: TargetAlignment,
+  isOffsetTarget: Boolean,
+  direction: LayoutDirection,
+): LayerTransition {
+  smartAlignment?.transition?.also { return it }
+  if (explicitTransition != null) return explicitTransition
+  val effectiveAlignment = smartAlignment?.alignment ?: defaultAlignment
+  return if (isOffsetTarget) {
+    effectiveAlignment.offsetTransition(direction)
+  } else {
+    effectiveAlignment.defaultTransition(direction)
+  }
 }
 
 private fun alignTarget(
