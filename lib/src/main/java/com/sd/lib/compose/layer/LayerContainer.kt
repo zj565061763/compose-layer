@@ -180,8 +180,6 @@ internal class LayerContainerNode(
 }
 
 private class LayerContainerImpl : LayerContainer {
-  private var _destroyed = false
-
   private var _containerNode: LayerContainerNode? = null
   private val _targetNodes: MutableMap<String, LayerTagNode> = mutableMapOf()
 
@@ -195,7 +193,6 @@ private class LayerContainerImpl : LayerContainer {
     }
 
   override fun attachContainerNode(node: LayerContainerNode) {
-    if (_destroyed) return
     _containerNode = node
     val hasObservers = _containerLayoutCallbacks.isNotEmpty()
     node.setObserving(observing = hasObservers)
@@ -213,14 +210,12 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun onContainerRectChanged(rect: LayoutRect?) {
-    if (_destroyed) return
     _containerLayoutCallbacks.forEach { callback ->
       callback.invoke(rect)
     }
   }
 
   override fun attachTargetNode(tag: String, node: LayerTagNode) {
-    if (_destroyed) return
     val old = _targetNodes[tag]
     if (old === node) return
     check(old == null) { "Tag:$tag already exist." }
@@ -236,14 +231,11 @@ private class LayerContainerImpl : LayerContainer {
     if (_targetNodes[tag] === node) {
       node.setObserving(observing = false)
       _targetNodes.remove(tag)
-      if (!_destroyed) {
-        notifyTargetCallbacks(tag, null)
-      }
+      notifyTargetCallbacks(tag, null)
     }
   }
 
   override fun onTargetRectChanged(tag: String, node: LayerTagNode, rect: LayoutRect?) {
-    if (_destroyed) return
     if (_targetNodes[tag] === node) {
       notifyTargetCallbacks(tag, rect)
     }
@@ -256,7 +248,6 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun initLayer(layer: LayerImpl) {
-    if (_destroyed) return
     if (layer.layerContainer === this) return
     layer.release()
     layer.onInit(this)
@@ -270,7 +261,6 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun attachLayer(layer: LayerImpl) {
-    if (_destroyed) return
     if (layer.layerContainer === this) {
       if (!_attachedLayers.contains(layer)) {
         _attachedLayers.add(layer)
@@ -283,7 +273,6 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun registerContainerLayoutCallback(callback: LayoutRectCallback) {
-    if (_destroyed) return
     if (_containerLayoutCallbacks.add(callback)) {
       val node = _containerNode
       node?.setObserving(observing = true)
@@ -301,7 +290,6 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun registerTargetLayoutCallback(tag: String?, callback: LayoutRectCallback) {
-    if (_destroyed) return
     if (tag.isNullOrEmpty()) return
     val holder = _targetLayoutCallbacks.getOrPut(tag) { mutableSetOf() }
     if (holder.add(callback)) {
@@ -324,7 +312,6 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun destroy() {
-    _destroyed = true
     _containerNode?.setObserving(observing = false)
     _containerNode = null
     _targetNodes.values.forEach { it.setObserving(observing = false) }

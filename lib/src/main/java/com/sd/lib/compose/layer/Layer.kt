@@ -48,7 +48,7 @@ internal abstract class LayerImpl : LayerState {
   var layerContainer: ContainerForLayer? = null
     private set
 
-  protected var isInspectionMode by mutableStateOf(false)
+  protected var isInspectionMode: Boolean = false
     private set
 
   private var _attachRequested by mutableStateOf(false)

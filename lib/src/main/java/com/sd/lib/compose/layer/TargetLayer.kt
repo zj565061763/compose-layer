@@ -168,21 +168,15 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   }
 
   fun setAlignment(alignment: TargetAlignment) {
-    if (_alignment != alignment) {
-      _alignment = alignment
-    }
+    _alignment = alignment
   }
 
   fun setAlignmentOffsetX(offset: TargetAlignmentOffset?) {
-    if (_alignmentOffsetX != offset) {
-      _alignmentOffsetX = offset
-    }
+    _alignmentOffsetX = offset
   }
 
   fun setAlignmentOffsetY(offset: TargetAlignmentOffset?) {
-    if (_alignmentOffsetY != offset) {
-      _alignmentOffsetY = offset
-    }
+    _alignmentOffsetY = offset
   }
 
   fun setSmartAlignments(alignments: SmartAliments?) {
@@ -196,9 +190,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   }
 
   fun setClipBackgroundDirection(direction: Directions?) {
-    if (_clipBackgroundDirection != direction) {
-      _clipBackgroundDirection = direction
-    }
+    _clipBackgroundDirection = direction
   }
 
   override fun onAttach(container: ContainerForLayer) {
@@ -229,9 +221,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
       }
       else -> null
     }
-    if (_targetRect != rect) {
-      _targetRect = rect
-    }
+    _targetRect = rect
     syncVisibility()
   }
 
@@ -255,17 +245,12 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
   }
 
   fun updateSmartAlignment(smartAlignment: SmartAliment?) {
-    if (_currentSmartAlignment != smartAlignment) {
-      _currentSmartAlignment = smartAlignment
-    }
+    _currentSmartAlignment = smartAlignment
   }
 
   fun updatePlacedContentRect(offset: IntOffset, size: IntSize) {
     if ((size.width > 0) && (size.height > 0)) {
-      val rect = LayoutRect(offset = offset, size = size)
-      if (_placedContentRect != rect) {
-        _placedContentRect = rect
-      }
+      _placedContentRect = LayoutRect(offset = offset, size = size)
     }
   }
 
