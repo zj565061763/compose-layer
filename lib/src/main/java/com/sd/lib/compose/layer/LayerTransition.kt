@@ -38,32 +38,32 @@ data class LayerTransition(
 
     /** 从上向下滑动 */
     fun slideTopToBottom(
-      enter: EnterTransition = slideInVertically(sSlideAnimationSpec) { -it },
-      exit: ExitTransition = slideOutVertically(sSlideAnimationSpec) { -it },
+      enter: EnterTransition = slideInVertically(slideAnimationSpec) { -it },
+      exit: ExitTransition = slideOutVertically(slideAnimationSpec) { -it },
     ): LayerTransition {
       return LayerTransition(enter, exit)
     }
 
     /** 从下向上滑动 */
     fun slideBottomToTop(
-      enter: EnterTransition = slideInVertically(sSlideAnimationSpec) { it },
-      exit: ExitTransition = slideOutVertically(sSlideAnimationSpec) { it },
+      enter: EnterTransition = slideInVertically(slideAnimationSpec) { it },
+      exit: ExitTransition = slideOutVertically(slideAnimationSpec) { it },
     ): LayerTransition {
       return LayerTransition(enter, exit)
     }
 
     /** 从左向右滑动 */
     fun slideLeftToRight(
-      enter: EnterTransition = slideInHorizontally(sSlideAnimationSpec) { -it },
-      exit: ExitTransition = slideOutHorizontally(sSlideAnimationSpec) { -it },
+      enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { -it },
+      exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { -it },
     ): LayerTransition {
       return LayerTransition(enter, exit)
     }
 
     /** 从右向左滑动 */
     fun slideRightToLeft(
-      enter: EnterTransition = slideInHorizontally(sSlideAnimationSpec) { it },
-      exit: ExitTransition = slideOutHorizontally(sSlideAnimationSpec) { it },
+      enter: EnterTransition = slideInHorizontally(slideAnimationSpec) { it },
+      exit: ExitTransition = slideOutHorizontally(slideAnimationSpec) { it },
     ): LayerTransition {
       return LayerTransition(enter, exit)
     }
@@ -144,8 +144,8 @@ data class LayerTransition(
   }
 }
 
-private val sSlideAnimationSpec: FiniteAnimationSpec<IntOffset> = tween(200)
-private val sScaleAnimationSpec: FiniteAnimationSpec<Float> = tween(200)
+private val slideAnimationSpec: FiniteAnimationSpec<IntOffset> = tween(200)
+private val scaleAnimationSpec: FiniteAnimationSpec<Float> = tween(200)
 
 @PublishedApi
 internal inline fun layoutDirectionTransition(
@@ -165,7 +165,7 @@ private fun scaleWithOrigin(
 ): LayerTransition {
   val transformOrigin = TransformOrigin(pivotFractionX, pivotFractionY)
   return LayerTransition(
-    enter = scaleIn(sScaleAnimationSpec, transformOrigin = transformOrigin),
-    exit = scaleOut(sScaleAnimationSpec, transformOrigin = transformOrigin),
+    enter = scaleIn(scaleAnimationSpec, transformOrigin = transformOrigin),
+    exit = scaleOut(scaleAnimationSpec, transformOrigin = transformOrigin),
   )
 }

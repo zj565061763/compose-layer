@@ -231,7 +231,6 @@ private class LayerContainerImpl : LayerContainer {
 
   override fun initLayer(layer: LayerImpl) {
     if (layer.layerContainer === this) return
-    check(layer.layerContainer == null) { "Layer already initialized with another container." }
     layer.onInit(this)
   }
 
@@ -293,12 +292,11 @@ private class LayerContainerImpl : LayerContainer {
   }
 
   override fun destroy() {
+    _attachedLayers.toTypedArray().forEach { releaseLayer(it) }
     _containerNode?.setObserving(observing = false)
     _containerNode = null
     _targetNodes.values.forEach { it.setObserving(observing = false) }
     _targetNodes.clear()
-    _attachedLayers.toTypedArray().forEach { releaseLayer(it) }
-    _attachedLayers.clear()
     _containerLayoutCallbacks.clear()
     _targetLayoutCallbacks.clear()
   }

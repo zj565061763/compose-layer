@@ -177,7 +177,7 @@ internal abstract class LayerImpl : LayerState {
   /** 初始化回调 */
   fun onInit(container: ContainerForLayer) {
     logMsg { "onInit $container" }
-    check(layerContainer == null)
+    check(layerContainer == null) { "Layer already initialized with another container." }
     layerContainer = container
   }
 
@@ -211,15 +211,12 @@ internal abstract class LayerImpl : LayerState {
 
   /** 内容是否已完全处于未显示且无动画的静止状态 */
   protected fun isContentExitIdle(): Boolean {
-    return !_contentVisibleState.targetState &&
-      !_contentVisibleState.currentState &&
-      _contentVisibleState.isIdle
+    return !_contentVisibleState.targetState && _contentVisibleState.isIdle
   }
 
   private fun isExitIdle(): Boolean {
     return isContentExitIdle() &&
       !_backgroundVisibleState.targetState &&
-      !_backgroundVisibleState.currentState &&
       _backgroundVisibleState.isIdle
   }
 

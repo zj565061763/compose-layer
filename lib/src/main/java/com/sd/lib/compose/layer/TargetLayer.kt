@@ -362,8 +362,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
         val contentPlaceable = measurables.first().measure(cs.newMax(maxAllowedSize))
         val measuredSize = contentPlaceable.intSize()
 
-        val (fixOffset, fixSize) = resolveAlignedTargetLayout(
-          layer = this@TargetLayerImpl,
+        val aligned = alignTarget(
           targetRect = target,
           containerRect = container,
           alignment = currentAlignment,
@@ -373,6 +372,7 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
           density = density,
           layoutDirection = layoutDirection,
         )
+        val placeOffset = IntOffset(aligned.x, aligned.y)
 
         logMsg {
           """
@@ -380,14 +380,14 @@ internal class TargetLayerImpl : LayerImpl(), TargetLayerState {
                alignment:$currentAlignment
                target:$target
                container:$container
-               offset:$fixOffset
-               size:$measuredSize -> $fixSize
+               offset:$placeOffset
+               size:$measuredSize
           """.trimIndent()
         }
 
         layout(cs.maxWidth, cs.maxHeight) {
-          updatePlacedContentRect(fixOffset, contentPlaceable.intSize())
-          contentPlaceable.place(fixOffset)
+          updatePlacedContentRect(placeOffset, measuredSize)
+          contentPlaceable.place(placeOffset)
         }
       } else {
         layoutCachedContent(measurables.first(), cs, _placedContentRect)
@@ -531,7 +531,6 @@ private class SmartTargetLayoutNode(
     )
     val size = placeable.intSize()
     val offset = resolveSmartApproachOffset(
-      layer = layer,
       rawSize = plan.rawSize,
       fixOffset = plan.offset,
       targetRect = target,
@@ -615,7 +614,6 @@ internal fun planSmartTargetLayout(
 
 /** 计算Approach阶段的放置坐标，尺寸与自然尺寸一致时直接复用预计算坐标 */
 internal fun resolveSmartApproachOffset(
-  layer: LayerImpl? = null,
   rawSize: IntSize,
   fixOffset: IntOffset,
   targetRect: LayoutRect,
@@ -630,8 +628,7 @@ internal fun resolveSmartApproachOffset(
   if (approachSize == rawSize) {
     return fixOffset
   }
-  return resolveAlignedTargetLayout(
-    layer = layer,
+  val aligned = alignTarget(
     targetRect = targetRect,
     containerRect = containerRect,
     alignment = alignment,
@@ -640,32 +637,8 @@ internal fun resolveSmartApproachOffset(
     contentSize = approachSize,
     density = density,
     layoutDirection = layoutDirection,
-  ).offset
-}
-
-/** 按指定对齐方位与实际测量尺寸计算溢出修正后的坐标与尺寸 */
-internal fun resolveAlignedTargetLayout(
-  layer: LayerImpl? = null,
-  targetRect: LayoutRect,
-  containerRect: LayoutRect,
-  alignment: TargetAlignment,
-  alignmentOffsetX: TargetAlignmentOffset?,
-  alignmentOffsetY: TargetAlignmentOffset?,
-  contentSize: IntSize,
-  density: Float,
-  layoutDirection: LayoutDirection,
-): FixOverFlow {
-  val result = alignTarget(
-    targetRect = targetRect,
-    containerRect = containerRect,
-    alignment = alignment,
-    alignmentOffsetX = alignmentOffsetX,
-    alignmentOffsetY = alignmentOffsetY,
-    contentSize = contentSize,
-    density = density,
-    layoutDirection = layoutDirection,
   )
-  return result.fixOverFlow(layer, layoutDirection)
+  return IntOffset(aligned.x, aligned.y)
 }
 
 /** 计算固定对齐方位下不发生可内收溢出的最大允许宽高 */
@@ -680,8 +653,7 @@ internal fun calculateMaxAllowedSize(
   density: Float,
   layoutDirection: LayoutDirection,
 ): IntSize {
-  return resolveAlignedTargetLayout(
-    layer = layer,
+  val result = alignTarget(
     targetRect = targetRect,
     containerRect = containerRect,
     alignment = alignment,
@@ -690,7 +662,8 @@ internal fun calculateMaxAllowedSize(
     contentSize = maxContainerSize,
     density = density,
     layoutDirection = layoutDirection,
-  ).size
+  )
+  return result.fixOverFlow(layer, layoutDirection).size
 }
 
 /** 计算裁切指定外侧方向后保留的背景矩形区域 */

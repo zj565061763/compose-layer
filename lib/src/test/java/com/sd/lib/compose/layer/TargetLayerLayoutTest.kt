@@ -161,19 +161,20 @@ class TargetLayerLayoutTest {
     // 水平缩窄至目标右边缘 70，垂直保留目标上方完整可用高度 250（不锁死在单行高度 40）
     assertEquals(IntSize(70, 250), plan.maxAllowedSize)
 
-    // 宽度受限后文本折行测得实际尺寸 68x90，按实际尺寸重算对齐坐标后右边缘对齐 70、底边对齐 250
-    val wrappedFixed = resolveAlignedTargetLayout(
+    // 宽度受限后文本折行测得实际尺寸 68x90，Approach 阶段按实际尺寸重算对齐坐标后右边缘对齐 70、底边对齐 250
+    val wrappedOffset = resolveSmartApproachOffset(
+      rawSize = plan.rawSize,
+      fixOffset = plan.offset,
       targetRect = targetRect,
       containerRect = containerRect,
       alignment = plan.effectiveAlignment,
       alignmentOffsetX = null,
       alignmentOffsetY = null,
-      contentSize = IntSize(68, 90),
+      approachSize = IntSize(68, 90),
       density = 1f,
       layoutDirection = LayoutDirection.Ltr,
     )
-    assertEquals(IntOffset(2, 160), wrappedFixed.offset)
-    assertEquals(IntSize(68, 90), wrappedFixed.size)
+    assertEquals(IntOffset(2, 160), wrappedOffset)
   }
 
   @Test
